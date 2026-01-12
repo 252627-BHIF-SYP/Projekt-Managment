@@ -1,0 +1,130 @@
+@startuml database_model
+hide circle
+skinparam linetype ortho
+
+entity User {
+  + id : UUID
+  --
+  username : string
+  email : string
+  firstname : string
+  lastname : string
+  active : boolean
+}
+
+entity Role {
+  + id : UUID
+  --
+  name : string
+}
+
+entity UserRole {
+  + id : UUID
+  --
+  user_id : UUID
+  role_id : UUID
+}
+
+entity StudentProfile {
+  + id : UUID
+  --
+  user_id : UUID
+  matrikelnummer : string
+}
+
+entity SchoolYear {
+  + id : UUID
+  --
+  name : string
+  start_date : date
+  end_date : date
+  active : boolean
+}
+
+entity Class {
+  + id : UUID
+  --
+  name : string
+  department : string
+}
+
+entity StudentEnrollment {
+  + id : UUID
+  --
+  student_id : UUID
+  class_id : UUID
+  schoolyear_id : UUID
+}
+
+entity Project {
+  + id : UUID
+  --
+  title : string
+  description : text
+  logo_path : string
+  github_url : string
+  status : string
+  schoolyear_id : UUID
+}
+
+entity ProjectStudent {
+  + id : UUID
+  --
+  project_id : UUID
+  enrollment_id : UUID
+}
+
+entity ProjectSupervisor {
+  + id : UUID
+  --
+  project_id : UUID
+  user_id : UUID
+  type : string
+}
+
+entity ChangeRequest {
+  + id : UUID
+  --
+  project_id : UUID
+  field_name : string
+  old_value : text
+  new_value : text
+  status : string
+  requested_by : UUID
+  reviewed_by : UUID
+  created_at : datetime
+}
+
+entity ImportLog {
+  + id : UUID
+  --
+  type : string
+  filename : string
+  created_at : datetime
+  imported_by : UUID
+}
+
+User ||--o{ UserRole
+Role ||--o{ UserRole
+
+User ||--|| StudentProfile
+
+StudentProfile ||--o{ StudentEnrollment
+Class ||--o{ StudentEnrollment
+SchoolYear ||--o{ StudentEnrollment
+
+SchoolYear ||--o{ Project
+
+Project ||--o{ ProjectStudent
+StudentEnrollment ||--o{ ProjectStudent
+
+Project ||--o{ ProjectSupervisor
+User ||--o{ ProjectSupervisor
+
+Project ||--o{ ChangeRequest
+User ||--o{ ChangeRequest : requested_by
+User ||--o{ ChangeRequest : reviewed_by
+
+User ||--o{ ImportLog
+SchoolYear ||--o{ ImportLog
+@enduml
