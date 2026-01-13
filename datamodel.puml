@@ -1,130 +1,93 @@
-@startuml database_model
+@startuml
 hide circle
 skinparam linetype ortho
+skinparam shadowing false
 
-entity User {
-  + id : UUID
+entity "SchoolYear" as SchoolYear {
+  * school_year_id : INT <<PK>>
   --
-  username : string
-  email : string
-  firstname : string
-  lastname : string
-  active : boolean
+  label : VARCHAR
 }
 
-entity Role {
-  + id : UUID
+entity "Class" as Class {
+  * class_id : INT <<PK>>
   --
-  name : string
+  name : VARCHAR
+  year_level : INT
+  branch : VARCHAR
 }
 
-entity UserRole {
-  + id : UUID
+entity "Student" as Student {
+  * student_id : INT <<PK>>
   --
-  user_id : UUID
-  role_id : UUID
+  first_name : VARCHAR
+  last_name  : VARCHAR
+  if_name : VARCHAR
 }
 
-entity StudentProfile {
-  + id : UUID
+entity "Professor" as Professor {
+  * professor_id : INT <<PK>>
   --
-  user_id : UUID
-  matrikelnummer : string
+  first_name : VARCHAR
+  last_name  : VARCHAR
 }
 
-entity SchoolYear {
-  + id : UUID
+entity "StudentClassHistory" as StudentClassHistory {
+  * history_id : INT <<PK>>
   --
-  name : string
-  start_date : date
-  end_date : date
-  active : boolean
+  student_id : INT <<FK>>
+  class_id : INT <<FK>>
+  school_year_id : INT <<FK>>
 }
 
-entity Class {
-  + id : UUID
+entity "Project" as Project {
+  * project_id : INT <<PK>>
   --
-  name : string
-  department : string
+  school_year_id : INT <<FK>>
+  title : VARCHAR
+  description : TEXT
+  github_url : VARCHAR
+  logo_url : VARCHAR
 }
 
-entity StudentEnrollment {
-  + id : UUID
-  --
-  student_id : UUID
-  class_id : UUID
-  schoolyear_id : UUID
+entity "ProjectStudent" as ProjectStudent {
+  * project_id : INT <<PK,FK>>
+  * history_id : INT <<PK,FK>>
 }
 
-entity Project {
-  + id : UUID
-  --
-  title : string
-  description : text
-  logo_path : string
-  github_url : string
-  status : string
-  schoolyear_id : UUID
+entity "ProjectSupervisor" as ProjectSupervisor {
+  * project_id : INT <<PK,FK>>
+  * professor_id : INT <<PK,FK>>
 }
 
-entity ProjectStudent {
-  + id : UUID
+entity "ChangeRequest" as ChangeRequest {
+  * change_id : INT <<PK>>
   --
-  project_id : UUID
-  enrollment_id : UUID
+  project_id : INT <<FK>>
+  requested_by_history_id : INT <<FK>>
+  approved_by_professor_id : INT <<FK>>
+  status : VARCHAR
+
+  new_title : VARCHAR
+  new_description : TEXT
+  new_github_url : VARCHAR
+  new_logo_url : VARCHAR
 }
 
-entity ProjectSupervisor {
-  + id : UUID
-  --
-  project_id : UUID
-  user_id : UUID
-  type : string
-}
+SchoolYear "1" -- "n" StudentClassHistory
+Class      "1" -- "n" StudentClassHistory
+Student    "1" -- "n" StudentClassHistory
 
-entity ChangeRequest {
-  + id : UUID
-  --
-  project_id : UUID
-  field_name : string
-  old_value : text
-  new_value : text
-  status : string
-  requested_by : UUID
-  reviewed_by : UUID
-  created_at : datetime
-}
+SchoolYear "1" -- "n" Project
 
-entity ImportLog {
-  + id : UUID
-  --
-  type : string
-  filename : string
-  created_at : datetime
-  imported_by : UUID
-}
+Project              "1" -- "n" ProjectStudent
+StudentClassHistory  "1" -- "n" ProjectStudent
 
-User ||--o{ UserRole
-Role ||--o{ UserRole
+Project    "1" -- "n" ProjectSupervisor
+Professor  "1" -- "n" ProjectSupervisor
 
-User ||--|| StudentProfile
+Project              "1" -- "n" ChangeRequest
+StudentClassHistory  "1" -- "n" ChangeRequest
+Professor            "1" -- "n" ChangeRequest
 
-StudentProfile ||--o{ StudentEnrollment
-Class ||--o{ StudentEnrollment
-SchoolYear ||--o{ StudentEnrollment
-
-SchoolYear ||--o{ Project
-
-Project ||--o{ ProjectStudent
-StudentEnrollment ||--o{ ProjectStudent
-
-Project ||--o{ ProjectSupervisor
-User ||--o{ ProjectSupervisor
-
-Project ||--o{ ChangeRequest
-User ||--o{ ChangeRequest : requested_by
-User ||--o{ ChangeRequest : reviewed_by
-
-User ||--o{ ImportLog
-SchoolYear ||--o{ ImportLog
 @enduml
