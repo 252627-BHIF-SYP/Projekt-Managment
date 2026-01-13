@@ -24,36 +24,35 @@ Insgesamt führt diese Situation zu unnötigem Zeitaufwand und unklaren Zuständ
 
 ---
 
-### 1.2 Verbesserungsvorschläge
+### 2 Zielsetzung
 
-Eine zentrale, webbasierte Plattform für die Projektverwaltung soll diese Probleme lösen.  
-Die Plattform soll sowohl Lehrern als auch Schülern eine einheitliche und übersichtliche Lösung bieten.
+Ziel des Projekts ist die Entwicklung einer zentralen, webbasierten Plattform zur Verwaltung von Schulprojekten.  
+Die Plattform soll die derzeit uneinheitliche Organisation ersetzen und eine klare, strukturierte Lösung für Professoren und Schüler bieten.
 
 Konkret soll die Plattform ermöglichen:
 
 - Projekte zentral anzulegen, zu bearbeiten und zu löschen  
 - Schüler und Betreuer eindeutig Projekten zuzuordnen  
-- Projektdaten wie Titel, Beschreibung oder Logo übersichtlich darzustellen  
+- Projektdaten wie Titel, Beschreibung, GitHub-Link und Logo übersichtlich darzustellen  
 - CSV-Dateien einzulesen, um mehrere Projekte automatisch zu erstellen  
-- Projekte gezielt nach bestimmten Kriterien zu filtern  
+- Projekte gezielt nach verschiedenen Kriterien zu filtern  
 
-Damit entsteht ein einheitliches System, das die Projektorganisation an der Schule deutlich vereinfacht.
+Im Vordergrund stehen dabei folgende Ziele:
 
----
+- **Übersichtlichkeit:**  
+  Alle Projekte, Klassen, Schüler und Betreuer sind zentral und strukturiert abrufbar.
 
-## 2. Zielsetzung
+- **Einfache Bedienung:**  
+  Die Plattform soll intuitiv bedienbar sein und ohne lange Einschulung nutzbar sein.
 
-Ziel des Projekts ist die Entwicklung einer webbasierten Projektverwaltungsplattform für den schulischen Einsatz.  
-Die Plattform soll als zentrales Werkzeug für Professorinnen und Professoren dienen und gleichzeitig Schülern einen klaren Überblick über ihr eigenes Projekt geben.
+- **Klare Rollenverteilung:**  
+  Unterschiedliche Benutzerrollen (z. B. Professor, Betreuer, Schüler) haben klar definierte Rechte.
 
-Im Vordergrund stehen dabei:
+- **Zeitersparnis:**  
+  Verwaltungsaufgaben wie Projektzuordnung, Suche und CSV-Import sollen deutlich vereinfacht werden.
 
-- Übersichtlichkeit  
-- Einfache Bedienung  
-- Klare Rollenverteilung (Professor / Schüler)  
-- Zeitersparnis bei der Projektverwaltung  
+Damit entsteht ein einheitliches System, das die Projektorganisation an der Schule nachhaltig verbessert.
 
----
 
 ## 3. Zielgruppen
 
