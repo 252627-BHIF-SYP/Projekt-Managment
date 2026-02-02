@@ -48,30 +48,22 @@ entity "Project" as Project {
   description : TEXT
   github_url : VARCHAR
   logo_url : VARCHAR
+  status : VARCHAR
+  technology : VARCHAR
 }
 
 entity "ProjectStudent" as ProjectStudent {
   * project_id : INT <<PK,FK>>
   * history_id : INT <<PK,FK>>
+  --
+  role : VARCHAR
 }
 
 entity "ProjectSupervisor" as ProjectSupervisor {
   * project_id : INT <<PK,FK>>
   * professor_id : INT <<PK,FK>>
-}
-
-entity "ChangeRequest" as ChangeRequest {
-  * change_id : INT <<PK>>
   --
-  project_id : INT <<FK>>
-  requested_by_history_id : INT <<FK>>
-  approved_by_professor_id : INT <<FK>>
-  status : VARCHAR
-
-  new_title : VARCHAR
-  new_description : TEXT
-  new_github_url : VARCHAR
-  new_logo_url : VARCHAR
+  role : VARCHAR
 }
 
 SchoolYear "1" -- "n" StudentClassHistory
@@ -85,9 +77,4 @@ StudentClassHistory  "1" -- "n" ProjectStudent
 
 Project    "1" -- "n" ProjectSupervisor
 Professor  "1" -- "n" ProjectSupervisor
-
-Project              "1" -- "n" ChangeRequest
-StudentClassHistory  "1" -- "n" ChangeRequest
-Professor            "1" -- "n" ChangeRequest
-
 @enduml
