@@ -1,0 +1,150 @@
+<div class="page-container" *ngIf="project">
+  <div class="page-header">
+    <button mat-icon-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>{{ project.title }}</h1>
+    <div class="header-actions">
+      <button mat-raised-button color="primary">
+        <mat-icon>edit</mat-icon>
+        Edit
+      </button>
+    </div>
+  </div>
+
+  <mat-tab-group>
+    <!-- Overview Tab -->
+    <mat-tab label="Overview">
+      <div class="tab-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Project Information</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">Status:</span>
+                <span class="value">
+                  <mat-chip [class]="'status-' + project.status.toLowerCase()">
+                    {{ project.status }}
+                  </mat-chip>
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="label">School Year:</span>
+                <span class="value">{{ project.schoolYear }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Class:</span>
+                <span class="value">{{ project.className }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Created By:</span>
+                <span class="value">{{ project.createdByName }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Team Size:</span>
+                <span class="value">{{ project.minStudents }}-{{ project.maxStudents }} students</span>
+              </div>
+              <div class="info-item" *ngIf="project.githubUrl">
+                <span class="label">GitHub:</span>
+                <span class="value">
+                  <a [href]="project.githubUrl" target="_blank">{{ project.githubUrl }}</a>
+                </span>
+              </div>
+            </div>
+
+            <div class="description-section">
+              <h3>Description</h3>
+              <p>{{ project.description }}</p>
+            </div>
+
+            <div class="technologies-section" *ngIf="project.technologies && project.technologies.length > 0">
+              <h3>Technologies</h3>
+              <mat-chip-set>
+                <mat-chip *ngFor="let tech of project.technologies">{{ tech }}</mat-chip>
+              </mat-chip-set>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Students Tab -->
+    <mat-tab label="Students ({{ project.students?.length || 0 }})">
+      <div class="tab-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Team Members</mat-card-title>
+            <button mat-icon-button color="primary">
+              <mat-icon>person_add</mat-icon>
+            </button>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-list *ngIf="project.students && project.students.length > 0">
+              <mat-list-item *ngFor="let student of project.students">
+                <mat-icon matListItemIcon>person</mat-icon>
+                <div matListItemTitle>{{ student.studentName }}</div>
+                <div matListItemLine>{{ student.studentEmail }}{{ student.role ? ' • ' + student.role : '' }}</div>
+                <button mat-icon-button matListItemMeta>
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+              </mat-list-item>
+            </mat-list>
+
+            <div class="no-data" *ngIf="!project.students || project.students.length === 0">
+              <mat-icon>people_outline</mat-icon>
+              <p>No students assigned yet</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Supervisors Tab -->
+    <mat-tab label="Supervisors ({{ project.supervisors?.length || 0 }})">
+      <div class="tab-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Project Supervisors</mat-card-title>
+            <button mat-icon-button color="primary">
+              <mat-icon>person_add</mat-icon>
+            </button>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-list *ngIf="project.supervisors && project.supervisors.length > 0">
+              <mat-list-item *ngFor="let supervisor of project.supervisors">
+                <mat-icon matListItemIcon>school</mat-icon>
+                <div matListItemTitle>
+                  {{ supervisor.supervisorName }}
+                  <mat-chip *ngIf="supervisor.isPrimary" class="primary-badge">Primary</mat-chip>
+                </div>
+                <div matListItemLine>{{ supervisor.supervisorEmail }}</div>
+                <button mat-icon-button matListItemMeta>
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+              </mat-list-item>
+            </mat-list>
+
+            <div class="no-data" *ngIf="!project.supervisors || project.supervisors.length === 0">
+              <mat-icon>supervisor_account</mat-icon>
+              <p>No supervisors assigned yet</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Change Requests Tab -->
+    <mat-tab label="Change Requests ({{ changeRequests.length }})">
+      <div class="tab-content">
+        <app-change-request-list [changeRequests]="changeRequests" [showActions]="true">
+        </app-change-request-list>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
+
+<div class="loading-container" *ngIf="loading">
+  <mat-spinner></mat-spinner>
+</div>

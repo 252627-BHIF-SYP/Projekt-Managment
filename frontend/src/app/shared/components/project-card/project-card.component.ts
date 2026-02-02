@@ -40,10 +40,6 @@ import { Project, ProjectStatus } from '../../../core/models';
             <mat-icon>person</mat-icon>
             <span>{{ project.createdByName }}</span>
           </div>
-          <div class="meta-item">
-            <mat-icon>group</mat-icon>
-            <span>{{ project.students?.length || 0 }}/{{ project.maxStudents }} students</span>
-          </div>
         </div>
 
         <div class="tags" *ngIf="project.tags && project.tags.length > 0">

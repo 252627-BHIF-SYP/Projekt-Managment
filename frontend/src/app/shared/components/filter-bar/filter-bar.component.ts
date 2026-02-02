@@ -25,7 +25,7 @@ import { ProjectFilter, ProjectStatus, SchoolYear, Class } from '../../../core/m
   ],
   template: `
     <div class="filter-bar">
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="search-field">
         <mat-label>Search</mat-label>
         <input 
           matInput 
@@ -82,12 +82,56 @@ import { ProjectFilter, ProjectStatus, SchoolYear, Class } from '../../../core/m
   styles: [`
     .filter-bar {
       display: flex;
-      gap: 16px;
+      gap: 8px;
       flex-wrap: wrap;
       align-items: center;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      justify-content: center;
 
       mat-form-field {
-        min-width: 200px;
+        min-width: 130px;
+        font-size: 14px;
+
+        ::ng-deep .mat-mdc-form-field-infix {
+          padding-top: 10px !important;
+          padding-bottom: 10px !important;
+          display: flex;
+          align-items: center;
+        }
+
+        ::ng-deep .mdc-text-field--filled {
+          height: 42px;
+        }
+
+        ::ng-deep .mat-mdc-input-element {
+          font-size: 16px;
+        }
+
+        ::ng-deep .mdc-floating-label,
+        ::ng-deep .mdc-floating-label--float-above {
+          font-size: 14px;
+          line-height: 1;
+        }
+      }
+
+      .search-field {
+        min-width: 260px;
+        flex: 1 1 260px;
+      }
+
+      button {
+        font-size: 14px;
+        padding: 6px 12px !important;
+        height: 40px;
+        min-width: auto;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
       }
     }
   `]

@@ -4,6 +4,9 @@ import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatDividerModule } from '@angular/material/divider';
 import { ProjectCardComponent } from '../../shared/components/project-card/project-card.component';
 import { FilterBarComponent } from '../../shared/components/filter-bar/filter-bar.component';
 import { ProjectService } from '../../services/project.service';
@@ -22,30 +25,34 @@ import { Project, ProjectFilter, SchoolYear, Class, Role } from '../../core/mode
     CommonModule,
     MatButtonModule,
     MatIconModule,
+    MatExpansionModule,
     MatProgressSpinnerModule,
+    MatToolbarModule,
+    MatDividerModule,
     ProjectCardComponent,
     FilterBarComponent
   ],
   template: `
     <div class="page-container">
-      <div class="page-header">
+      <mat-toolbar color="primary" class="page-toolbar">
         <h1>Projects</h1>
-        <button 
-          mat-raised-button 
-          color="primary"
-          (click)="createProject()"
-          *ngIf="canCreateProject()">
-          <mat-icon>add</mat-icon>
-          Create Project
-        </button>
-      </div>
+      </mat-toolbar>
+
+      <mat-divider></mat-divider>
 
       <div class="filter-section">
-        <app-filter-bar
-          [schoolYears]="schoolYears"
-          [classes]="classes"
-          (filterChange)="onFilterChange($event)">
-        </app-filter-bar>
+        <mat-accordion class="filter-accordion">
+          <mat-expansion-panel [expanded]="isFilterOpen" (opened)="isFilterOpen = true" (closed)="isFilterOpen = false">
+            <mat-expansion-panel-header>
+              <mat-panel-title>Filters</mat-panel-title>
+            </mat-expansion-panel-header>
+            <app-filter-bar
+              [schoolYears]="schoolYears"
+              [classes]="classes"
+              (filterChange)="onFilterChange($event)">
+            </app-filter-bar>
+          </mat-expansion-panel>
+        </mat-accordion>
       </div>
 
       <div *ngIf="loading" class="loading-container">
@@ -68,11 +75,45 @@ import { Project, ProjectFilter, SchoolYear, Class, Role } from '../../core/mode
     </div>
   `,
   styles: [`
+    .page-container {
+      padding: 0;
+    }
+
+    .page-toolbar {
+      padding: 0 24px;
+      margin-bottom: 24px;
+
+      h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 500;
+      }
+    }
+
+    .filter-section {
+      padding: 12px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-accordion {
+      width: 100%;
+      max-width: 920px;
+    }
+
     .loading-container {
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 400px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 24px;
     }
 
     .no-projects {
@@ -108,6 +149,7 @@ export class ProjectListComponent implements OnInit {
   schoolYears: SchoolYear[] = [];
   classes: Class[] = [];
   loading = true;
+  isFilterOpen = true;
 
   constructor(
     private projectService: ProjectService,
@@ -157,6 +199,10 @@ export class ProjectListComponent implements OnInit {
 
   viewProject(project: Project): void {
     this.router.navigate(['/projects', project.id]);
+  }
+
+  toggleFilters(): void {
+    this.isFilterOpen = !this.isFilterOpen;
   }
 
   createProject(): void {

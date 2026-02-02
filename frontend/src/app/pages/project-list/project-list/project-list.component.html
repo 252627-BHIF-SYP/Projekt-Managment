@@ -1,0 +1,40 @@
+<div class="page-container">
+  <mat-toolbar color="primary" class="page-toolbar">
+    <h1>Projects</h1>
+  </mat-toolbar>
+
+  <mat-divider></mat-divider>
+
+  <div class="filter-section">
+    <mat-accordion class="filter-accordion">
+      <mat-expansion-panel [expanded]="isFilterOpen" (opened)="isFilterOpen = true" (closed)="isFilterOpen = false">
+        <mat-expansion-panel-header>
+          <mat-panel-title>Filters</mat-panel-title>
+        </mat-expansion-panel-header>
+        <app-filter-bar
+          [schoolYears]="schoolYears"
+          [classes]="classes"
+          (filterChange)="onFilterChange($event)">
+        </app-filter-bar>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner></mat-spinner>
+  </div>
+
+  <div class="card-grid" *ngIf="!loading && filteredProjects.length > 0">
+    <app-project-card
+      *ngFor="let project of filteredProjects"
+      [project]="project"
+      (cardClick)="viewProject($event)">
+    </app-project-card>
+  </div>
+
+  <div class="no-projects" *ngIf="!loading && filteredProjects.length === 0">
+    <mat-icon>folder_open</mat-icon>
+    <h3>No projects found</h3>
+    <p>Try adjusting your filters or create a new project</p>
+  </div>
+</div>

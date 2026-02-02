@@ -1,0 +1,112 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>My Profile</h1>
+  </div>
+
+  <div class="profile-content">
+    <!-- User Information Card -->
+    <mat-card class="profile-card">
+      <mat-card-header>
+        <div mat-card-avatar class="profile-avatar">
+          <mat-icon>account_circle</mat-icon>
+        </div>
+        <mat-card-title>{{ currentUser?.firstName }} {{ currentUser?.lastName }}</mat-card-title>
+        <mat-card-subtitle>{{ currentUser?.email }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="info-section">
+          <h3>Account Information</h3>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>First Name</mat-label>
+            <input matInput [(ngModel)]="currentUser!.firstName" [disabled]="!editing">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Last Name</mat-label>
+            <input matInput [(ngModel)]="currentUser!.lastName" [disabled]="!editing">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput [(ngModel)]="currentUser!.email" type="email" [disabled]="!editing">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Username</mat-label>
+            <input matInput [value]="currentUser!.username" disabled>
+          </mat-form-field>
+
+          <div class="roles-section">
+            <label>Roles:</label>
+            <mat-chip-set>
+              <mat-chip *ngFor="let role of currentUser?.roles">{{ role }}</mat-chip>
+            </mat-chip-set>
+          </div>
+        </div>
+
+        <!-- Student-specific information -->
+        <div class="info-section" *ngIf="isStudent() && studentProfile">
+          <h3>Student Information</h3>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Student Number</mat-label>
+            <input matInput [value]="studentProfile.studentNumber" disabled>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Class</mat-label>
+            <input matInput [value]="studentProfile.className" disabled>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>GitHub</mat-label>
+            <input matInput [(ngModel)]="studentProfile.github" [disabled]="!editing" type="url">
+            <mat-icon matPrefix>code</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>LinkedIn</mat-label>
+            <input matInput [(ngModel)]="studentProfile.linkedin" [disabled]="!editing" type="url">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Bio</mat-label>
+            <textarea 
+              matInput 
+              [(ngModel)]="studentProfile.bio" 
+              [disabled]="!editing"
+              rows="4">
+            </textarea>
+          </mat-form-field>
+
+          <div class="skills-section">
+            <label>Skills:</label>
+            <mat-chip-set *ngIf="!editing">
+              <mat-chip *ngFor="let skill of studentProfile.skills">{{ skill }}</mat-chip>
+            </mat-chip-set>
+            <mat-form-field appearance="outline" class="full-width" *ngIf="editing">
+              <mat-label>Skills (comma-separated)</mat-label>
+              <input matInput [value]="studentProfile.skills?.join(', ')" (change)="updateSkills($event)">
+            </mat-form-field>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-raised-button color="primary" *ngIf="!editing" (click)="startEditing()">
+          <mat-icon>edit</mat-icon>
+          Edit Profile
+        </button>
+        <button mat-raised-button color="primary" *ngIf="editing" (click)="saveProfile()" [disabled]="saving">
+          <mat-icon>save</mat-icon>
+          {{ saving ? 'Saving...' : 'Save Changes' }}
+        </button>
+        <button mat-button *ngIf="editing" (click)="cancelEditing()">
+          Cancel
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

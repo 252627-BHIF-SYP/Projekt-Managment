@@ -1,0 +1,39 @@
+<mat-card class="project-card" [class.clickable]="clickable" (click)="onCardClick()">
+  <mat-card-header>
+    <div mat-card-avatar class="project-avatar">
+      <img *ngIf="project.logoUrl" [src]="project.logoUrl" alt="Project logo">
+      <mat-icon *ngIf="!project.logoUrl">folder</mat-icon>
+    </div>
+    <mat-card-title>{{ project.title }}</mat-card-title>
+    <mat-card-subtitle>{{ project.className }} • {{ project.schoolYear }}</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <p class="description">{{ project.description | slice:0:120 }}{{ project.description.length > 120 ? '...' : '' }}</p>
+    
+    <div class="project-meta">
+      <div class="meta-item">
+        <mat-icon>person</mat-icon>
+        <span>{{ project.createdByName }}</span>
+      </div>
+    </div>
+
+    <div class="tags" *ngIf="project.tags && project.tags.length > 0">
+      <mat-chip *ngFor="let tag of project.tags?.slice(0, 3)">{{ tag }}</mat-chip>
+    </div>
+
+    <div class="status-badge" [class]="'status-' + project.status.toLowerCase()">
+      {{ getStatusLabel(project.status) }}
+    </div>
+  </mat-card-content>
+
+  <mat-card-actions *ngIf="showActions">
+    <button mat-button color="primary" [routerLink]="['/projects', project.id]">
+      VIEW DETAILS
+    </button>
+    <a mat-button *ngIf="project.githubUrl" [href]="project.githubUrl" target="_blank">
+      <mat-icon>code</mat-icon>
+      GITHUB
+    </a>
+  </mat-card-actions>
+</mat-card>

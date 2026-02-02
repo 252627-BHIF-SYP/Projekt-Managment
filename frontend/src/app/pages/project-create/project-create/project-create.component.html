@@ -1,0 +1,218 @@
+<div class="page-container">
+  <div class="page-header">
+    <button mat-icon-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Create New Project</h1>
+  </div>
+
+  <mat-stepper linear #stepper>
+    <!-- Step 1: Basic Information -->
+    <mat-step [completed]="isBasicInfoComplete()">
+      <ng-template matStepLabel>Basic Information</ng-template>
+      <div class="step-content">
+        <mat-card>
+          <mat-card-content>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Project Title</mat-label>
+              <input matInput [(ngModel)]="project.title" required>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description</mat-label>
+              <textarea 
+                matInput 
+                [(ngModel)]="project.description" 
+                rows="6"
+                required>
+              </textarea>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>GitHub URL</mat-label>
+              <input matInput [(ngModel)]="project.githubUrl" type="url">
+              <mat-icon matPrefix>code</mat-icon>
+            </mat-form-field>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Minimum Students</mat-label>
+                <input matInput type="number" [(ngModel)]="project.minStudents" min="1">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Maximum Students</mat-label>
+                <input matInput type="number" [(ngModel)]="project.maxStudents" min="1">
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>School Year</mat-label>
+              <mat-select [(ngModel)]="project.schoolYearId" required>
+                <mat-option *ngFor="let year of schoolYears" [value]="year.id">
+                  {{ year.year }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <div class="step-actions">
+              <button mat-raised-button color="primary" matStepperNext [disabled]="!isBasicInfoComplete()">
+                Next
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-step>
+
+    <!-- Step 2: Select Students (Optional) -->
+    <mat-step>
+      <ng-template matStepLabel>Select Students (Optional)</ng-template>
+      <div class="step-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Select Students for the Project</mat-card-title>
+            <mat-card-subtitle>You can add students later if you prefer</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <app-student-picker
+              [schoolYearId]="project.schoolYearId"
+              [maxStudents]="project.maxStudents"
+              [showStatus]="false"
+              (studentsSelected)="onStudentsSelected($event)">
+            </app-student-picker>
+
+            <div class="step-actions">
+              <button mat-button matStepperPrevious>Back</button>
+              <button mat-raised-button color="primary" matStepperNext>
+                Next
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-step>
+
+    <!-- Step 3: Assign Supervisors -->
+    <mat-step>
+      <ng-template matStepLabel>Assign Supervisors</ng-template>
+      <div class="step-content">
+        <mat-card>
+          <mat-card-content>
+            <div class="supervisor-section">
+              <h3>Primary Supervisor <span class="required">*</span></h3>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Select Primary Supervisor</mat-label>
+                <mat-select [(ngModel)]="primarySupervisorId" required>
+                  <mat-option *ngFor="let supervisor of supervisors" [value]="supervisor.id">
+                    {{ supervisor.firstName }} {{ supervisor.lastName }} ({{ supervisor.email }})
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="additional-supervisors-section">
+              <div class="section-header">
+                <h3>Additional Supervisors (Optional)</h3>
+                <button mat-button color="primary" type="button" (click)="addAdditionalSupervisor()">
+                  <mat-icon>add</mat-icon>
+                  Add Supervisor
+                </button>
+              </div>
+
+              <div *ngIf="additionalSupervisors.length > 0" class="supervisors-list">
+                <div *ngFor="let supervisor of additionalSupervisors; let i = index" class="supervisor-item">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Select Supervisor</mat-label>
+                    <mat-select [(ngModel)]="additionalSupervisors[i]" (ngModelChange)="onAdditionalSupervisorChange()">
+                      <mat-option *ngFor="let sup of supervisors" [value]="sup.id">
+                        {{ getSupervisorName(sup.id) }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <button mat-icon-button type="button" (click)="removeAdditionalSupervisor(i)" color="warn">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+              <p *ngIf="additionalSupervisors.length === 0" class="info-text">No additional supervisors added yet</p>
+            </div>
+
+            <div class="step-actions">
+              <button mat-button matStepperPrevious>Back</button>
+              <button mat-raised-button color="primary" matStepperNext [disabled]="!primarySupervisorId">
+                Next
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-step>
+
+    <!-- Step 4: Review & Create -->
+    <mat-step>
+      <ng-template matStepLabel>Review & Create</ng-template>
+      <div class="step-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Review Project Details</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="review-section">
+              <h3>Project Information</h3>
+              <div class="review-item">
+                <span class="label">Title:</span>
+                <span class="value">{{ project.title }}</span>
+              </div>
+              <div class="review-item">
+                <span class="label">Description:</span>
+                <span class="value">{{ project.description }}</span>
+              </div>
+              <div class="review-item" *ngIf="project.githubUrl">
+                <span class="label">GitHub:</span>
+                <span class="value">{{ project.githubUrl }}</span>
+              </div>
+              <div class="review-item">
+                <span class="label">Team Size:</span>
+                <span class="value">{{ project.minStudents }}-{{ project.maxStudents }} students</span>
+              </div>
+            </div>
+
+            <div class="review-section">
+              <h3>Selected Students ({{ selectedStudents.length }})</h3>
+              <ul *ngIf="selectedStudents.length > 0">
+                <li *ngFor="let student of selectedStudents">
+                  {{ student.firstName }} {{ student.lastName }} ({{ student.className }})
+                </li>
+              </ul>
+              <p *ngIf="selectedStudents.length === 0" class="no-data">No students selected</p>
+            </div>
+
+            <div class="review-section">
+              <h3>Supervisors</h3>
+              <div class="review-item">
+                <span class="label">Primary:</span>
+                <span class="value">{{ getSupervisorName(primarySupervisorId) }}</span>
+              </div>
+              <div class="review-item" *ngIf="additionalSupervisors.length > 0">
+                <span class="label">Additional:</span>
+                <span class="value">{{ getAdditionalSupervisorNames() }}</span>
+              </div>
+            </div>
+
+            <div class="step-actions">
+              <button mat-button matStepperPrevious>Back</button>
+              <button 
+                mat-raised-button 
+                color="primary" 
+                (click)="createProject()"
+                [disabled]="saving">
+                {{ saving ? 'Creating...' : 'Create Project' }}
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-step>
+  </mat-stepper>
+</div>

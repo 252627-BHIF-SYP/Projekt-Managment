@@ -1,0 +1,100 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>Dashboard</h1>
+  </div>
+
+  <div class="welcome-section" *ngIf="currentUser$ | async as user">
+    <h2>Welcome back, {{ user.firstName }}! 👋</h2>
+    <p>Here's what's happening with your projects today.</p>
+  </div>
+
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon" style="background: #e3f2fd;">
+          <mat-icon color="primary">folder</mat-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ (projects$ | async)?.length || 0 }}</div>
+          <div class="stat-label">Total Projects</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon" style="background: #fff3e0;">
+          <mat-icon style="color: #f57c00;">hourglass_empty</mat-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ getInProgressCount() }}</div>
+          <div class="stat-label">In Progress</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon" style="background: #e8f5e9;">
+          <mat-icon style="color: #388e3c;">check_circle</mat-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ getCompletedCount() }}</div>
+          <div class="stat-label">Completed</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon" style="background: #fce4ec;">
+          <mat-icon style="color: #c2185b;">assignment</mat-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">0</div>
+          <div class="stat-label">Pending Requests</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="quick-actions">
+    <h3>Quick Actions</h3>
+    <div class="actions-grid">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        routerLink="/projects"
+        class="action-button">
+        <mat-icon>folder</mat-icon>
+        <span>View Projects</span>
+      </button>
+
+      <button 
+        mat-raised-button 
+        routerLink="/projects/create"
+        class="action-button"
+        *ngIf="canCreateProject()">
+        <mat-icon>add</mat-icon>
+        <span>Create Project</span>
+      </button>
+
+      <button 
+        mat-raised-button 
+        routerLink="/profile"
+        class="action-button">
+        <mat-icon>person</mat-icon>
+        <span>My Profile</span>
+      </button>
+
+      <button 
+        mat-raised-button 
+        routerLink="/import"
+        class="action-button"
+        *ngIf="canImport()">
+        <mat-icon>upload</mat-icon>
+        <span>Import Data</span>
+      </button>
+    </div>
+  </div>
+</div>

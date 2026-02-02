@@ -41,6 +41,16 @@ import { StudentService } from '../../../services/student.service';
           </mat-select>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="search-filter">
+          <mat-label>Search Students</mat-label>
+          <input
+            matInput
+            placeholder="Name, email, or number"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="applyFilter()">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+
         <div class="selection-info">
           {{ selectedStudents.length }} student(s) selected
           <span *ngIf="maxStudents"> (max: {{ maxStudents }})</span>
@@ -72,7 +82,7 @@ import { StudentService } from '../../../services/student.service';
                 {{ student.studentNumber }} • {{ student.className }} • {{ student.email }}
               </div>
             </div>
-            <div class="student-status" [class]="'status-' + student.status.toLowerCase()">
+            <div *ngIf="showStatus" class="student-status" [class]="'status-' + student.status.toLowerCase()">
               {{ student.status }}
             </div>
           </div>
@@ -93,14 +103,18 @@ import { StudentService } from '../../../services/student.service';
     }
 
     .picker-header {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: minmax(200px, 1fr) minmax(220px, 1fr) auto;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
 
       .class-filter {
         flex: 1;
         max-width: 300px;
+      }
+
+      .search-filter {
+        max-width: 320px;
       }
 
       .selection-info {
@@ -187,6 +201,7 @@ import { StudentService } from '../../../services/student.service';
 export class StudentPickerComponent implements OnInit {
   @Input() schoolYearId?: string;
   @Input() maxStudents?: number;
+  @Input() showStatus = true;
   @Output() studentsSelected = new EventEmitter<StudentProfile[]>();
 
   students: StudentProfile[] = [];
@@ -194,6 +209,7 @@ export class StudentPickerComponent implements OnInit {
   selectedStudents: StudentProfile[] = [];
   classes: Class[] = [];
   selectedClassId?: string;
+  searchTerm = '';
 
   constructor(private studentService: StudentService) {}
 
@@ -233,11 +249,17 @@ export class StudentPickerComponent implements OnInit {
   }
 
   applyFilter(): void {
+    const term = this.searchTerm.trim().toLowerCase();
+
     this.filteredStudents = this.students.filter(student => {
       if (this.selectedClassId && student.classId !== this.selectedClassId) {
         return false;
       }
-      return true;
+
+      if (!term) return true;
+
+      const haystack = `${student.firstName} ${student.lastName} ${student.email} ${student.studentNumber}`.toLowerCase();
+      return haystack.includes(term);
     });
   }
 
