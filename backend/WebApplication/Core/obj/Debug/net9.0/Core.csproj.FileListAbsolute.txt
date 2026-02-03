@@ -1,0 +1,12 @@
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\Core\bin\Debug\net9.0\Core.deps.json
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\Core\bin\Debug\net9.0\Core.dll
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\Core\bin\Debug\net9.0\Core.pdb
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\Core\obj\Debug\net9.0\Core.GeneratedMSBuildEditorConfig.editorconfig
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\Core\obj\Debug\net9.0\Core.AssemblyInfoInputs.cache
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\Core\obj\Debug\net9.0\Core.AssemblyInfo.cs
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\Core\obj\Debug\net9.0\Core.csproj.CoreCompileInputs.cache
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\Core\obj\Debug\net9.0\Core.sourcelink.json
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\Core\obj\Debug\net9.0\Core.dll
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\Core\obj\Debug\net9.0\refint\Core.dll
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\Core\obj\Debug\net9.0\Core.pdb
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\Core\obj\Debug\net9.0\ref\Core.dll
