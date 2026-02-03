@@ -81,7 +81,7 @@ export class SidebarComponent implements OnInit {
       label: 'Create Project',
       icon: 'add_circle',
       route: '/projects/create',
-      roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN]
+      roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN, Role.STUDENT_SEARCHING, Role.STUDENT_PROJECT]
     },
     {
       label: 'Students',

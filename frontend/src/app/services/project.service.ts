@@ -183,7 +183,7 @@ export class ProjectService {
       description: project.description || '',
       schoolYearId: project.schoolYearId || '',
       classId: project.classId || '',
-      status: ProjectStatus.DRAFT,
+      status: project.status || ProjectStatus.DRAFT,
       maxStudents: project.maxStudents || 4,
       minStudents: project.minStudents || 2,
       createdById: '3', // Current user ID

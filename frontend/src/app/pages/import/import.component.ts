@@ -68,14 +68,7 @@ import { ImportType, ImportLog, ImportValidation, SchoolYear } from '../../core/
                   Download Template
                 </button>
 
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>School Year</mat-label>
-                  <mat-select [(ngModel)]="selectedSchoolYearId">
-                    <mat-option *ngFor="let year of schoolYears" [value]="year.id">
-                      {{ year.year }}
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
+                
 
                 <div class="file-upload">
                   <input 
@@ -145,13 +138,13 @@ import { ImportType, ImportLog, ImportValidation, SchoolYear } from '../../core/
           </div>
         </mat-tab>
 
-        <!-- Import Teachers Tab -->
-        <mat-tab label="Import Teachers">
+        <!-- Import Professors Tab -->
+        <mat-tab label="Import Professors">
           <div class="tab-content">
             <mat-card>
               <mat-card-header>
-                <mat-card-title>Import Teachers</mat-card-title>
-                <mat-card-subtitle>Upload a CSV file to import teachers</mat-card-subtitle>
+                <mat-card-title>Import Professors</mat-card-title>
+                <mat-card-subtitle>Upload a CSV file to import professors</mat-card-subtitle>
               </mat-card-header>
 
               <mat-card-content>
@@ -241,110 +234,6 @@ import { ImportType, ImportLog, ImportValidation, SchoolYear } from '../../core/
           </div>
         </mat-tab>
 
-        <!-- Import Projects Tab -->
-        <mat-tab label="Import Projects">
-          <div class="tab-content">
-            <mat-card>
-              <mat-card-header>
-                <mat-card-title>Import Projects</mat-card-title>
-                <mat-card-subtitle>Upload a CSV file to import projects</mat-card-subtitle>
-              </mat-card-header>
-
-              <mat-card-content>
-                <div class="import-instructions">
-                  <mat-icon>info</mat-icon>
-                  <div>
-                    <p><strong>Instructions:</strong></p>
-                    <ul>
-                      <li>Download the template file and fill in your data</li>
-                      <li>Ensure all required fields are filled</li>
-                      <li>Save as CSV format</li>
-                      <li>Upload the file below</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <button mat-raised-button (click)="downloadTemplate(ImportType.PROJECTS)">
-                  <mat-icon>download</mat-icon>
-                  Download Template
-                </button>
-
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>School Year</mat-label>
-                  <mat-select [(ngModel)]="selectedSchoolYearId">
-                    <mat-option *ngFor="let year of schoolYears" [value]="year.id">
-                      {{ year.year }}
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
-
-                <div class="file-upload">
-                  <input 
-                    type="file" 
-                    accept=".csv"
-                    (change)="handleFileInput($event, ImportType.PROJECTS)"
-                    #fileInputProjects
-                    style="display: none;">
-                  
-                  <button mat-raised-button color="accent" (click)="fileInputProjects.click()">
-                    <mat-icon>upload_file</mat-icon>
-                    Choose CSV File
-                  </button>
-
-                  <span class="file-name" *ngIf="selectedFile">{{ selectedFile.name }}</span>
-                </div>
-
-                <div class="validation-result" *ngIf="validation && currentImportType === ImportType.PROJECTS">
-                  <div class="validation-header" [class.valid]="validation.isValid" [class.invalid]="!validation.isValid">
-                    <mat-icon>{{ validation.isValid ? 'check_circle' : 'error' }}</mat-icon>
-                    <span>{{ validation.isValid ? 'File is valid' : 'Validation errors found' }}</span>
-                  </div>
-
-                  <div class="errors" *ngIf="validation.errors && validation.errors.length > 0">
-                    <h4>Errors:</h4>
-                    <ul>
-                      <li *ngFor="let error of validation.errors">
-                        Row {{ error.row }}: {{ error.message }}
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div class="preview" *ngIf="validation.preview">
-                    <h4>Preview (first 10 rows):</h4>
-                    <table class="preview-table">
-                      <thead>
-                        <tr>
-                          <th *ngFor="let header of validation.preview.headers">{{ header }}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr *ngFor="let row of validation.preview.rows">
-                          <td *ngFor="let cell of row">{{ cell }}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                    <p class="total-rows">Total rows: {{ validation.preview.totalRows }}</p>
-                  </div>
-                </div>
-
-                <mat-progress-bar mode="indeterminate" *ngIf="importing"></mat-progress-bar>
-              </mat-card-content>
-
-              <mat-card-actions>
-                <button 
-                  mat-raised-button 
-                  color="primary"
-                  [disabled]="!validation || !validation.isValid || importing || currentImportType !== ImportType.PROJECTS"
-                  (click)="performImport(ImportType.PROJECTS)">
-                  {{ importing ? 'Importing...' : 'Import Data' }}
-                </button>
-                <button mat-button (click)="reset()" [disabled]="importing">
-                  Reset
-                </button>
-              </mat-card-actions>
-            </mat-card>
-          </div>
-        </mat-tab>
 
         <!-- Import History Tab -->
         <mat-tab label="Import History">

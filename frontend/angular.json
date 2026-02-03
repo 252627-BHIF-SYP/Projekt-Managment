@@ -3,21 +3,21 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "school-project-management": {
-      "projectType": "application",
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        }
-      },
-      "root": "",
-      "sourceRoot": "src",
-      "prefix": "app",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:application",
-          "options": {
-            "outputPath": "dist/school-project-management",
+          "production": {
+            "budgets": [
+              {
+                "type": "initial",
+                "maximumWarning": "1500kb",
+                "maximumError": "2000kb"
+              },
+              {
+                "type": "anyComponentStyle",
+                "maximumWarning": "6kb",
+                "maximumError": "12kb"
+              }
+            ],
+            "outputHashing": "all"
+          },
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [

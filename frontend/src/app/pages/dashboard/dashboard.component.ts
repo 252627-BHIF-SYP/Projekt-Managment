@@ -243,7 +243,13 @@ export class DashboardComponent implements OnInit {
   }
 
   canCreateProject(): boolean {
-    return this.authService.hasAnyRole([Role.PROFESSOR, Role.AV, Role.SYS_ADMIN]);
+    return this.authService.hasAnyRole([
+      Role.PROFESSOR,
+      Role.AV,
+      Role.SYS_ADMIN,
+      Role.STUDENT_SEARCHING,
+      Role.STUDENT_PROJECT
+    ]);
   }
 
   canImport(): boolean {

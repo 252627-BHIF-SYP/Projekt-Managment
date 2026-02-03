@@ -3,8 +3,7 @@
  */
 export enum ImportType {
   STUDENTS = 'STUDENTS',
-  TEACHERS = 'TEACHERS',
-  PROJECTS = 'PROJECTS'
+  TEACHERS = 'TEACHERS'
 }
 
 /**
