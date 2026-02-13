@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatStepperModule } from '@angular/material/stepper';
@@ -14,7 +15,7 @@ import { StudentPickerComponent } from '../../shared/components/student-picker/s
 import { ProjectService } from '../../services/project.service';
 import { SchoolYearService } from '../../services/schoolyear.service';
 import { UserService } from '../../services/user.service';
-import { Project, SchoolYear, User, StudentProfile } from '../../core/models';
+import { Project, SchoolYear, User, StudentProfile, ProjectStatus } from '../../core/models';
 
 /**
  * Create project page
@@ -29,6 +30,7 @@ import { Project, SchoolYear, User, StudentProfile } from '../../core/models';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatOptionModule,
     MatButtonModule,
     MatIconModule,
     MatStepperModule,
@@ -72,6 +74,12 @@ import { Project, SchoolYear, User, StudentProfile } from '../../core/models';
                   <mat-icon matPrefix>code</mat-icon>
                 </mat-form-field>
 
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Logo URL</mat-label>
+                  <input matInput [(ngModel)]="project.logoUrl" type="url">
+                  <mat-icon matPrefix>image</mat-icon>
+                </mat-form-field>
+
                 <div class="form-row">
                   <mat-form-field appearance="outline">
                     <mat-label>Minimum Students</mat-label>
@@ -91,6 +99,19 @@ import { Project, SchoolYear, User, StudentProfile } from '../../core/models';
                       {{ year.year }}
                     </mat-option>
                   </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Status</mat-label>
+                  <mat-select [(ngModel)]="project.status" required>
+                    <mat-option *ngFor="let s of projectStatuses" [value]="s">{{ s }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Technologies (comma or semicolon separated)</mat-label>
+                  <input matInput [(ngModel)]="technologiesText" placeholder="Angular; Spring Boot; PostgreSQL">
+                  <mat-icon matPrefix>sell</mat-icon>
                 </mat-form-field>
 
                 <div class="step-actions">
@@ -387,7 +408,8 @@ export class ProjectCreateComponent implements OnInit {
     description: '',
     githubUrl: '',
     minStudents: 2,
-    maxStudents: 4
+    maxStudents: 4,
+    status: ProjectStatus.DRAFT
   };
 
   schoolYears: SchoolYear[] = [];
@@ -396,6 +418,9 @@ export class ProjectCreateComponent implements OnInit {
   primarySupervisorId = '';
   additionalSupervisors: string[] = [];
   saving = false;
+  ProjectStatus = ProjectStatus;
+  projectStatuses = Object.values(ProjectStatus);
+  technologiesText = '';
 
   constructor(
     private projectService: ProjectService,
@@ -406,17 +431,41 @@ export class ProjectCreateComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Preselect currently selected/active year immediately (before async load)
+    const preselected = this.schoolYearService.getSelectedSchoolYear();
+    if (preselected) {
+      this.project.schoolYearId = preselected.id;
+    }
     this.loadData();
   }
 
   loadData(): void {
-    this.schoolYearService.getSchoolYears().subscribe(years => {
-      this.schoolYears = years;
-      
-      // Select active year by default
-      const activeYear = years.find(y => y.isActive);
-      if (activeYear) {
-        this.project.schoolYearId = activeYear.id;
+    this.schoolYearService.getSchoolYears().subscribe({
+      next: (years) => {
+        this.schoolYears = years || [];
+        const activeYear = this.schoolYears.find(y => y.isActive);
+        if (activeYear) {
+          this.project.schoolYearId = activeYear.id;
+        } else if (this.schoolYears.length > 0 && !this.project.schoolYearId) {
+          this.project.schoolYearId = this.schoolYears[0].id;
+        } else {
+          // Fallback: try to fetch active year directly
+          this.schoolYearService.getActiveSchoolYear().subscribe((sy) => {
+            if (sy) {
+              this.schoolYears = [sy];
+              this.project.schoolYearId = sy.id;
+            }
+          });
+        }
+      },
+      error: () => {
+        // Final fallback: attempt active year, else leave empty
+        this.schoolYearService.getActiveSchoolYear().subscribe((sy) => {
+          if (sy) {
+            this.schoolYears = [sy];
+            this.project.schoolYearId = sy.id;
+          }
+        });
       }
     });
 
@@ -430,6 +479,7 @@ export class ProjectCreateComponent implements OnInit {
       this.project.title &&
       this.project.description &&
       this.project.schoolYearId &&
+      this.project.status &&
       this.project.minStudents &&
       this.project.maxStudents
     );
@@ -464,6 +514,13 @@ export class ProjectCreateComponent implements OnInit {
 
   createProject(): void {
     this.saving = true;
+
+    if (this.technologiesText) {
+      this.project.technologies = this.technologiesText
+        .split(/[,;]/)
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+    }
 
     this.projectService.createProject(this.project).subscribe({
       next: (createdProject) => {

@@ -9,6 +9,7 @@ import { ProjectCreateComponent } from './pages/project-create/project-create.co
 import { ProfileComponent } from './pages/profile/profile.component';
 import { ImportComponent } from './pages/import/import.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
+import { StudentsComponent } from './pages/students/students.component';
 
 /**
  * Application routes
@@ -37,10 +38,16 @@ export const routes: Routes = [
         component: ProjectListComponent
       },
       {
+        path: 'students',
+        component: StudentsComponent,
+        canActivate: [roleGuard],
+        data: { roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] }
+      },
+      {
         path: 'projects/create',
         component: ProjectCreateComponent,
         canActivate: [roleGuard],
-        data: { roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] }
+        data: { roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN, Role.STUDENT_SEARCHING, Role.STUDENT_PROJECT] }
       },
       {
         path: 'projects/:id',

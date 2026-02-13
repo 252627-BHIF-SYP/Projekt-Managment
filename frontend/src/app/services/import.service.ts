@@ -113,16 +113,36 @@ export class ImportService {
           });
         }
 
-        if (type === ImportType.STUDENTS) {
-          const requiredHeaders = ['firstName', 'lastName', 'email', 'studentNumber'];
-          const missingHeaders = requiredHeaders.filter(h => !preview.headers.includes(h));
-          if (missingHeaders.length > 0) {
-            validation.isValid = false;
-            validation.errors.push({
-              row: 0,
-              message: `Missing required headers: ${missingHeaders.join(', ')}`
-            });
+        // Header checks per import type to match PlantUML data model
+        const hasHeaders = (expected: string[]) => expected.filter(h => !preview.headers.includes(h));
+        switch (type) {
+          case ImportType.STUDENTS: {
+            // Data model Student: first_name, last_name, if_name
+            const required = ['first_name', 'last_name', 'if_name'];
+            const missing = hasHeaders(required);
+            if (missing.length > 0) {
+              validation.isValid = false;
+              validation.errors.push({
+                row: 0,
+                message: `Missing required headers: ${missing.join(', ')}`
+              });
+            }
+            break;
           }
+          case ImportType.TEACHERS: {
+            // Data model Professor: first_name, last_name
+            const required = ['first_name', 'last_name'];
+            const missing = hasHeaders(required);
+            if (missing.length > 0) {
+              validation.isValid = false;
+              validation.errors.push({
+                row: 0,
+                message: `Missing required headers: ${missing.join(', ')}`
+              });
+            }
+            break;
+          }
+          
         }
 
         return validation;
@@ -171,8 +191,13 @@ export class ImportService {
       const reader = new FileReader();
 
       reader.onload = (e: any) => {
-        const text = e.target.result;
-        const lines = text.split('\n').filter((line: string) => line.trim());
+        let text: string = e.target.result || '';
+        // Strip UTF-8 BOM if present
+        if (text.charCodeAt(0) === 0xFEFF) {
+          text = text.slice(1);
+        }
+        // Support CRLF and LF line endings
+        const lines = text.split(/\r?\n/).filter((line: string) => line.trim().length > 0);
         
         if (lines.length === 0) {
           observer.next({
@@ -184,10 +209,48 @@ export class ImportService {
           return;
         }
 
-        const headers = lines[0].split(',').map((h: string) => h.trim());
-        const rows = lines.slice(1, Math.min(11, lines.length)).map((line: string) => 
-          line.split(',').map((cell: string) => cell.trim())
-        );
+        // Auto-detect delimiter: prefer the one with higher count in header
+        const headerLine = lines[0];
+        const commaCount = (headerLine.match(/,/g) || []).length;
+        const semicolonCount = (headerLine.match(/;/g) || []).length;
+        const delimiter = semicolonCount > commaCount ? ';' : ',';
+
+        // Simple CSV line splitter supporting quoted fields
+        const splitLine = (line: string, delim: string): string[] => {
+          const result: string[] = [];
+          let current = '';
+          let inQuotes = false;
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+              // Toggle quote state or handle escaped quotes
+              if (inQuotes && line[i + 1] === '"') {
+                current += '"';
+                i++; // skip escaped quote
+              } else {
+                inQuotes = !inQuotes;
+              }
+            } else if (char === delim && !inQuotes) {
+              result.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          result.push(current.trim());
+          // Strip wrapping quotes
+          return result.map(cell => {
+            if (cell.startsWith('"') && cell.endsWith('"')) {
+              return cell.slice(1, -1);
+            }
+            return cell;
+          });
+        };
+
+        const headers = splitLine(headerLine, delimiter).map((h: string) => h.trim().toLowerCase());
+        const rows = lines
+          .slice(1, Math.min(11, lines.length))
+          .map((line: string) => splitLine(line, delimiter).map((cell: string) => cell.trim()));
 
         observer.next({
           headers,
@@ -213,14 +276,12 @@ export class ImportService {
 
     switch (type) {
       case ImportType.STUDENTS:
-        headers = ['studentNumber', 'firstName', 'lastName', 'email', 'className'];
+        headers = ['first_name', 'last_name', 'if_name'];
         break;
       case ImportType.TEACHERS:
-        headers = ['firstName', 'lastName', 'email', 'department'];
+        headers = ['first_name', 'last_name'];
         break;
-      case ImportType.PROJECTS:
-        headers = ['title', 'description', 'className', 'maxStudents', 'githubUrl'];
-        break;
+      
     }
 
     const csv = headers.join(',') + '\n';
