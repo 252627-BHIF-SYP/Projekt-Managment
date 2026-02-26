@@ -1,15 +1,21 @@
 ﻿using System;
+using Core.Enums;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-namespace Core.Entities;
 
-public class SchoolYear
+namespace Core.Entities
 {
-    public int SchoolYearId { get; set; }
-    public string Label { get; set; } = "";
+    public class SchoolYear
+    {
+        [Key]
+        public int SchoolYearId { get; set; }
 
-    public List<StudentClassHistory> StudentClassHistories { get; set; } = new List<StudentClassHistory>();
-    public List<Project> Projects { get; set; } = new List<Project>();
+        public required string Year { get; set; } = string.Empty;
+
+        public ICollection<Project>? Projects { get; set; }
+        public ICollection<StudentClassHistory>? StudentClassHistory { get; set; }
+    }
 }

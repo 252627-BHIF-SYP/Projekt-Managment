@@ -1,24 +1,34 @@
-﻿using System;
+﻿using Core.Enums;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-namespace Core.Entities;
 
-public class Project
+namespace Core.Entities
 {
-    public int ProjectId { get; set; }
+    public class Project
+    {
+        [Key]
+        public int ProjectId { get; set; }
 
-    public int SchoolYearId { get; set; }
-    public SchoolYear SchoolYear { get; set; } = null!;
+        public ICollection<ProjectSupervisor>? ProjectSupervisors { get; set; }
+        public ICollection<ProjectStudent>? ProjectStudents { get; set; }
 
-    public string Title { get; set; } = "";
-    public string Description { get; set; } = "";
-    public string GithubUrl { get; set; } = "";
-    public string LogoUrl { get; set; } = "";
-    public string Status { get; set; } = "";
-    public string Technology { get; set; } = "";
+        public int SchoolYearId { get; set; }
+        public SchoolYear? SchoolYear { get; set; }
 
-    public List<ProjectStudent> ProjectStudents { get; set; } = new List<ProjectStudent>();
-    public List<ProjectSupervisor> ProjectSupervisors { get; set; } = new List<ProjectSupervisor>();
+        public required string Title { get; set; }
+        
+        public required string Description { get; set; }
+
+        public required string GithubUrl { get; set; }
+
+        public required string LogoUrl { get; set; }
+
+        public ProjectStatus Status { get; set; }
+
+        public required string Technology { get; set; }
+    }
 }

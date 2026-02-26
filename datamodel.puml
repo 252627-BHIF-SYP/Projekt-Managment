@@ -4,64 +4,62 @@ skinparam linetype ortho
 skinparam shadowing false
 
 entity "SchoolYear" as SchoolYear {
-  * school_year_id : INT <<PK>>
+  * schoolYearId : INT <<PK>>
   --
-  label : VARCHAR
+  year : VARCHAR
 }
 
-entity "Class" as Class {
-  * class_id : INT <<PK>>
+entity "StudentClass" as Class {
+  * classId : INT <<PK>>
   --
   name : VARCHAR
-  year_level : INT
   branch : VARCHAR
 }
 
 entity "Student" as Student {
-  * student_id : INT <<PK>>
+  * studentId : INT <<PK>>
   --
-  first_name : VARCHAR
-  last_name  : VARCHAR
-  if_name : VARCHAR
+  firstName : VARCHAR
+  lastName  : VARCHAR
 }
 
 entity "Professor" as Professor {
-  * professor_id : INT <<PK>>
+  * professorId : INT <<PK>>
   --
-  first_name : VARCHAR
-  last_name  : VARCHAR
+  firstName : VARCHAR
+  lastName  : VARCHAR
 }
 
 entity "StudentClassHistory" as StudentClassHistory {
-  * history_id : INT <<PK>>
+  * historyId : INT <<PK>>
   --
-  student_id : INT <<FK>>
-  class_id : INT <<FK>>
-  school_year_id : INT <<FK>>
+  studentId : INT <<FK>>
+  classId : INT <<FK>>
+  schoolYearId : INT <<FK>>
 }
 
 entity "Project" as Project {
-  * project_id : INT <<PK>>
+  * projectId : INT <<PK>>
   --
-  school_year_id : INT <<FK>>
+  schoolYearId : INT <<FK>>
   title : VARCHAR
   description : TEXT
-  github_url : VARCHAR
-  logo_url : VARCHAR
+  githubUrl : VARCHAR
+  logoUrl : VARCHAR
   status : VARCHAR
   technology : VARCHAR
 }
 
 entity "ProjectStudent" as ProjectStudent {
-  * project_id : INT <<PK,FK>>
-  * history_id : INT <<PK,FK>>
+  * projectId : INT <<PK,FK>>
+  * historyId : INT <<PK,FK>>
   --
   role : VARCHAR
 }
 
 entity "ProjectSupervisor" as ProjectSupervisor {
-  * project_id : INT <<PK,FK>>
-  * professor_id : INT <<PK,FK>>
+  * projectId : INT <<PK,FK>>
+  * professorId : INT <<PK,FK>>
   --
   role : VARCHAR
 }

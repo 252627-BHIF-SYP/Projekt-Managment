@@ -3,15 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-namespace Core.Entities;
 
-public class ProjectStudent
+namespace Core.Entities
 {
-    public int ProjectId { get; set; }
-    public Project Project { get; set; } = null!;
+    public class ProjectStudent
+    {
+        public int ProjectStudentId { get; set; }
 
-    public int HistoryId { get; set; }
-    public StudentClassHistory StudentClassHistory { get; set; } = null!;
+        public int ProjectId { get; set; }
+        public Project? Project { get; set; }
 
-    public string Role { get; set; } = "";
+        public int HistoryId { get; set; }
+        public StudentClassHistory? StudentClassHistory { get; set; }
+
+        public required string Role { get; set; }
+    }
 }

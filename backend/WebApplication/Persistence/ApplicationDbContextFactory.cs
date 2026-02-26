@@ -1,23 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace Persistence;
 
-public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
+public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
 {
-    public AppDbContext CreateDbContext(string[] args)
+    public ApplicationDbContext CreateDbContext(string[] args)
     {
-        var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: true)
+            .Build();
 
-        optionsBuilder.UseNpgsql(
-        "Host=localhost;Port=5432;Database=sypdb;Username=postgres;Password=postgres");
+        var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
+        // Try to get connection string from configuration
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        return new AppDbContext(optionsBuilder.Options);
+        optionsBuilder.UseNpgsql(connectionString);
+
+        return new ApplicationDbContext(optionsBuilder.Options);
     }
 }

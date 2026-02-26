@@ -1,15 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-namespace Core.Entities;
 
-public class Professor
+namespace Core.Entities
 {
-    public int ProfessorId { get; set; }
-    public string FirstName { get; set; } = "";
-    public string LastName { get; set; } = "";
+    public class Professor
+    {
+        [Key]
+        public int ProfessorId { get; set; }
 
-    public List<ProjectSupervisor> ProjectSupervisors { get; set; } = new List<ProjectSupervisor>();
+        public required string FirstName { get; set; }
+
+        public required string LastName { get; set; }
+
+        public ICollection<ProjectSupervisor>? ProjectSupervisors { get; set; }
+    }
 }
