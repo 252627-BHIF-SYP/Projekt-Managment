@@ -1,6 +1,9 @@
 ﻿using Core.Entities;
+using Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
+using System;
+using WebAPI.DTOs;
 
 namespace WebAPI.Service
 {
@@ -86,9 +89,40 @@ namespace WebAPI.Service
             await Context.SaveChangesAsync();
         }
 
-        public async void ImportProject()
+        public async void ImportProject(ProjectDTO project)
         {
+            var projectForDB = new Project()
+            {
+                Description = project.description,
+                GithubUrl = project.githubURL,
+                LogoUrl = project.logoURL,
+                Technology = project.technologies,
+                Title = project.title,
+                SchoolYearId = project.schoolYearId,
+                Status = Enum.Parse<ProjectStatus>(project.projectStatus)
+            };
 
+            await Context.Project.AddAsync(projectForDB);
+
+            var projectStudents = project.students.Select(s => new ProjectStudent
+            {
+                Role = s.role,
+                HistoryId = s.historyId,
+                ProjectId = projectForDB.ProjectId,                
+            }).ToList();
+
+            await Context.AddRangeAsync(projectStudents);
+
+            var projectSupervisors = project.supervisors.Select(s => new ProjectSupervisor
+            {
+                Role = s.role,
+                ProfessorId = s.professorId,
+                ProjectId = projectForDB.ProjectId,
+            }).ToList();
+
+            await Context.AddRangeAsync(projectSupervisors);
+
+            await Context.SaveChangesAsync();
         }
     }
 }
