@@ -7,16 +7,20 @@
       "RelativeMoniker": "D:0:0:{95BB5400-0522-4F04-BA27-396A163A09E1}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\service\\import.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{95BB5400-0522-4F04-BA27-396A163A09E1}|WebAPI\\WebAPI.csproj|d:\\schule\\syp\\projekt-managment\\backend\\webapplication\\webapi\\dtos\\projectdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{95BB5400-0522-4F04-BA27-396A163A09E1}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\dtos\\projectdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BEA87FCD-1157-40AC-B806-62D0C9E85F41}|Core\\Core.csproj|d:\\schule\\syp\\projekt-managment\\backend\\webapplication\\core\\enums\\projectstatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BEA87FCD-1157-40AC-B806-62D0C9E85F41}|Core\\Core.csproj|solutionrelative:core\\enums\\projectstatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{BEA87FCD-1157-40AC-B806-62D0C9E85F41}|Core\\Core.csproj|d:\\schule\\syp\\projekt-managment\\backend\\webapplication\\core\\entities\\professor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{BEA87FCD-1157-40AC-B806-62D0C9E85F41}|Core\\Core.csproj|solutionrelative:core\\entities\\professor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{95BB5400-0522-4F04-BA27-396A163A09E1}|WebAPI\\WebAPI.csproj|d:\\schule\\syp\\projekt-managment\\backend\\webapplication\\webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{95BB5400-0522-4F04-BA27-396A163A09E1}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{95BB5400-0522-4F04-BA27-396A163A09E1}|WebAPI\\WebAPI.csproj|d:\\schule\\syp\\projekt-managment\\backend\\webapplication\\webapi\\weatherforecast.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{95BB5400-0522-4F04-BA27-396A163A09E1}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\weatherforecast.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{BEA87FCD-1157-40AC-B806-62D0C9E85F41}|Core\\Core.csproj|d:\\schule\\syp\\projekt-managment\\backend\\webapplication\\core\\entities\\studentclasshistory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -41,10 +45,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{95BB5400-0522-4F04-BA27-396A163A09E1}|WebAPI\\WebAPI.csproj|d:\\schule\\syp\\projekt-managment\\backend\\webapplication\\webapi\\webapi.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
       "RelativeMoniker": "D:0:0:{95BB5400-0522-4F04-BA27-396A163A09E1}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\webapi.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{95BB5400-0522-4F04-BA27-396A163A09E1}|WebAPI\\WebAPI.csproj|d:\\schule\\syp\\projekt-managment\\backend\\webapplication\\webapi\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{95BB5400-0522-4F04-BA27-396A163A09E1}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -58,20 +58,20 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Professor.cs",
-              "DocumentMoniker": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Core\\Entities\\Professor.cs",
-              "RelativeDocumentMoniker": "Core\\Entities\\Professor.cs",
-              "ToolTip": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Core\\Entities\\Professor.cs",
-              "RelativeToolTip": "Core\\Entities\\Professor.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 2,
+              "Title": "ProjectStatus.cs",
+              "DocumentMoniker": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Core\\Enums\\ProjectStatus.cs",
+              "RelativeDocumentMoniker": "Core\\Enums\\ProjectStatus.cs",
+              "ToolTip": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Core\\Enums\\ProjectStatus.cs",
+              "RelativeToolTip": "Core\\Enums\\ProjectStatus.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-01T21:30:36.774Z",
+              "WhenOpened": "2026-03-01T21:51:58.071Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "StudentClassHistory.cs",
               "DocumentMoniker": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Core\\Entities\\StudentClassHistory.cs",
               "RelativeDocumentMoniker": "Core\\Entities\\StudentClassHistory.cs",
@@ -79,12 +79,11 @@
               "RelativeToolTip": "Core\\Entities\\StudentClassHistory.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAeAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-01T21:19:22.582Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-01T21:19:22.582Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "Student.cs",
               "DocumentMoniker": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Core\\Entities\\Student.cs",
               "RelativeDocumentMoniker": "Core\\Entities\\Student.cs",
@@ -92,12 +91,11 @@
               "RelativeToolTip": "Core\\Entities\\Student.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-01T20:52:22.571Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-01T20:52:22.571Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "SchoolYear.cs",
               "DocumentMoniker": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Core\\Entities\\SchoolYear.cs",
               "RelativeDocumentMoniker": "Core\\Entities\\SchoolYear.cs",
@@ -105,12 +103,11 @@
               "RelativeToolTip": "Core\\Entities\\SchoolYear.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAA7AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-27T00:12:11.471Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-27T00:12:11.471Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "ApplicationDbContext.cs",
               "DocumentMoniker": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Persistence\\ApplicationDbContext.cs",
               "RelativeDocumentMoniker": "Persistence\\ApplicationDbContext.cs",
@@ -118,12 +115,11 @@
               "RelativeToolTip": "Persistence\\ApplicationDbContext.cs",
               "ViewState": "AgIAAB0AAAAAAAAAAAAmwCUAAABAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-27T00:03:42.794Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-27T00:03:42.794Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "StudentClass.cs",
               "DocumentMoniker": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Core\\Entities\\StudentClass.cs",
               "RelativeDocumentMoniker": "Core\\Entities\\StudentClass.cs",
@@ -131,8 +127,7 @@
               "RelativeToolTip": "Core\\Entities\\StudentClass.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-27T00:18:40.3Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-27T00:18:40.3Z"
             },
             {
               "$type": "Document",
@@ -142,53 +137,51 @@
               "RelativeDocumentMoniker": "WebAPI\\Service\\Import.cs",
               "ToolTip": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\WebAPI\\Service\\Import.cs",
               "RelativeToolTip": "WebAPI\\Service\\Import.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEgAAAA/AAAAAAAAAA==",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAEoAAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-02-26T23:50:40.063Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "WebAPI",
+              "DocumentIndex": 10,
+              "Title": "WebAPI.csproj",
               "DocumentMoniker": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\WebAPI\\WebAPI.csproj",
               "RelativeDocumentMoniker": "WebAPI\\WebAPI.csproj",
               "ToolTip": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\WebAPI\\WebAPI.csproj",
               "RelativeToolTip": "WebAPI\\WebAPI.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-02-26T23:49:38.222Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-26T23:49:38.222Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "WeatherForecastController.cs",
-              "DocumentMoniker": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\WebAPI\\Controllers\\WeatherForecastController.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Controllers\\WeatherForecastController.cs",
-              "ToolTip": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\WebAPI\\Controllers\\WeatherForecastController.cs",
-              "RelativeToolTip": "WebAPI\\Controllers\\WeatherForecastController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAANAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-26T23:49:26.587Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "WeatherForecast.cs",
-              "DocumentMoniker": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\WebAPI\\WeatherForecast.cs",
-              "RelativeDocumentMoniker": "WebAPI\\WeatherForecast.cs",
-              "ToolTip": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\WebAPI\\WeatherForecast.cs",
-              "RelativeToolTip": "WebAPI\\WeatherForecast.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAFAAAAAAAAAA==",
+              "DocumentIndex": 1,
+              "Title": "ProjectDTO.cs",
+              "DocumentMoniker": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\WebAPI\\DTOs\\ProjectDTO.cs",
+              "RelativeDocumentMoniker": "WebAPI\\DTOs\\ProjectDTO.cs",
+              "ToolTip": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\WebAPI\\DTOs\\ProjectDTO.cs",
+              "RelativeToolTip": "WebAPI\\DTOs\\ProjectDTO.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-02-26T23:49:16.813Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
+              "Title": "Professor.cs",
+              "DocumentMoniker": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Core\\Entities\\Professor.cs",
+              "RelativeDocumentMoniker": "Core\\Entities\\Professor.cs",
+              "ToolTip": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Core\\Entities\\Professor.cs",
+              "RelativeToolTip": "Core\\Entities\\Professor.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-01T21:30:36.774Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\WebAPI\\Program.cs",
               "RelativeDocumentMoniker": "WebAPI\\Program.cs",
@@ -196,8 +189,7 @@
               "RelativeToolTip": "WebAPI\\Program.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAKAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-26T23:48:24.489Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-26T23:48:24.489Z"
             }
           ]
         }

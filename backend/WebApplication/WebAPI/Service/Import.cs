@@ -76,6 +76,19 @@ namespace WebAPI.Service
 
             var professorsFromDB = await Context.Professor.ToListAsync();
             var professorsFromCSV = lines.Select(l => l.Split(";"))
+                .Select(l => new Professor {
+                    FirstName = l[0],
+                    LastName = l[1],
+                }).Distinct().Where(p => !professorsFromDB.Exists(d => d.FirstName == p.FirstName && d.LastName == p.LastName)).ToList();
+
+            await Context.AddRangeAsync(professorsFromCSV);
+
+            await Context.SaveChangesAsync();
+        }
+
+        public async void ImportProject()
+        {
+
         }
     }
 }
