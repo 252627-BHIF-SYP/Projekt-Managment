@@ -10,7 +10,7 @@ namespace Core.Entities
     public class Student
     {
         [Key]
-        public int StudentId { get; set; }
+        public required string StudentId { get; set; }
 
         public required string FirstName { get; set; }
 

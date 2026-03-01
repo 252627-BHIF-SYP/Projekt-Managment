@@ -12,9 +12,9 @@ namespace Core.Entities
         [Key]
         public int ClassId { get; set; }
 
-        public required string Name { get; set; }
+        public required string Name { get; set; } = string.Empty;
 
-        public required string Branch { get; set; }
+        public required string Branch { get; set; } = string.Empty;
 
         public ICollection<StudentClassHistory>? StudentClassHistory { get; set; }
     }

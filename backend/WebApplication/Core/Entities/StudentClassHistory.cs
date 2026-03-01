@@ -11,7 +11,7 @@ namespace Core.Entities
     {
         public int HistoryId {  get; set; }
 
-        public int StudentId { get; set; }
+        public required string StudentId { get; set; }
         public Student? Student { get; set; }
 
         public int ClassId { get; set; }

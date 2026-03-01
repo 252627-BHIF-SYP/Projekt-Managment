@@ -10,7 +10,14 @@ public class ApplicationDbContext : DbContext
     {
     }
 
+    public DbSet<SchoolYear> SchoolYear => Set<SchoolYear>();
+    public DbSet<Student> Student => Set<Student>();
+    public DbSet<Professor> Professor => Set<Professor>();
     public DbSet<StudentClass> StudentClass => Set<StudentClass>();
+    public DbSet<StudentClassHistory> StudentClassHistory => Set<StudentClassHistory>();
+    public DbSet<Project> Project => Set<Project>();
+    public DbSet<ProjectStudent> ProjectStudent => Set<ProjectStudent>();
+    public DbSet<ProjectSupervisor> ProjectSupervisor => Set<ProjectSupervisor>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,9 +36,6 @@ public class ApplicationDbContext : DbContext
     private void ConfigureStudent(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Student>().HasKey(s => s.StudentId);
-
-        modelBuilder.Entity<Student>().Property(s => s.StudentId)
-        .ValueGeneratedOnAdd();
     }
 
     private void ConfigureProfessor(ModelBuilder modelBuilder)
