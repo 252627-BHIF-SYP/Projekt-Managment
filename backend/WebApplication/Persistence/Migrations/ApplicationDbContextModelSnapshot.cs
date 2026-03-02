@@ -158,11 +158,8 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Core.Entities.Student", b =>
                 {
-                    b.Property<int>("StudentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("StudentId"));
+                    b.Property<string>("StudentId")
+                        .HasColumnType("text");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -212,8 +209,9 @@ namespace Persistence.Migrations
                     b.Property<int>("SchoolYearId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("StudentId")
-                        .HasColumnType("integer");
+                    b.Property<string>("StudentId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("HistoryId");
 

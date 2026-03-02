@@ -142,3 +142,8 @@ D:\Schule\SYP\Projekt-Managment\backend\WebApplication\WebAPI\bin\Debug\net9.0\t
 D:\Schule\SYP\Projekt-Managment\backend\WebApplication\WebAPI\bin\Debug\net9.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
 D:\Schule\SYP\Projekt-Managment\backend\WebApplication\WebAPI\bin\Debug\net9.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
 D:\Schule\SYP\Projekt-Managment\backend\WebApplication\WebAPI\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\WebAPI\bin\Debug\net9.0\Microsoft.OpenApi.dll
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\WebAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\WebAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\WebAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+D:\Schule\SYP\Projekt-Managment\backend\WebApplication\WebAPI\obj\Debug\net9.0\WebAPI.MvcApplicationPartsAssemblyInfo.cs
