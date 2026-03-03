@@ -9,13 +9,12 @@ namespace Core.Entities
 {
     public class Professor
     {
-        [Key]
-        public int ProfessorId { get; set; }
+        public required string ProfessorId { get; set; }
 
         public required string FirstName { get; set; }
 
         public required string LastName { get; set; }
 
-        public ICollection<ProjectSupervisor>? ProjectSupervisors { get; set; }
+        public ICollection<ProjectSupervisor>? ProjectSupervisors { get; init; } = [];
     }
 }

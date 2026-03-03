@@ -1,4 +1,4 @@
 ﻿namespace WebAPI.DTOs
 {
-    public record ProjectSupervisorDTO(int professorId, string role);
+    public record ProjectSupervisorDTO(string professorId, string role);
 }

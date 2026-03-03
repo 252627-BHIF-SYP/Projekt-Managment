@@ -15,14 +15,32 @@ namespace Persistence.Migrations
                 name: "Professor",
                 columns: table => new
                 {
-                    ProfessorId = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ProfessorId = table.Column<string>(type: "text", nullable: false),
                     FirstName = table.Column<string>(type: "text", nullable: false),
                     LastName = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Professor", x => x.ProfessorId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Project",
+                columns: table => new
+                {
+                    ProjectId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    GithubUrl = table.Column<string>(type: "text", nullable: false),
+                    LogoUrl = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    Technology = table.Column<string>(type: "text", nullable: false),
+                    ProjectType = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Project", x => x.ProjectId);
                 });
 
             migrationBuilder.CreateTable(
@@ -66,24 +84,52 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Project",
+                name: "ProjectSupervisor",
                 columns: table => new
                 {
-                    ProjectId = table.Column<int>(type: "integer", nullable: false)
+                    ProjectSupervisorId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    SchoolYearId = table.Column<int>(type: "integer", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    GithubUrl = table.Column<string>(type: "text", nullable: false),
-                    LogoUrl = table.Column<string>(type: "text", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    Technology = table.Column<string>(type: "text", nullable: false)
+                    ProjectId = table.Column<int>(type: "integer", nullable: false),
+                    ProfessorId = table.Column<string>(type: "text", nullable: false),
+                    Role = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Project", x => x.ProjectId);
+                    table.PrimaryKey("PK_ProjectSupervisor", x => x.ProjectSupervisorId);
                     table.ForeignKey(
-                        name: "FK_Project_SchoolYear_SchoolYearId",
+                        name: "FK_ProjectSupervisor_Professor_ProfessorId",
+                        column: x => x.ProfessorId,
+                        principalTable: "Professor",
+                        principalColumn: "ProfessorId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProjectSupervisor_Project_ProjectId",
+                        column: x => x.ProjectId,
+                        principalTable: "Project",
+                        principalColumn: "ProjectId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SchoolYearProject",
+                columns: table => new
+                {
+                    SchoolYearProjectId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    SchoolYearId = table.Column<int>(type: "integer", nullable: false),
+                    ProjectId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SchoolYearProject", x => x.SchoolYearProjectId);
+                    table.ForeignKey(
+                        name: "FK_SchoolYearProject_Project_ProjectId",
+                        column: x => x.ProjectId,
+                        principalTable: "Project",
+                        principalColumn: "ProjectId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SchoolYearProject_SchoolYear_SchoolYearId",
                         column: x => x.SchoolYearId,
                         principalTable: "SchoolYear",
                         principalColumn: "SchoolYearId",
@@ -124,33 +170,6 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProjectSupervisor",
-                columns: table => new
-                {
-                    ProjectSupervisorId = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ProjectId = table.Column<int>(type: "integer", nullable: false),
-                    ProfessorId = table.Column<int>(type: "integer", nullable: false),
-                    Role = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProjectSupervisor", x => x.ProjectSupervisorId);
-                    table.ForeignKey(
-                        name: "FK_ProjectSupervisor_Professor_ProfessorId",
-                        column: x => x.ProfessorId,
-                        principalTable: "Professor",
-                        principalColumn: "ProfessorId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ProjectSupervisor_Project_ProjectId",
-                        column: x => x.ProjectId,
-                        principalTable: "Project",
-                        principalColumn: "ProjectId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ProjectStudent",
                 columns: table => new
                 {
@@ -178,11 +197,6 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Project_SchoolYearId",
-                table: "Project",
-                column: "SchoolYearId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ProjectStudent_HistoryId",
                 table: "ProjectStudent",
                 column: "HistoryId");
@@ -203,6 +217,17 @@ namespace Persistence.Migrations
                 table: "ProjectSupervisor",
                 columns: new[] { "ProjectId", "ProfessorId" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SchoolYearProject_ProjectId_SchoolYearId",
+                table: "SchoolYearProject",
+                columns: new[] { "ProjectId", "SchoolYearId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SchoolYearProject_SchoolYearId",
+                table: "SchoolYearProject",
+                column: "SchoolYearId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_StudentClassHistory_ClassId",
@@ -231,6 +256,9 @@ namespace Persistence.Migrations
                 name: "ProjectSupervisor");
 
             migrationBuilder.DropTable(
+                name: "SchoolYearProject");
+
+            migrationBuilder.DropTable(
                 name: "StudentClassHistory");
 
             migrationBuilder.DropTable(
@@ -240,13 +268,13 @@ namespace Persistence.Migrations
                 name: "Project");
 
             migrationBuilder.DropTable(
+                name: "SchoolYear");
+
+            migrationBuilder.DropTable(
                 name: "StudentClass");
 
             migrationBuilder.DropTable(
                 name: "Student");
-
-            migrationBuilder.DropTable(
-                name: "SchoolYear");
         }
     }
 }

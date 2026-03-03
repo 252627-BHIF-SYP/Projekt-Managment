@@ -15,7 +15,7 @@ namespace Core.Entities
 
         public required string Year { get; set; }
 
-        public ICollection<Project>? Projects { get; init; } = [];
-        public ICollection<StudentClassHistory>? StudentClassHistory { get; set; }
+        public ICollection<StudentClassHistory> StudentClassHistory { get; init; } = [];
+        public ICollection<SchoolYearProject> SchoolYearProjects { get; init; } = [];
     }
 }

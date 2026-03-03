@@ -80,8 +80,9 @@ namespace WebAPI.Service
             var professorsFromCSV = lines.Skip(1).Select(l => l.Split(";"))
                 .Select(l => new Professor
                 {
-                    FirstName = l[0],
-                    LastName = l[1],
+                    ProfessorId = l[0],
+                    FirstName = l[1],
+                    LastName = l[2],
                 }).Distinct().Where(p => !professorsFromDB.Exists(d => d.FirstName == p.FirstName && d.LastName == p.LastName)).ToList();
 
             await Context.AddRangeAsync(professorsFromCSV);
@@ -98,8 +99,8 @@ namespace WebAPI.Service
                 LogoUrl = project.logoURL,
                 Technology = project.technologies,
                 Title = project.title,
-                SchoolYearId = project.schoolYearId,
-                Status = Enum.Parse<ProjectStatus>(project.projectStatus)
+                Status = Enum.Parse<ProjectStatus>(project.projectStatus),
+                ProjectType = project.projectType,
             };
 
             await Context.Project.AddAsync(projectForDB);
@@ -123,6 +124,13 @@ namespace WebAPI.Service
             }).ToList();
 
             await Context.AddRangeAsync(projectSupervisors);
+
+            var SchoolYearProject = new SchoolYearProject() {
+                ProjectId = projectForDB.ProjectId ,
+                SchoolYearId = project.schoolYearId,
+            };
+
+            await Context.AddAsync(SchoolYearProject);
 
             await Context.SaveChangesAsync();
         }

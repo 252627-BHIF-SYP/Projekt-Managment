@@ -13,7 +13,7 @@ namespace Core.Entities
         public int ProjectId { get; set; }
         public Project? Project { get; set; }
 
-        public int ProfessorId  { get; set; }
+        public required string ProfessorId  { get; set; }
         public Professor? Professor { get; set; }
 
         public required string Role { get; set; }

@@ -13,11 +13,11 @@ namespace Core.Entities
         [Key]
         public int ProjectId { get; set; }
 
-        public ICollection<ProjectSupervisor>? ProjectSupervisors { get; set; }
-        public ICollection<ProjectStudent>? ProjectStudents { get; set; }
+        public ICollection<ProjectSupervisor>? ProjectSupervisors { get; init; } = [];
 
-        public int SchoolYearId { get; set; }
-        public SchoolYear? SchoolYear { get; set; }
+        public ICollection<ProjectStudent>? ProjectStudents { get; init; } = [];
+
+        public ICollection<SchoolYearProject> SchoolYearProjects { get; init; } = [];
 
         public required string Title { get; set; }
         
@@ -30,5 +30,7 @@ namespace Core.Entities
         public ProjectStatus Status { get; set; }
 
         public required string Technology { get; set; }
+
+        public required string ProjectType { get; set; }
     }
 }

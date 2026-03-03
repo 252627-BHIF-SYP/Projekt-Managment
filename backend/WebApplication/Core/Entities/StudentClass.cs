@@ -16,6 +16,6 @@ namespace Core.Entities
 
         public required string Branch { get; set; } = string.Empty;
 
-        public ICollection<StudentClassHistory>? StudentClassHistory { get; set; }
+        public ICollection<StudentClassHistory> StudentClassHistory { get; init; } = [];
     }
 }

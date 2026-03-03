@@ -28,6 +28,7 @@ public class ApplicationDbContext : DbContext
         ConfigureProfessor(modelBuilder);
         ConfigureStudentClass(modelBuilder);
         ConfigureStudentClassHistory(modelBuilder);
+        ConfigureSchoolYearProject(modelBuilder);
         ConfigureProject(modelBuilder);
         ConfigureProjectStudent(modelBuilder);
         ConfigureProjectSupervisor(modelBuilder);
@@ -47,12 +48,6 @@ public class ApplicationDbContext : DbContext
     {
         modelBuilder.Entity<Project>(entity =>
         {
-            entity.HasKey(p => p.ProjectId);
-            entity.HasOne(p => p.SchoolYear)
-            .WithMany(p => p.Projects)
-            .HasForeignKey(p => p.SchoolYearId)
-            .OnDelete(DeleteBehavior.Cascade);
-
             entity.Property(p => p.ProjectId)
             .ValueGeneratedOnAdd();
         });
@@ -88,6 +83,28 @@ public class ApplicationDbContext : DbContext
 
             entity.Property(s => s.SchoolYearId)
             .ValueGeneratedOnAdd();
+        });
+    }
+
+    private void ConfigureSchoolYearProject(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<SchoolYearProject>(entity =>
+        {
+            entity.HasKey(s => s.SchoolYearProjectId);
+            entity.Property(s => s.SchoolYearProjectId)
+            .ValueGeneratedOnAdd();
+
+            entity.HasIndex(s => new { s.ProjectId, s.SchoolYearId }).IsUnique();
+
+            entity.HasOne(s => s.SchoolYear)
+            .WithMany(s => s.SchoolYearProjects)
+            .HasForeignKey(s => s.SchoolYearId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(s => s.Project)
+            .WithMany(p => p.SchoolYearProjects)
+            .HasForeignKey(s => s.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
         });
     }
 

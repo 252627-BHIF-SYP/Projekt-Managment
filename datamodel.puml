@@ -12,8 +12,8 @@ entity "SchoolYear" as SchoolYear {
 entity "SchoolYearProject" as SchoolYearProject {
   * schoolYearProjectId : INT <<PK>>
   --
- * schoolYearId : INT <<FK>>
- * ProjectId : INT <<FK>>
+ * schoolYearId : INT <<PK,FK>>
+ * ProjectId : INT <<PK,FK>>
 }
 
 entity "StudentClass" as Class {
@@ -24,14 +24,14 @@ entity "StudentClass" as Class {
 }
 
 entity "Student" as Student {
-  * studentId : INT <<PK>>
+  * studentId : VARCHAR <<PK>>
   --
   firstName : VARCHAR
   lastName  : VARCHAR
 }
 
 entity "Professor" as Professor {
-  * professorId : INT <<PK>>
+  * professorId : VARCHAR <<PK>>
   --
   firstName : VARCHAR
   lastName  : VARCHAR
@@ -48,7 +48,6 @@ entity "StudentClassHistory" as StudentClassHistory {
 entity "Project" as Project {
   * projectId : INT <<PK>>
   --
-  schoolYearId : INT <<FK>>
   title : VARCHAR
   description : TEXT
   githubUrl : VARCHAR
@@ -71,7 +70,7 @@ entity "ProjectSupervisor" as ProjectSupervisor {
   * projectSupervisorId : INT <<PK>>
   --
   * projectId : INT <<PK,FK>>
-  * professorId : INT <<PK,FK>>
+  * professorId : VARCHAR <<PK,FK>>
   --
   role : VARCHAR
 }

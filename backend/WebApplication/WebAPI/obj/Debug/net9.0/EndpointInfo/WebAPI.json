@@ -194,6 +194,10 @@
             "type": "string",
             "nullable": true
           },
+          "projectType": {
+            "type": "string",
+            "nullable": true
+          },
           "students": {
             "type": "array",
             "items": {
@@ -256,8 +260,8 @@
         "type": "object",
         "properties": {
           "professorId": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string",
+            "nullable": true
           },
           "role": {
             "type": "string",

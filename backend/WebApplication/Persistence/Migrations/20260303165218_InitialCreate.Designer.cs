@@ -11,7 +11,7 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260302001332_InitialCreate")]
+    [Migration("20260303165218_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -26,11 +26,8 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Core.Entities.Professor", b =>
                 {
-                    b.Property<int>("ProfessorId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ProfessorId"));
+                    b.Property<string>("ProfessorId")
+                        .HasColumnType("text");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -65,8 +62,9 @@ namespace Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("SchoolYearId")
-                        .HasColumnType("integer");
+                    b.Property<string>("ProjectType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -80,8 +78,6 @@ namespace Persistence.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("ProjectId");
-
-                    b.HasIndex("SchoolYearId");
 
                     b.ToTable("Project");
                 });
@@ -122,8 +118,9 @@ namespace Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ProjectSupervisorId"));
 
-                    b.Property<int>("ProfessorId")
-                        .HasColumnType("integer");
+                    b.Property<string>("ProfessorId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("ProjectId")
                         .HasColumnType("integer");
@@ -157,6 +154,30 @@ namespace Persistence.Migrations
                     b.HasKey("SchoolYearId");
 
                     b.ToTable("SchoolYear");
+                });
+
+            modelBuilder.Entity("Core.Entities.SchoolYearProject", b =>
+                {
+                    b.Property<int>("SchoolYearProjectId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SchoolYearProjectId"));
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SchoolYearId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("SchoolYearProjectId");
+
+                    b.HasIndex("SchoolYearId");
+
+                    b.HasIndex("ProjectId", "SchoolYearId")
+                        .IsUnique();
+
+                    b.ToTable("SchoolYearProject");
                 });
 
             modelBuilder.Entity("Core.Entities.Student", b =>
@@ -228,17 +249,6 @@ namespace Persistence.Migrations
                     b.ToTable("StudentClassHistory");
                 });
 
-            modelBuilder.Entity("Core.Entities.Project", b =>
-                {
-                    b.HasOne("Core.Entities.SchoolYear", "SchoolYear")
-                        .WithMany("Projects")
-                        .HasForeignKey("SchoolYearId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("SchoolYear");
-                });
-
             modelBuilder.Entity("Core.Entities.ProjectStudent", b =>
                 {
                     b.HasOne("Core.Entities.StudentClassHistory", "StudentClassHistory")
@@ -275,6 +285,25 @@ namespace Persistence.Migrations
                     b.Navigation("Professor");
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Core.Entities.SchoolYearProject", b =>
+                {
+                    b.HasOne("Core.Entities.Project", "Project")
+                        .WithMany("SchoolYearProjects")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.SchoolYear", "SchoolYear")
+                        .WithMany("SchoolYearProjects")
+                        .HasForeignKey("SchoolYearId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("SchoolYear");
                 });
 
             modelBuilder.Entity("Core.Entities.StudentClassHistory", b =>
@@ -314,11 +343,13 @@ namespace Persistence.Migrations
                     b.Navigation("ProjectStudents");
 
                     b.Navigation("ProjectSupervisors");
+
+                    b.Navigation("SchoolYearProjects");
                 });
 
             modelBuilder.Entity("Core.Entities.SchoolYear", b =>
                 {
-                    b.Navigation("Projects");
+                    b.Navigation("SchoolYearProjects");
 
                     b.Navigation("StudentClassHistory");
                 });
