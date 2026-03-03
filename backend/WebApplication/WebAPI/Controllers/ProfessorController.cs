@@ -36,5 +36,19 @@ namespace WebAPI.Controllers
 
             return Ok(csvText);
         }
+
+        [HttpPost("Add")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public async Task<IActionResult> Create([FromBody] ProfessorDTO dto)
+        {
+            var result = await _importService.ImportProfessor(dto);
+            
+            if (result)
+            {
+                return Created();
+            }
+
+            return BadRequest();
+        }
     }
 }

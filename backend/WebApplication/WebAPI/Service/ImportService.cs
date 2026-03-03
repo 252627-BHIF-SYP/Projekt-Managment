@@ -134,5 +134,49 @@ namespace WebAPI.Service
 
             await Context.SaveChangesAsync();
         }
+
+        public async Task<Boolean> ImportStudent(StudentDTO dto)
+        {
+            try
+            {
+                var student = new Student()
+                {
+                    StudentId = dto.StudentID,
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName
+                };
+
+                await Context.Student.AddAsync(student);
+                await Context.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<Boolean> ImportProfessor(ProfessorDTO dto)
+        {
+            try
+            {
+                var professor = new Professor()
+                {
+                    ProfessorId = dto.ProfessorID,
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName
+                };
+
+                await Context.Professor.AddAsync(professor);
+                await Context.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }
