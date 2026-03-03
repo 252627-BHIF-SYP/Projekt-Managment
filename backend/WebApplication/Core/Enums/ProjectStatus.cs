@@ -8,8 +8,10 @@ namespace Core.Enums
 {
     public enum ProjectStatus
     {
-        OnGoing = 0,
-        Completed = 1,
-        Archived = 2
+        New = 0,
+        Pending = 1,
+        OnGoing = 2,
+        Completed = 3,
+        Archived = 4
     }
 }

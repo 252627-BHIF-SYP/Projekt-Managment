@@ -1,0 +1,80 @@
+# Gesprächsnotizen – 02.03.2026
+
+## Allgemeine Anmerkungen / Feedback
+
+- **Vererbungshierarchie in den Entities beachten.**
+  - Struktur sauber planen (z. B. gemeinsame Basisklassen für User/Rollen).
+
+- **Navigation Collections laut Unterricht nicht optional („?“).**
+  - Immer mit **leerer Liste initialisieren**.
+  - Man kann sich darauf verlassen, dass die Liste existiert (auch wenn sie leer ist).
+  - **Kein Setter notwendig** bei Navigation Collections.
+
+- Für das Feld **Year (SchoolYear)** soll eine **Regex / Validation** definiert werden.
+
+- **Projekte können zweijährig sein.**
+  - Ein Projekt kann **zwei SchoolYears** zugewiesen sein.
+  - Datenmodell entsprechend anpassen.
+
+- Frage: **Wie weist man einem einzelnen Schüler zwei Schuljahre zu?**
+  - Lösung über eine **History- bzw. Zuordnungstabelle** überlegen.
+
+- **Minimal-API nochmals überdenken.**
+  - Architekturentscheidung prüfen.
+
+- **Admin benötigt Statistiken:**
+  - Anzahl Schuljahre
+  - Anzahl Projekte
+  - Allgemeine Systemübersicht
+
+- Einstieg/Startseite überlegen:
+  - Was braucht ein **SYP-Lehrer**?
+  - Was braucht ein **Admin**?
+  - UI je Rolle unterschiedlich planen.
+
+- DTOs erweitern:
+  - Liste von Klassen
+  - Liste von Projekten
+  - Struktur für übersichtliche Datenübergabe ans Frontend
+
+- **Dummy-Daten wirklich in die Datenbank importieren**
+  - Nicht nur im Angular Service halten
+  - Sauberes Fetching ermöglichen
+
+- **Auslesen der gespeicherten Daten im Backend verbessern**
+
+- **Min/Max Students im Create Project existiert nicht im Backend**
+  - Kann im Frontend entfernt werden
+
+- Bei **Technologies im Create Project**
+  - Tagging-System implementieren
+
+- Beim **Assign Supervisors / Select Students**
+  - Überlegen, ob ein zusätzliches **Projekt-Typ-Feld** sinnvoll ist
+
+- Wenn man auf **Create Project** klickt
+  - Muss die Funktion vollständig mit dem Backend verbunden sein
+
+- **SchoolYear im Project eventuell überflüssig**
+  - Da ein globales SchoolYear (oben rechts) existiert
+  - Modell nochmals überdenken
+
+
+## Rollen & Berechtigungen
+
+- Grundsätzlich darf **jeder Schüler Projekte anlegen**.
+- Schüler aus der **1. Klasse sollen eingeschränkte Rechte** haben.
+- Schüler aus der **4. Klasse haben erweiterte Rechte**.
+- Rollen- und Berechtigungskonzept klar definieren.
+
+
+## Technische / Modellbezogene Überlegungen
+
+- Collections immer initialisiert, niemals null.
+- Beziehungen sauber modellieren (zweijährige Projekte, Schüler-History etc.).
+- Backend ↔ Frontend Integration vollständig prüfen.
+
+
+## Offene Punkte
+
+- Wie wird ein zweijähriges Projekt technisch abgebildet?

@@ -2,7 +2,7 @@
   {
     "ContainingType": "WebAPI.Controllers.ProfessorController",
     "Method": "Upload",
-    "RelativePath": "Professor/Professor",
+    "RelativePath": "Professor/Import",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -33,7 +33,7 @@
   {
     "ContainingType": "WebAPI.Controllers.ProjectController",
     "Method": "Create",
-    "RelativePath": "Project/Project",
+    "RelativePath": "Project/Add",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -64,7 +64,7 @@
   {
     "ContainingType": "WebAPI.Controllers.StudentController",
     "Method": "Upload",
-    "RelativePath": "Student/Students",
+    "RelativePath": "Student/Import",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,

@@ -9,6 +9,13 @@ entity "SchoolYear" as SchoolYear {
   year : VARCHAR
 }
 
+entity "SchoolYearProject" as SchoolYearProject {
+  * schoolYearProjectId : INT <<PK>>
+  --
+ * schoolYearId : INT <<FK>>
+ * ProjectId : INT <<FK>>
+}
+
 entity "StudentClass" as Class {
   * classId : INT <<PK>>
   --
@@ -48,9 +55,12 @@ entity "Project" as Project {
   logoUrl : VARCHAR
   status : VARCHAR
   technology : VARCHAR
+  projectType : VARCHAR
 }
 
 entity "ProjectStudent" as ProjectStudent {
+  * projectStudentId : INT <<PK>>
+  --
   * projectId : INT <<PK,FK>>
   * historyId : INT <<PK,FK>>
   --
@@ -58,6 +68,8 @@ entity "ProjectStudent" as ProjectStudent {
 }
 
 entity "ProjectSupervisor" as ProjectSupervisor {
+  * projectSupervisorId : INT <<PK>>
+  --
   * projectId : INT <<PK,FK>>
   * professorId : INT <<PK,FK>>
   --
@@ -68,7 +80,8 @@ SchoolYear "1" -- "n" StudentClassHistory
 Class      "1" -- "n" StudentClassHistory
 Student    "1" -- "n" StudentClassHistory
 
-SchoolYear "1" -- "n" Project
+Project "1" -- "n" SchoolYearProject
+SchoolYear "1" -- "n" SchoolYearProject
 
 Project              "1" -- "n" ProjectStudent
 StudentClassHistory  "1" -- "n" ProjectStudent

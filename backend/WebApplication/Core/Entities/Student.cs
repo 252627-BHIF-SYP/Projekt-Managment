@@ -16,6 +16,6 @@ namespace Core.Entities
 
         public required string LastName { get; set; }
 
-        public ICollection<StudentClassHistory>? StudentClassHistory { get; set; }
+        public ICollection<StudentClassHistory> StudentClassHistory { get; init; } = [];
     }
 }

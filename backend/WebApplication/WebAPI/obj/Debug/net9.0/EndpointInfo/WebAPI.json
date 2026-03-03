@@ -5,7 +5,7 @@
     "version": "1.0"
   },
   "paths": {
-    "/Professor/Professor": {
+    "/Professor/Import": {
       "post": {
         "tags": [
           "Professor"
@@ -57,7 +57,7 @@
         }
       }
     },
-    "/Project/Project": {
+    "/Project/Add": {
       "post": {
         "tags": [
           "Project"
@@ -108,7 +108,7 @@
         }
       }
     },
-    "/Student/Students": {
+    "/Student/Import": {
       "post": {
         "tags": [
           "Student"
