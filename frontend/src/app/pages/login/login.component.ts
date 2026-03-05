@@ -36,6 +36,23 @@ import { LoginCredentials } from '../../core/models';
         </mat-card-header>
 
         <mat-card-content>
+          <!-- Keycloak Login Button -->
+          <div class="keycloak-login">
+            <button 
+              mat-raised-button 
+              color="primary" 
+              (click)="loginWithKeycloak()"
+              class="full-width keycloak-button">
+              <mat-icon>vpn_key</mat-icon>
+              <span>Sign in with Keycloak</span>
+            </button>
+          </div>
+
+          <div class="divider">
+            <span>OR</span>
+          </div>
+
+          <!-- Mock Login Form (for development) -->
           <form (ngSubmit)="login()" #loginForm="ngForm">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Username</mat-label>
@@ -67,17 +84,17 @@ import { LoginCredentials } from '../../core/models';
 
             <button 
               mat-raised-button 
-              color="primary" 
+              color="accent" 
               type="submit"
               class="full-width"
               [disabled]="loading || !loginForm.valid">
               <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-              <span *ngIf="!loading">Sign In</span>
+              <span *ngIf="!loading">Sign In (Mock)</span>
             </button>
           </form>
 
           <div class="demo-accounts">
-            <p class="demo-title">Demo Accounts:</p>
+            <p class="demo-title">Demo Accounts (Mock):</p>
             <div class="demo-account" *ngFor="let demo of demoAccounts">
               <strong>{{ demo.role }}:</strong> {{ demo.username }} / password
             </div>
@@ -108,6 +125,45 @@ import { LoginCredentials } from '../../core/models';
       mat-card-title {
         font-size: 24px;
         margin-bottom: 8px;
+      }
+    }
+
+    .keycloak-login {
+      margin-bottom: 16px;
+
+      .keycloak-button {
+        height: 56px;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+
+        mat-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+        }
+      }
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 24px 0;
+
+      &::before,
+      &::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      span {
+        padding: 0 16px;
+        color: rgba(0, 0, 0, 0.5);
+        font-size: 14px;
       }
     }
 
@@ -190,9 +246,13 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Redirect if already logged in
+    // If returning from Keycloak and already authenticated, move to dashboard
     if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/dashboard']);
+      this.authService.currentUser$.subscribe(user => {
+        if (user) {
+          this.router.navigate(['/dashboard']);
+        }
+      });
     }
   }
 
@@ -210,4 +270,23 @@ export class LoginComponent implements OnInit {
       }
     });
   }
+
+  /**
+   * Login with Keycloak
+   */
+  loginWithKeycloak(): void {
+    this.loading = true;
+    this.errorMessage = '';
+
+    this.authService.loginWithKeycloak().subscribe({
+      next: () => {
+        this.loading = false;
+      },
+      error: (error) => {
+        this.errorMessage = error?.message || 'Keycloak login failed. Please try again.';
+        this.loading = false;
+      }
+    });
+  }
 }
+

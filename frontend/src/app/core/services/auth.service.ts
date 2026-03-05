@@ -3,10 +3,11 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { delay, map, tap } from 'rxjs/operators';
 import { User, Role, LoginCredentials, AuthResponse } from '../models';
+import { KeycloakAuthService } from './keycloak.service';
 
 /**
  * Authentication service
- * Currently uses mock authentication, prepared for Keycloak integration
+ * Supports both Keycloak and mock authentication
  */
 @Injectable({
   providedIn: 'root'
@@ -17,6 +18,7 @@ export class AuthService {
 
   private readonly AUTH_TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'current_user';
+  private readonly USE_KEYCLOAK = true; // Set to false for mock authentication
 
   // Mock users for development
   private mockUsers: User[] = [
@@ -72,10 +74,29 @@ export class AuthService {
     }
   ];
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private keycloakAuthService: KeycloakAuthService
+  ) {
     const storedUser = this.getStoredUser();
     this.currentUserSubject = new BehaviorSubject<User | null>(storedUser);
     this.currentUser$ = this.currentUserSubject.asObservable();
+
+    // Initialize user from Keycloak if logged in
+    if (this.USE_KEYCLOAK) {
+      try {
+        if (this.keycloakAuthService.isLoggedIn()) {
+          this.keycloakAuthService.getCurrentUser().subscribe(user => {
+            if (user) {
+              this.currentUserSubject.next(user);
+              localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+            }
+          });
+        }
+      } catch {
+        // Keycloak not initialized yet -> ignore during app startup
+      }
+    }
   }
 
   /**
@@ -89,6 +110,13 @@ export class AuthService {
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
+    if (this.USE_KEYCLOAK) {
+      try {
+        return this.keycloakAuthService.isLoggedIn();
+      } catch {
+        return false;
+      }
+    }
     return !!this.currentUserValue && !!this.getToken();
   }
 
@@ -110,9 +138,13 @@ export class AuthService {
 
   /**
    * Login with credentials (mocked)
-   * TODO: Replace with Keycloak integration
+   * Only used when USE_KEYCLOAK is false
    */
   login(credentials: LoginCredentials): Observable<AuthResponse> {
+    if (this.USE_KEYCLOAK) {
+      throw new Error('Use loginWithKeycloak() when Keycloak is enabled');
+    }
+
     // Mock authentication logic
     const user = this.mockUsers.find(u => u.username === credentials.username);
 
@@ -142,23 +174,45 @@ export class AuthService {
   }
 
   /**
-   * Login with Keycloak (future implementation)
-   * This is where Keycloak integration will be added
+   * Login with Keycloak
    */
-  loginWithKeycloak(): Observable<AuthResponse> {
-    // TODO: Implement Keycloak login
-    // return this.keycloakService.login();
-    throw new Error('Keycloak integration not yet implemented');
+  loginWithKeycloak(): Observable<void> {
+    // If already logged in via Keycloak, load user and navigate to dashboard
+    if (this.keycloakAuthService.isLoggedIn()) {
+      return this.keycloakAuthService.getCurrentUser().pipe(
+        tap(user => {
+          if (user) {
+            this.currentUserSubject.next(user);
+            localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+          }
+        }),
+        map(() => {
+          // Navigate to dashboard after loading user
+          this.router.navigate(['/dashboard']);
+          return undefined;
+        })
+      );
+    }
+
+    // Not logged in yet, trigger Keycloak login (this will redirect to Keycloak)
+    return this.keycloakAuthService.login(`${window.location.origin}/login`);
   }
 
   /**
    * Logout user
    */
   logout(): void {
-    localStorage.removeItem(this.AUTH_TOKEN_KEY);
-    localStorage.removeItem(this.USER_KEY);
-    this.currentUserSubject.next(null);
-    this.router.navigate(['/login']);
+    if (this.USE_KEYCLOAK) {
+      this.keycloakAuthService.logout().subscribe(() => {
+        localStorage.removeItem(this.USER_KEY);
+        this.currentUserSubject.next(null);
+      });
+    } else {
+      localStorage.removeItem(this.AUTH_TOKEN_KEY);
+      localStorage.removeItem(this.USER_KEY);
+      this.currentUserSubject.next(null);
+      this.router.navigate(['/login']);
+    }
   }
 
   /**
@@ -173,6 +227,9 @@ export class AuthService {
    * Get authentication token
    */
   getToken(): string | null {
+    if (this.USE_KEYCLOAK) {
+      return this.keycloakAuthService.getToken();
+    }
     return localStorage.getItem(this.AUTH_TOKEN_KEY);
   }
 

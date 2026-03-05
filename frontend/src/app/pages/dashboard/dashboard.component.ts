@@ -29,7 +29,8 @@ import { Observable } from 'rxjs';
       </div>
 
       <div class="welcome-section" *ngIf="currentUser$ | async as user">
-        <h2>Welcome back, {{ user.firstName }}! 👋</h2>
+        <h2>Welcome back, {{ user.firstName }} {{ user.lastName }}! 👋</h2>
+        <p class="username-display">Logged in as: <strong>{{ user.username }}</strong></p>
         <p>Here's what's happening with your projects today.</p>
       </div>
 
@@ -132,6 +133,17 @@ import { Observable } from 'rxjs';
         font-size: 28px;
         font-weight: 400;
         margin-bottom: 8px;
+      }
+
+      .username-display {
+        color: rgba(0, 0, 0, 0.7);
+        font-size: 14px;
+        margin-bottom: 8px;
+        
+        strong {
+          color: #667eea;
+          font-weight: 500;
+        }
       }
 
       p {

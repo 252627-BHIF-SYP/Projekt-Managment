@@ -1,0 +1,50 @@
+{
+  "realm": "school-management",
+  "enabled": true,
+  "registrationAllowed": false,
+  "clients": [
+    {
+      "clientId": "school-management-frontend",
+      "name": "School Management Frontend",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "redirectUris": [
+        "http://localhost:4200/*",
+        "http://localhost:4200/dashboard"
+      ],
+      "webOrigins": [
+        "http://localhost:4200"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "sys-admin"
+      },
+      {
+        "name": "av"
+      },
+      {
+        "name": "professor"
+      },
+      {
+        "name": "betreuer"
+      },
+      {
+        "name": "student-searching"
+      },
+      {
+        "name": "student-project"
+      }
+    ]
+  }
+}
