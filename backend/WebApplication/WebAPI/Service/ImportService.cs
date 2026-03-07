@@ -45,7 +45,7 @@ namespace WebAPI.Service
                 .DistinctBy(l => l[0])
                 .Select(l => new Student
                 {
-                    StudentId = l[0],
+                    Id = l[0],
                     FirstName = l[1],
                     LastName = l[2],
                 }).Where(l => !studentsFromDB.Contains(l)).ToList();
@@ -63,7 +63,7 @@ namespace WebAPI.Service
                 .Select(l => new StudentClassHistory
                 {
                     ClassId = newStudentClassFromDB.Single(c => c.Name == l[3] && c.Branch == l[5]).ClassId,
-                    StudentId = newStudentFromDB.Single(s => s.StudentId == l[0]).StudentId,
+                    StudentId = newStudentFromDB.Single(s => s.Id == l[0]).Id,
                     SchoolYearId = newSchoolYearsFromDB.Single(y => y.Year == l[4]).SchoolYearId
                 }).ToList();
 
@@ -80,7 +80,7 @@ namespace WebAPI.Service
             var professorsFromCSV = lines.Skip(1).Select(l => l.Split(";"))
                 .Select(l => new Professor
                 {
-                    ProfessorId = l[0],
+                    Id = l[0],
                     FirstName = l[1],
                     LastName = l[2],
                 }).Distinct().Where(p => !professorsFromDB.Exists(d => d.FirstName == p.FirstName && d.LastName == p.LastName)).ToList();
@@ -141,7 +141,7 @@ namespace WebAPI.Service
             {
                 var student = new Student()
                 {
-                    StudentId = dto.StudentID,
+                    Id = dto.StudentID,
                     FirstName = dto.FirstName,
                     LastName = dto.LastName
                 };
@@ -163,7 +163,7 @@ namespace WebAPI.Service
             {
                 var professor = new Professor()
                 {
-                    ProfessorId = dto.ProfessorID,
+                    Id = dto.ProfessorID,
                     FirstName = dto.FirstName,
                     LastName = dto.LastName
                 };

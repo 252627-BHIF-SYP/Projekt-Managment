@@ -11,7 +11,7 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260303165218_InitialCreate")]
+    [Migration("20260307184108_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,9 +24,9 @@ namespace Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Entities.Professor", b =>
+            modelBuilder.Entity("Core.Entities.Person", b =>
                 {
-                    b.Property<string>("ProfessorId")
+                    b.Property<string>("Id")
                         .HasColumnType("text");
 
                     b.Property<string>("FirstName")
@@ -37,9 +37,18 @@ namespace Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("ProfessorId");
+                    b.Property<string>("PersonType")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)");
 
-                    b.ToTable("Professor");
+                    b.HasKey("Id");
+
+                    b.ToTable("Person");
+
+                    b.HasDiscriminator<string>("PersonType").HasValue("Person");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Core.Entities.Project", b =>
@@ -180,24 +189,6 @@ namespace Persistence.Migrations
                     b.ToTable("SchoolYearProject");
                 });
 
-            modelBuilder.Entity("Core.Entities.Student", b =>
-                {
-                    b.Property<string>("StudentId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("StudentId");
-
-                    b.ToTable("Student");
-                });
-
             modelBuilder.Entity("Core.Entities.StudentClass", b =>
                 {
                     b.Property<int>("ClassId")
@@ -247,6 +238,20 @@ namespace Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("StudentClassHistory");
+                });
+
+            modelBuilder.Entity("Core.Entities.Professor", b =>
+                {
+                    b.HasBaseType("Core.Entities.Person");
+
+                    b.HasDiscriminator().HasValue("Professor");
+                });
+
+            modelBuilder.Entity("Core.Entities.Student", b =>
+                {
+                    b.HasBaseType("Core.Entities.Person");
+
+                    b.HasDiscriminator().HasValue("Student");
                 });
 
             modelBuilder.Entity("Core.Entities.ProjectStudent", b =>
@@ -333,11 +338,6 @@ namespace Persistence.Migrations
                     b.Navigation("StudentClass");
                 });
 
-            modelBuilder.Entity("Core.Entities.Professor", b =>
-                {
-                    b.Navigation("ProjectSupervisors");
-                });
-
             modelBuilder.Entity("Core.Entities.Project", b =>
                 {
                     b.Navigation("ProjectStudents");
@@ -354,11 +354,6 @@ namespace Persistence.Migrations
                     b.Navigation("StudentClassHistory");
                 });
 
-            modelBuilder.Entity("Core.Entities.Student", b =>
-                {
-                    b.Navigation("StudentClassHistory");
-                });
-
             modelBuilder.Entity("Core.Entities.StudentClass", b =>
                 {
                     b.Navigation("StudentClassHistory");
@@ -367,6 +362,16 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Core.Entities.StudentClassHistory", b =>
                 {
                     b.Navigation("ProjectStudents");
+                });
+
+            modelBuilder.Entity("Core.Entities.Professor", b =>
+                {
+                    b.Navigation("ProjectSupervisors");
+                });
+
+            modelBuilder.Entity("Core.Entities.Student", b =>
+                {
+                    b.Navigation("StudentClassHistory");
                 });
 #pragma warning restore 612, 618
         }

@@ -3203,23 +3203,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\sanja\\.nuget\\packages\\": {},
+    "C:\\Users\\danis\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\HTL\\SYP04\\Projekt-Managment\\backend\\WebApplication\\Persistence\\Persistence.csproj",
+      "projectUniqueName": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Persistence\\Persistence.csproj",
       "projectName": "Persistence",
-      "projectPath": "C:\\HTL\\SYP04\\Projekt-Managment\\backend\\WebApplication\\Persistence\\Persistence.csproj",
-      "packagesPath": "C:\\Users\\sanja\\.nuget\\packages\\",
-      "outputPath": "C:\\HTL\\SYP04\\Projekt-Managment\\backend\\WebApplication\\Persistence\\obj\\",
+      "projectPath": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Persistence\\Persistence.csproj",
+      "packagesPath": "C:\\Users\\danis\\.nuget\\packages\\",
+      "outputPath": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Persistence\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\sanja\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\danis\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -3234,8 +3234,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "C:\\HTL\\SYP04\\Projekt-Managment\\backend\\WebApplication\\Core\\Core.csproj": {
-              "projectPath": "C:\\HTL\\SYP04\\Projekt-Managment\\backend\\WebApplication\\Core\\Core.csproj"
+            "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Core\\Core.csproj": {
+              "projectPath": "D:\\Schule\\SYP\\Projekt-Managment\\backend\\WebApplication\\Core\\Core.csproj"
             }
           }
         }
@@ -3250,7 +3250,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "10.0.100"
+      "SdkAnalysisLevel": "9.0.200"
     },
     "frameworks": {
       "net9.0": {
@@ -3301,7 +3301,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

@@ -12,16 +12,17 @@ namespace Persistence.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Professor",
+                name: "Person",
                 columns: table => new
                 {
-                    ProfessorId = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<string>(type: "text", nullable: false),
                     FirstName = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "text", nullable: false)
+                    LastName = table.Column<string>(type: "text", nullable: false),
+                    PersonType = table.Column<string>(type: "character varying(13)", maxLength: 13, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Professor", x => x.ProfessorId);
+                    table.PrimaryKey("PK_Person", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -57,19 +58,6 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Student",
-                columns: table => new
-                {
-                    StudentId = table.Column<string>(type: "text", nullable: false),
-                    FirstName = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Student", x => x.StudentId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "StudentClass",
                 columns: table => new
                 {
@@ -97,10 +85,10 @@ namespace Persistence.Migrations
                 {
                     table.PrimaryKey("PK_ProjectSupervisor", x => x.ProjectSupervisorId);
                     table.ForeignKey(
-                        name: "FK_ProjectSupervisor_Professor_ProfessorId",
+                        name: "FK_ProjectSupervisor_Person_ProfessorId",
                         column: x => x.ProfessorId,
-                        principalTable: "Professor",
-                        principalColumn: "ProfessorId",
+                        principalTable: "Person",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ProjectSupervisor_Project_ProjectId",
@@ -150,6 +138,12 @@ namespace Persistence.Migrations
                 {
                     table.PrimaryKey("PK_StudentClassHistory", x => x.HistoryId);
                     table.ForeignKey(
+                        name: "FK_StudentClassHistory_Person_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "Person",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_StudentClassHistory_SchoolYear_SchoolYearId",
                         column: x => x.SchoolYearId,
                         principalTable: "SchoolYear",
@@ -160,12 +154,6 @@ namespace Persistence.Migrations
                         column: x => x.ClassId,
                         principalTable: "StudentClass",
                         principalColumn: "ClassId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_StudentClassHistory_Student_StudentId",
-                        column: x => x.StudentId,
-                        principalTable: "Student",
-                        principalColumn: "StudentId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -262,19 +250,16 @@ namespace Persistence.Migrations
                 name: "StudentClassHistory");
 
             migrationBuilder.DropTable(
-                name: "Professor");
+                name: "Project");
 
             migrationBuilder.DropTable(
-                name: "Project");
+                name: "Person");
 
             migrationBuilder.DropTable(
                 name: "SchoolYear");
 
             migrationBuilder.DropTable(
                 name: "StudentClass");
-
-            migrationBuilder.DropTable(
-                name: "Student");
         }
     }
 }

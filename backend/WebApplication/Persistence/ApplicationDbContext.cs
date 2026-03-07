@@ -11,6 +11,7 @@ public class ApplicationDbContext : DbContext
     }
 
     public DbSet<SchoolYear> SchoolYear => Set<SchoolYear>();
+    public DbSet<Person> Person => Set<Person>();
     public DbSet<Student> Student => Set<Student>();
     public DbSet<Professor> Professor => Set<Professor>();
     public DbSet<StudentClass> StudentClass => Set<StudentClass>();
@@ -24,8 +25,7 @@ public class ApplicationDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         ConfigureSchoolYear(modelBuilder);
-        ConfigureStudent(modelBuilder);
-        ConfigureProfessor(modelBuilder);
+        ConfigurePerson(modelBuilder);
         ConfigureStudentClass(modelBuilder);
         ConfigureStudentClassHistory(modelBuilder);
         ConfigureSchoolYearProject(modelBuilder);
@@ -34,14 +34,12 @@ public class ApplicationDbContext : DbContext
         ConfigureProjectSupervisor(modelBuilder);
     }
 
-    private void ConfigureStudent(ModelBuilder modelBuilder)
+    private void ConfigurePerson(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Student>().HasKey(s => s.StudentId);
-    }
-
-    private void ConfigureProfessor(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Professor>().HasKey(p => p.ProfessorId);
+        modelBuilder.Entity<Person>()
+            .HasDiscriminator<string>("PersonType")
+            .HasValue<Student>("Student")
+            .HasValue<Professor>("Professor");
     }
 
     private void ConfigureProject(ModelBuilder modelBuilder)
