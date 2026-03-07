@@ -13,9 +13,9 @@ namespace Core.Entities
         [Key]
         public int ProjectId { get; set; }
 
-        public ICollection<ProjectSupervisor>? ProjectSupervisors { get; init; } = [];
+        public ICollection<ProjectSupervisor> ProjectSupervisors { get; init; } = [];
 
-        public ICollection<ProjectStudent>? ProjectStudents { get; init; } = [];
+        public ICollection<ProjectStudent> ProjectStudents { get; init; } = [];
 
         public ICollection<SchoolYearProject> SchoolYearProjects { get; init; } = [];
 

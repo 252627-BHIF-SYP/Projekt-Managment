@@ -90,7 +90,7 @@ namespace WebAPI.Service
             await Context.SaveChangesAsync();
         }
 
-        public async Task ImportProject(CreateProjectDTO project)
+        public async Task ImportProject(ProjectDTO project)
         {
             var projectForDB = new Project()
             {

@@ -12,8 +12,8 @@ entity "SchoolYear" as SchoolYear {
 entity "SchoolYearProject" as SchoolYearProject {
   * schoolYearProjectId : INT <<PK>>
   --
- * schoolYearId : INT <<PK,FK>>
- * ProjectId : INT <<PK,FK>>
+  schoolYearId : INT <<FK>>
+  projectId : INT <<FK>>
 }
 
 entity "StudentClass" as Class {
@@ -23,24 +23,18 @@ entity "StudentClass" as Class {
   branch : VARCHAR
 }
 
-entity "Student" as Student {
-  * studentId : VARCHAR <<PK>>
+entity "Person" as Person {
+  * id : VARCHAR <<PK>>
   --
   firstName : VARCHAR
   lastName  : VARCHAR
-}
-
-entity "Professor" as Professor {
-  * professorId : VARCHAR <<PK>>
-  --
-  firstName : VARCHAR
-  lastName  : VARCHAR
+  personType : VARCHAR
 }
 
 entity "StudentClassHistory" as StudentClassHistory {
   * historyId : INT <<PK>>
   --
-  studentId : INT <<FK>>
+  studentId : VARCHAR <<FK>>
   classId : INT <<FK>>
   schoolYearId : INT <<FK>>
 }
@@ -60,24 +54,22 @@ entity "Project" as Project {
 entity "ProjectStudent" as ProjectStudent {
   * projectStudentId : INT <<PK>>
   --
-  * projectId : INT <<PK,FK>>
-  * historyId : INT <<PK,FK>>
-  --
+  projectId : INT <<FK>>
+  historyId : INT <<FK>>
   role : VARCHAR
 }
 
 entity "ProjectSupervisor" as ProjectSupervisor {
   * projectSupervisorId : INT <<PK>>
   --
-  * projectId : INT <<PK,FK>>
-  * professorId : VARCHAR <<PK,FK>>
-  --
+  projectId : INT <<FK>>
+  professorId : VARCHAR <<FK>>
   role : VARCHAR
 }
 
 SchoolYear "1" -- "n" StudentClassHistory
 Class      "1" -- "n" StudentClassHistory
-Student    "1" -- "n" StudentClassHistory
+Person     "1" -- "n" StudentClassHistory
 
 Project "1" -- "n" SchoolYearProject
 SchoolYear "1" -- "n" SchoolYearProject
@@ -86,5 +78,5 @@ Project              "1" -- "n" ProjectStudent
 StudentClassHistory  "1" -- "n" ProjectStudent
 
 Project    "1" -- "n" ProjectSupervisor
-Professor  "1" -- "n" ProjectSupervisor
+Person     "1" -- "n" ProjectSupervisor
 @enduml

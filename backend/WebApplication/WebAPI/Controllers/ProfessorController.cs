@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Core.Entities;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Persistence;
 using WebAPI.DTOs;
 using WebAPI.Service;
@@ -17,6 +19,11 @@ namespace WebAPI.Controllers
         {
             _importService = importService;
             _context = context;
+        }
+
+        private static ProfessorDTO ProfessorToDto(Professor professor)
+        {
+            return new ProfessorDTO(professor.Id, professor.FirstName, professor.LastName);
         }
 
         [HttpPost("Import")]
@@ -49,6 +56,33 @@ namespace WebAPI.Controllers
             }
 
             return BadRequest();
+        }
+
+        [HttpGet("All")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAll()
+        {
+            var professors = await _context.Professor.Select(p => ProfessorToDto(p)).ToListAsync();
+
+            return Ok(professors);
+        }
+
+        [HttpGet("Count")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetCount()
+        {
+            var professors = await _context.Professor.CountAsync();
+
+            return Ok(professors);
+        }
+
+        [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetById(string id)
+        {
+            var professor = await _context.Professor.SingleAsync(p => p.Id == id);
+
+            return Ok(ProfessorToDto(professor));
         }
     }
 }
