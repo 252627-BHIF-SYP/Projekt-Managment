@@ -29,41 +29,8 @@ interface MenuItem {
     MatIconModule,
     MatDividerModule
   ],
-  template: `
-    <mat-nav-list>
-      <a 
-        mat-list-item 
-        *ngFor="let item of visibleMenuItems"
-        [routerLink]="item.route"
-        routerLinkActive="active">
-        <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-        <span matListItemTitle>{{ item.label }}</span>
-      </a>
-    </mat-nav-list>
-  `,
-  styles: [`
-    mat-nav-list {
-      padding-top: 8px;
-
-      a {
-        margin: 4px 8px;
-        border-radius: 4px;
-        
-        &.active {
-          background-color: rgba(63, 81, 181, 0.1);
-          color: #3f51b5;
-          
-          mat-icon {
-            color: #3f51b5;
-          }
-        }
-
-        &:hover {
-          background-color: rgba(0, 0, 0, 0.04);
-        }
-      }
-    }
-  `]
+  templateUrl: './sidebar.component.html',
+  styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent implements OnInit {
   menuItems: MenuItem[] = [
@@ -124,3 +91,4 @@ export class SidebarComponent implements OnInit {
     });
   }
 }
+

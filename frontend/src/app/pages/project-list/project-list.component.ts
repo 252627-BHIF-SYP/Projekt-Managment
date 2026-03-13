@@ -32,116 +32,8 @@ import { Project, ProjectFilter, SchoolYear, Class, Role } from '../../core/mode
     ProjectCardComponent,
     FilterBarComponent
   ],
-  template: `
-    <div class="page-container">
-      <mat-toolbar color="primary" class="page-toolbar">
-        <h1>Projects</h1>
-      </mat-toolbar>
-
-      <mat-divider></mat-divider>
-
-      <div class="filter-section">
-        <mat-accordion class="filter-accordion">
-          <mat-expansion-panel [expanded]="isFilterOpen" (opened)="isFilterOpen = true" (closed)="isFilterOpen = false">
-            <mat-expansion-panel-header>
-              <mat-panel-title>Filters</mat-panel-title>
-            </mat-expansion-panel-header>
-            <app-filter-bar
-              [schoolYears]="schoolYears"
-              [classes]="classes"
-              (filterChange)="onFilterChange($event)">
-            </app-filter-bar>
-          </mat-expansion-panel>
-        </mat-accordion>
-      </div>
-
-      <div *ngIf="loading" class="loading-container">
-        <mat-spinner></mat-spinner>
-      </div>
-
-      <div class="card-grid" *ngIf="!loading && filteredProjects.length > 0">
-        <app-project-card
-          *ngFor="let project of filteredProjects"
-          [project]="project"
-          (cardClick)="viewProject($event)">
-        </app-project-card>
-      </div>
-
-      <div class="no-projects" *ngIf="!loading && filteredProjects.length === 0">
-        <mat-icon>folder_open</mat-icon>
-        <h3>No projects found</h3>
-        <p>Try adjusting your filters or create a new project</p>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .page-container {
-      padding: 0;
-    }
-
-    .page-toolbar {
-      padding: 0 24px;
-      margin-bottom: 24px;
-
-      h1 {
-        margin: 0;
-        font-size: 28px;
-        font-weight: 500;
-      }
-    }
-
-    .filter-section {
-      padding: 12px 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .filter-accordion {
-      width: 100%;
-      max-width: 920px;
-    }
-
-    .loading-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 400px;
-    }
-
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-      gap: 24px;
-    }
-
-    .no-projects {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 400px;
-      color: rgba(0, 0, 0, 0.4);
-
-      mat-icon {
-        font-size: 80px;
-        width: 80px;
-        height: 80px;
-        margin-bottom: 16px;
-      }
-
-      h3 {
-        font-size: 24px;
-        font-weight: 400;
-        margin-bottom: 8px;
-      }
-
-      p {
-        font-size: 16px;
-      }
-    }
-  `]
+  templateUrl: './project-list.component.html',
+  styleUrl: './project-list.component.scss'
 })
 export class ProjectListComponent implements OnInit {
   projects: Project[] = [];
@@ -219,3 +111,4 @@ export class ProjectListComponent implements OnInit {
     ]);
   }
 }
+

@@ -1,0 +1,49 @@
+    <div class="change-request-list">
+      <mat-card *ngFor="let request of changeRequests" class="request-card">
+        <mat-card-header>
+          <mat-card-title>{{ request.title }}</mat-card-title>
+          <mat-card-subtitle>
+            Requested by {{ request.requestedByName }} • {{ request.createdAt | date:'short' }}
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="request-type">
+            <mat-icon>{{ getTypeIcon(request.type) }}</mat-icon>
+            <span>{{ getTypeLabel(request.type) }}</span>
+          </div>
+
+          <p class="description">{{ request.description }}</p>
+
+          <div class="status-chip" [class]="'status-' + request.status.toLowerCase()">
+            {{ getStatusLabel(request.status) }}
+          </div>
+
+          <div class="review-info" *ngIf="request.reviewedById">
+            <mat-icon>{{ request.status === 'APPROVED' ? 'check_circle' : 'cancel' }}</mat-icon>
+            <span>
+              {{ request.status === 'APPROVED' ? 'Approved' : 'Rejected' }} by {{ request.reviewedByName }}
+              on {{ request.reviewedAt | date:'short' }}
+            </span>
+            <p *ngIf="request.reviewComment" class="review-comment">
+              "{{ request.reviewComment }}"
+            </p>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions *ngIf="request.status === 'PENDING' && showActions">
+          <button mat-raised-button color="primary">
+            Approve
+          </button>
+          <button mat-raised-button color="warn">
+            Reject
+          </button>
+        </mat-card-actions>
+      </mat-card>
+
+      <div class="no-requests" *ngIf="!changeRequests || changeRequests.length === 0">
+        <mat-icon>inbox</mat-icon>
+        <p>No change requests</p>
+      </div>
+    </div>
+  

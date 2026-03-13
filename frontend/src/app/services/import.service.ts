@@ -3,6 +3,7 @@ import { Observable, of } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
 import { ImportLog, ImportType, ImportStatus, ImportValidation, CsvPreview } from '../core/models';
 import { ApiService } from '../core/services/api.service';
+import { StudentService } from './student.service';
 
 /**
  * Import service for managing CSV imports
@@ -51,7 +52,10 @@ export class ImportService {
     }
   ];
 
-  constructor(private apiService: ApiService) {}
+  constructor(
+    private apiService: ApiService,
+    private studentService: StudentService
+  ) {}
 
   /**
    * Get all import logs
@@ -113,31 +117,44 @@ export class ImportService {
           });
         }
 
-        // Header checks per import type to match PlantUML data model
-        const hasHeaders = (expected: string[]) => expected.filter(h => !preview.headers.includes(h));
+        // Header checks per import type to match current data model and legacy templates.
+        const headers = preview.headers.map(h => h.trim().toLowerCase());
+        const hasAnyAlias = (aliases: string[]) => aliases.some(a => headers.includes(a));
+        const missingRequiredGroups = (requiredGroups: string[][]) =>
+          requiredGroups.filter(group => !hasAnyAlias(group));
+
         switch (type) {
           case ImportType.STUDENTS: {
-            // Data model Student: first_name, last_name, if_name
-            const required = ['first_name', 'last_name', 'if_name'];
-            const missing = hasHeaders(required);
+            // Canonical: first_name,last_name,if_name
+            // Legacy templates may use German headers and StudentID.
+            const requiredGroups = [
+              ['first_name', 'vorname', 'firstname', 'first name'],
+              ['last_name', 'nachname', 'lastname', 'last name'],
+              ['if_name', 'studentid', 'if', 'ifname']
+            ];
+            const missing = missingRequiredGroups(requiredGroups);
             if (missing.length > 0) {
               validation.isValid = false;
               validation.errors.push({
                 row: 0,
-                message: `Missing required headers: ${missing.join(', ')}`
+                message: `Missing required headers: ${missing.map(g => g[0]).join(', ')}`
               });
             }
             break;
           }
           case ImportType.TEACHERS: {
-            // Data model Professor: first_name, last_name
-            const required = ['first_name', 'last_name'];
-            const missing = hasHeaders(required);
+            // Canonical: first_name,last_name
+            // Legacy templates may use Vorname/Nachname.
+            const requiredGroups = [
+              ['first_name', 'vorname', 'firstname', 'first name'],
+              ['last_name', 'nachname', 'lastname', 'last name']
+            ];
+            const missing = missingRequiredGroups(requiredGroups);
             if (missing.length > 0) {
               validation.isValid = false;
               validation.errors.push({
                 row: 0,
-                message: `Missing required headers: ${missing.join(', ')}`
+                message: `Missing required headers: ${missing.map(g => g[0]).join(', ')}`
               });
             }
             break;
@@ -161,26 +178,43 @@ export class ImportService {
     // if (schoolYearId) formData.append('schoolYearId', schoolYearId);
     // return this.apiService.upload<ImportLog>('/imports', formData);
 
-    // Mock import
-    const importLog: ImportLog = {
-      id: String(this.mockImportLogs.length + 1),
-      type,
-      fileName: file.name,
-      schoolYearId,
-      importedById: '1', // Current user
-      importedByName: 'Current User',
-      status: ImportStatus.COMPLETED,
-      totalRecords: 100,
-      successfulRecords: 98,
-      failedRecords: 2,
-      errors: [],
-      startedAt: new Date(),
-      completedAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    return this.parseCsvFile(file).pipe(
+      delay(600),
+      map(preview => {
+        let total = preview.totalRows;
+        let success = preview.totalRows;
+        let failed = 0;
 
-    return of(importLog).pipe(delay(2000));
+        if (type === ImportType.STUDENTS) {
+          const result = this.studentService.importStudentsFromCsv(preview, schoolYearId);
+          total = result.total;
+          success = result.success;
+          failed = result.failed;
+        }
+
+        const now = new Date();
+        const importLog: ImportLog = {
+          id: String(this.mockImportLogs.length + 1),
+          type,
+          fileName: file.name,
+          schoolYearId,
+          importedById: '1',
+          importedByName: 'Current User',
+          status: failed > 0 ? ImportStatus.PARTIALLY_COMPLETED : ImportStatus.COMPLETED,
+          totalRecords: total,
+          successfulRecords: success,
+          failedRecords: failed,
+          errors: [],
+          startedAt: now,
+          completedAt: now,
+          createdAt: now,
+          updatedAt: now
+        };
+
+        this.mockImportLogs = [importLog, ...this.mockImportLogs];
+        return importLog;
+      })
+    );
   }
 
   /**
@@ -276,7 +310,7 @@ export class ImportService {
 
     switch (type) {
       case ImportType.STUDENTS:
-        headers = ['first_name', 'last_name', 'if_name'];
+        headers = ['first_name', 'last_name', 'if_name', 'schoolyear', 'branch', 'class', 'year_level'];
         break;
       case ImportType.TEACHERS:
         headers = ['first_name', 'last_name'];

@@ -1,0 +1,66 @@
+    <div class="student-picker">
+      <div class="picker-header">
+        <mat-form-field appearance="outline" class="class-filter">
+          <mat-label>Filter by Class</mat-label>
+          <mat-select [(ngModel)]="selectedClassId" (ngModelChange)="onClassFilterChange()">
+            <mat-option [value]="undefined">All Classes</mat-option>
+            <mat-option *ngFor="let class of classes" [value]="class.id">
+              {{ class.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="search-filter">
+          <mat-label>Search Students</mat-label>
+          <input
+            matInput
+            placeholder="Name, email, or number"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="applyFilter()">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+
+        <div class="selection-info">
+          {{ selectedStudents.length }} student(s) selected
+          <span *ngIf="maxStudents"> (max: {{ maxStudents }})</span>
+        </div>
+      </div>
+
+      <!-- Selected Students Chips -->
+      <div class="selected-chips" *ngIf="selectedStudents.length > 0">
+        <mat-chip-set>
+          <mat-chip *ngFor="let student of selectedStudents" (removed)="toggleStudent(student)">
+            {{ student.firstName }} {{ student.lastName }}
+            <button matChipRemove>
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip>
+        </mat-chip-set>
+      </div>
+
+      <!-- Student List -->
+      <mat-selection-list [(ngModel)]="selectedStudents" (ngModelChange)="onSelectionChange()">
+        <mat-list-option 
+          *ngFor="let student of filteredStudents" 
+          [value]="student"
+          [disabled]="isStudentDisabled(student)">
+          <div class="student-item">
+            <div class="student-info">
+              <div class="student-name">{{ student.firstName }} {{ student.lastName }}</div>
+              <div class="student-meta">
+                {{ student.studentNumber }} • {{ student.className }} • {{ student.email }}
+              </div>
+            </div>
+            <div *ngIf="showStatus" class="student-status" [class]="'status-' + student.status.toLowerCase()">
+              {{ student.status }}
+            </div>
+          </div>
+        </mat-list-option>
+      </mat-selection-list>
+
+      <div class="no-students" *ngIf="filteredStudents.length === 0">
+        <mat-icon>info</mat-icon>
+        <p>No students available</p>
+      </div>
+    </div>
+  
