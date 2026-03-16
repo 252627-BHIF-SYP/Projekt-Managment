@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject, of } from 'rxjs';
-import { delay, map, tap } from 'rxjs/operators';
-import { Project, ProjectFilter, ProjectStatus, ProjectStudent, ProjectSupervisor } from '../core/models';
+import { catchError, delay, map, tap } from 'rxjs/operators';
+import { Project, ProjectDTO, ProjectFilter, ProjectStatus, ProjectStudent, ProjectStudentDTO, ProjectSupervisor, ProjectSupervisorDTO } from '../core/models';
 import { ApiService } from '../core/services/api.service';
 
 /**
@@ -25,7 +25,7 @@ export class ProjectService {
       schoolYear: '2024/2025',
       classId: '1',
       className: '5AHIF',
-      status: ProjectStatus.IN_PROGRESS,
+      status: ProjectStatus.ON_GOING,
       githubUrl: 'https://github.com/example/ecommerce',
       maxStudents: 4,
       minStudents: 2,
@@ -44,7 +44,7 @@ export class ProjectService {
       schoolYear: '2024/2025',
       classId: '2',
       className: '5BHIF',
-      status: ProjectStatus.OPEN,
+      status: ProjectStatus.PENDING,
       githubUrl: 'https://github.com/example/school-mgmt',
       maxStudents: 3,
       minStudents: 2,
@@ -80,24 +80,109 @@ export class ProjectService {
     this.projectsSubject.next(this.mockProjects);
   }
 
+  private toUiStatus(status: string): ProjectStatus {
+    const normalized = status.toLowerCase();
+    if (normalized === 'new') {
+      return ProjectStatus.NEW;
+    }
+    if (normalized === 'pending') {
+      return ProjectStatus.PENDING;
+    }
+    if (normalized === 'ongoing') {
+      return ProjectStatus.ON_GOING;
+    }
+    if (normalized === 'completed') {
+      return ProjectStatus.COMPLETED;
+    }
+    if (normalized === 'archived') {
+      return ProjectStatus.ARCHIVED;
+    }
+    return ProjectStatus.NEW;
+  }
+
+  private toBackendStatus(status: ProjectStatus | undefined): string {
+    switch (status) {
+      case ProjectStatus.PENDING:
+      case ProjectStatus.OPEN:
+        return 'Pending';
+      case ProjectStatus.ON_GOING:
+      case ProjectStatus.IN_PROGRESS:
+        return 'OnGoing';
+      case ProjectStatus.COMPLETED:
+        return 'Completed';
+      case ProjectStatus.ARCHIVED:
+        return 'Archived';
+      default:
+        return 'New';
+    }
+  }
+
+  private mapProjectStudentDto(dto: ProjectStudentDTO): ProjectStudent {
+    return {
+      id: String(dto.historyId),
+      projectId: '',
+      studentId: String(dto.historyId),
+      role: dto.role,
+      joinedAt: new Date(),
+      status: 'ACTIVE',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  }
+
+  private mapProjectSupervisorDto(dto: ProjectSupervisorDTO): ProjectSupervisor {
+    return {
+      id: dto.professorId,
+      projectId: '',
+      supervisorId: dto.professorId,
+      isPrimary: false,
+      assignedAt: new Date(),
+      status: 'ACTIVE',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  }
+
+  private mapProjectDto(dto: ProjectDTO, index: number): Project {
+    return {
+      id: String(index + 1),
+      title: dto.title,
+      description: dto.description,
+      schoolYearId: String(dto.schoolYearId),
+      classId: '',
+      status: this.toUiStatus(dto.projectStatus),
+      githubUrl: dto.githubURL,
+      logoUrl: dto.logoURL,
+      technologies: dto.technologies
+        ? dto.technologies.split(',').map(item => item.trim()).filter(item => item.length > 0)
+        : [],
+      students: dto.students?.map(s => this.mapProjectStudentDto(s)) || [],
+      supervisors: dto.supervisors?.map(s => this.mapProjectSupervisorDto(s)) || [],
+      projectType: dto.projectType,
+      createdById: '',
+      maxStudents: 0,
+      minStudents: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  }
+
   /**
    * Get all projects
    */
   getProjects(): Observable<Project[]> {
-    // TODO: Replace with API call
-    // return this.apiService.get<Project[]>('/projects');
-    return of(this.mockProjects).pipe(delay(300));
+    return this.apiService.get<ProjectDTO[]>('/Project/All').pipe(
+      map(dtos => dtos.map((dto, index) => this.mapProjectDto(dto, index))),
+      tap(projects => this.projectsSubject.next(projects)),
+      catchError(() => of(this.mockProjects).pipe(delay(300)))
+    );
   }
 
   /**
    * Get projects with filters
    */
   getProjectsFiltered(filter: ProjectFilter): Observable<Project[]> {
-    // TODO: Replace with API call
-    // return this.apiService.get<Project[]>('/projects', filter);
-    
-    return of(this.mockProjects).pipe(
-      delay(300),
+    return this.getProjects().pipe(
       map(projects => {
         return projects.filter(project => {
           if (filter.searchTerm) {
@@ -126,80 +211,67 @@ export class ProjectService {
    * Get project by ID
    */
   getProjectById(id: string): Observable<Project> {
-    // TODO: Replace with API call
-    // return this.apiService.get<Project>(`/projects/${id}`);
-    
-    const project = this.mockProjects.find(p => p.id === id);
-    if (!project) {
-      throw new Error('Project not found');
-    }
-    
-    // Add mock students and supervisors
-    const projectWithDetails: Project = {
-      ...project,
-      students: [
-        {
-          id: '1',
-          projectId: id,
-          studentId: '4',
-          studentName: 'Anna Weber',
-          studentEmail: 'student1@school.at',
-          role: 'Frontend Developer',
-          joinedAt: new Date('2024-09-15'),
-          status: 'ACTIVE',
-          createdAt: new Date('2024-09-15'),
-          updatedAt: new Date('2024-09-15')
+    return this.apiService.get<ProjectDTO>(`/Project/${id}`).pipe(
+      map(dto => this.mapProjectDto(dto, Number(id) - 1)),
+      catchError(() => {
+        const project = this.mockProjects.find(p => p.id === id);
+        if (!project) {
+          throw new Error('Project not found');
         }
-      ],
-      supervisors: [
-        {
-          id: '1',
-          projectId: id,
-          supervisorId: '3',
-          supervisorName: 'Max Müller',
-          supervisorEmail: 'professor@school.at',
-          isPrimary: true,
-          assignedAt: new Date('2024-09-01'),
-          status: 'ACTIVE',
-          createdAt: new Date('2024-09-01'),
-          updatedAt: new Date('2024-09-01')
-        }
-      ]
-    };
-
-    return of(projectWithDetails).pipe(delay(300));
+        return of(project).pipe(delay(300));
+      })
+    );
   }
 
   /**
    * Create new project
    */
   createProject(project: Partial<Project>): Observable<Project> {
-    // TODO: Replace with API call
-    // return this.apiService.post<Project>('/projects', project);
-    
-    const newProject: Project = {
-      id: String(this.mockProjects.length + 1),
+    const payload: ProjectDTO = {
       title: project.title || '',
       description: project.description || '',
-      schoolYearId: project.schoolYearId || '',
-      classId: project.classId || '',
-      status: project.status || ProjectStatus.DRAFT,
-      maxStudents: project.maxStudents || 4,
-      minStudents: project.minStudents || 2,
-      createdById: '3', // Current user ID
-      githubUrl: project.githubUrl,
-      logoUrl: project.logoUrl,
-      tags: project.tags || [],
-      technologies: project.technologies || [],
-      createdAt: new Date(),
-      updatedAt: new Date()
+      githubURL: project.githubUrl || '',
+      logoURL: project.logoUrl || '',
+      schoolYearId: Number(project.schoolYearId || 0),
+      projectStatus: this.toBackendStatus(project.status),
+      technologies: (project.technologies || []).join(', '),
+      projectType: project.projectType || 'General',
+      students: [],
+      supervisors: []
     };
 
-    return of(newProject).pipe(
-      delay(500),
-      tap(p => {
-        this.mockProjects.push(p);
+    return this.apiService.post<ProjectDTO>('/Project/Add', payload).pipe(
+      map(dto => this.mapProjectDto(dto, this.mockProjects.length)),
+      tap(created => {
+        this.mockProjects.push(created);
         this.projectsSubject.next(this.mockProjects);
+      }),
+      catchError(() => {
+        const newProject: Project = {
+          id: String(this.mockProjects.length + 1),
+          title: project.title || '',
+          description: project.description || '',
+          schoolYearId: project.schoolYearId || '',
+          classId: project.classId || '',
+          status: project.status || ProjectStatus.NEW,
+          maxStudents: project.maxStudents || 4,
+          minStudents: project.minStudents || 2,
+          createdById: '3',
+          githubUrl: project.githubUrl,
+          logoUrl: project.logoUrl,
+          tags: project.tags || [],
+          technologies: project.technologies || [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+
+        return of(newProject).pipe(
+          delay(500),
+          tap(p => {
+            this.mockProjects.push(p);
+            this.projectsSubject.next(this.mockProjects);
+          })
+        );
       })
     );
   }

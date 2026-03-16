@@ -41,3 +41,12 @@ export interface AuthResponse {
   user: User;
   expiresIn: number;
 }
+
+/**
+ * Backend API DTO from ProfessorController
+ */
+export interface ProfessorDTO {
+  professorID: string;
+  firstName: string;
+  lastName: string;
+}

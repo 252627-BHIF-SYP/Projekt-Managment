@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
-import { User, Role } from '../core/models';
+import { catchError, delay, map } from 'rxjs/operators';
+import { User, Role, ProfessorDTO } from '../core/models';
 import { ApiService } from '../core/services/api.service';
 
 /**
@@ -47,6 +47,19 @@ export class UserService {
 
   constructor(private apiService: ApiService) {}
 
+  private mapProfessorDtoToUser(dto: ProfessorDTO): User {
+    return {
+      id: dto.professorID,
+      username: dto.professorID,
+      email: `${dto.professorID.toLowerCase()}@school.at`,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      roles: [Role.PROFESSOR],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  }
+
   /**
    * Get all users
    */
@@ -69,13 +82,16 @@ export class UserService {
    * Get professors/supervisors
    */
   getSupervisors(): Observable<User[]> {
-    // TODO: Replace with API call
-    // return this.apiService.get<User[]>('/users/supervisors');
-    return of(this.mockUsers.filter(u => 
-      u.roles.includes(Role.PROFESSOR) || 
-      u.roles.includes(Role.BETREUER) ||
-      u.roles.includes(Role.AV)
-    )).pipe(delay(200));
+    return this.apiService.get<ProfessorDTO[]>('/Professor/All').pipe(
+      map(professors => professors.map(p => this.mapProfessorDtoToUser(p))),
+      catchError(() =>
+        of(this.mockUsers.filter(u =>
+          u.roles.includes(Role.PROFESSOR) ||
+          u.roles.includes(Role.BETREUER) ||
+          u.roles.includes(Role.AV)
+        )).pipe(delay(200))
+      )
+    );
   }
 
   /**

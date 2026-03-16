@@ -42,7 +42,10 @@ export class ProjectCardComponent {
       [ProjectStatus.OPEN]: 'Open',
       [ProjectStatus.IN_PROGRESS]: 'In Progress',
       [ProjectStatus.COMPLETED]: 'Completed',
-      [ProjectStatus.ARCHIVED]: 'Archived'
+      [ProjectStatus.ARCHIVED]: 'Archived',
+      [ProjectStatus.NEW]: 'New',
+      [ProjectStatus.PENDING]: 'Pending',
+      [ProjectStatus.ON_GOING]: 'On Going'
     };
     return labels[status] || status;
   }

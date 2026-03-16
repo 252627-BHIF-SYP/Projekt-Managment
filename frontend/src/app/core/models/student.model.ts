@@ -1,6 +1,15 @@
 import { Role } from './user.model';
 
 /**
+ * Backend API DTO from StudentController
+ */
+export interface StudentDTO {
+  studentID: string;
+  firstName: string;
+  lastName: string;
+}
+
+/**
  * Student profile information
  */
 export interface StudentProfile {

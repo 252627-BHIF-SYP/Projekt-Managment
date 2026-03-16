@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
-import { StudentProfile, StudentStatus, StudentEnrollment, Class, CsvPreview } from '../core/models';
+import { catchError, delay, map } from 'rxjs/operators';
+import { StudentProfile, StudentStatus, StudentEnrollment, Class, CsvPreview, StudentDTO, StudentClassDTO } from '../core/models';
 import { ApiService } from '../core/services/api.service';
 
 /**
@@ -113,6 +113,36 @@ export class StudentService {
 
   constructor(private apiService: ApiService) {
     this.loadFromStorage();
+  }
+
+  private mapStudentDto(dto: StudentDTO): StudentProfile {
+    return {
+      id: dto.studentID,
+      userId: dto.studentID,
+      studentNumber: dto.studentID,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      email: `${dto.studentID.toLowerCase()}@school.at`,
+      classId: '',
+      schoolYearId: '',
+      status: StudentStatus.SEARCHING,
+      skills: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  }
+
+  private mapStudentClassDto(dto: StudentClassDTO): Class {
+    return {
+      studentClassId: dto.studentClassId,
+      id: String(dto.studentClassId),
+      name: dto.name,
+      branch: dto.branch,
+      schoolYearId: '',
+      year: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
   }
 
   private loadFromStorage(): void {
@@ -228,49 +258,53 @@ export class StudentService {
    * Get all students
    */
   getStudents(): Observable<StudentProfile[]> {
-    // TODO: Replace with API call
-    // return this.apiService.get<StudentProfile[]>('/students');
-    return of(this.mockStudents).pipe(delay(200));
+    return this.apiService.get<StudentDTO[]>('/Student/All').pipe(
+      map(dtos => dtos.map(dto => this.mapStudentDto(dto))),
+      catchError(() => of(this.mockStudents).pipe(delay(200)))
+    );
   }
 
   /**
    * Get students by class
    */
   getStudentsByClass(classId: string): Observable<StudentProfile[]> {
-    // TODO: Replace with API call
-    // return this.apiService.get<StudentProfile[]>(`/students?classId=${classId}`);
-    return of(this.mockStudents.filter(s => s.classId === classId)).pipe(delay(200));
+    return this.getStudents().pipe(
+      map(students => students.filter(s => s.classId === classId))
+    );
   }
 
   /**
    * Get students by school year
    */
   getStudentsBySchoolYear(schoolYearId: string): Observable<StudentProfile[]> {
-    // TODO: Replace with API call
-    // return this.apiService.get<StudentProfile[]>(`/students?schoolYearId=${schoolYearId}`);
-    return of(this.mockStudents.filter(s => s.schoolYearId === schoolYearId)).pipe(delay(200));
+    return this.getStudents().pipe(
+      map(students => students.filter(s => s.schoolYearId === schoolYearId))
+    );
   }
 
   /**
    * Get students by status
    */
   getStudentsByStatus(status: StudentStatus): Observable<StudentProfile[]> {
-    // TODO: Replace with API call
-    // return this.apiService.get<StudentProfile[]>(`/students?status=${status}`);
-    return of(this.mockStudents.filter(s => s.status === status)).pipe(delay(200));
+    return this.getStudents().pipe(
+      map(students => students.filter(s => s.status === status))
+    );
   }
 
   /**
    * Get student by ID
    */
   getStudentById(id: string): Observable<StudentProfile> {
-    // TODO: Replace with API call
-    // return this.apiService.get<StudentProfile>(`/students/${id}`);
-    const student = this.mockStudents.find(s => s.id === id);
-    if (!student) {
-      throw new Error('Student not found');
-    }
-    return of(student).pipe(delay(200));
+    return this.apiService.get<StudentDTO>(`/Student/${id}`).pipe(
+      map(dto => this.mapStudentDto(dto)),
+      catchError(() => {
+        const student = this.mockStudents.find(s => s.id === id);
+        if (!student) {
+          throw new Error('Student not found');
+        }
+        return of(student).pipe(delay(200));
+      })
+    );
   }
 
   /**
@@ -296,9 +330,10 @@ export class StudentService {
    * Get all classes
    */
   getClasses(): Observable<Class[]> {
-    // TODO: Replace with API call
-    // return this.apiService.get<Class[]>('/classes');
-    return of(this.mockClasses).pipe(delay(200));
+    return this.apiService.get<StudentClassDTO[]>('/StudentClass/All').pipe(
+      map(dtos => dtos.map(dto => this.mapStudentClassDto(dto))),
+      catchError(() => of(this.mockClasses).pipe(delay(200)))
+    );
   }
 
   /**

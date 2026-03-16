@@ -3,7 +3,7 @@
  */
 export const environment = {
   production: true,
-  apiUrl: '/api', // Production API URL
+  apiUrl: '', // Same-origin API base; controllers are mapped at root
   keycloakUrl: 'https://auth.school.at', // Production Keycloak URL
   keycloakRealm: 'school-management',
   keycloakClientId: 'school-management-frontend'

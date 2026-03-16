@@ -47,7 +47,7 @@ export class ProjectCreateComponent implements OnInit {
     githubUrl: '',
     minStudents: 2,
     maxStudents: 4,
-    status: ProjectStatus.DRAFT
+    status: ProjectStatus.NEW
   };
 
   schoolYears: SchoolYear[] = [];
@@ -57,7 +57,13 @@ export class ProjectCreateComponent implements OnInit {
   additionalSupervisors: string[] = [];
   saving = false;
   ProjectStatus = ProjectStatus;
-  projectStatuses = Object.values(ProjectStatus);
+  projectStatuses: ProjectStatus[] = [
+    ProjectStatus.NEW,
+    ProjectStatus.PENDING,
+    ProjectStatus.ON_GOING,
+    ProjectStatus.COMPLETED,
+    ProjectStatus.ARCHIVED
+  ];
   technologiesText = '';
 
   constructor(

@@ -2,6 +2,11 @@
  * Project status enum
  */
 export enum ProjectStatus {
+  // Backend enum string representations
+  NEW = 'New',
+  PENDING = 'Pending',
+  ON_GOING = 'OnGoing',
+  // Legacy frontend values kept for compatibility
   DRAFT = 'DRAFT',
   OPEN = 'OPEN',
   IN_PROGRESS = 'IN_PROGRESS',
@@ -13,6 +18,8 @@ export enum ProjectStatus {
  * Project interface
  */
 export interface Project {
+  // Backend entity identifier is ProjectId (number)
+  projectId?: number;
   id: string;
   title: string;
   description: string;
@@ -31,10 +38,43 @@ export interface Project {
   supervisors?: ProjectSupervisor[];
   tags?: string[];
   technologies?: string[];
+  projectType?: string;
   startDate?: Date;
   endDate?: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+/**
+ * Backend API DTO from ProjectController
+ */
+export interface ProjectDTO {
+  title: string;
+  description: string;
+  githubURL: string;
+  logoURL: string;
+  schoolYearId: number;
+  projectStatus: string;
+  technologies: string;
+  projectType: string;
+  students: ProjectStudentDTO[];
+  supervisors: ProjectSupervisorDTO[];
+}
+
+/**
+ * Backend API DTO for project-student assignment
+ */
+export interface ProjectStudentDTO {
+  historyId: number;
+  role: string;
+}
+
+/**
+ * Backend API DTO for project-supervisor assignment
+ */
+export interface ProjectSupervisorDTO {
+  professorId: string;
+  role: string;
 }
 
 /**

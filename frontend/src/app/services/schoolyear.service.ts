@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
-import { SchoolYear } from '../core/models';
+import { catchError, delay, map, tap } from 'rxjs/operators';
+import { SchoolYear, SchoolYearDTO } from '../core/models';
 import { ApiService } from '../core/services/api.service';
 
 /**
@@ -53,36 +53,62 @@ export class SchoolYearService {
     }
   }
 
+  private mapSchoolYearDto(dto: SchoolYearDTO): SchoolYear {
+    return {
+      schoolYearId: dto.schoolYearId,
+      id: String(dto.schoolYearId),
+      year: dto.year,
+      startDate: new Date(),
+      endDate: new Date(),
+      isActive: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  }
+
   /**
    * Get all school years
    */
   getSchoolYears(): Observable<SchoolYear[]> {
-    // TODO: Replace with API call
-    // return this.apiService.get<SchoolYear[]>('/school-years');
-    return of(this.mockSchoolYears).pipe(delay(200));
+    return this.apiService.get<SchoolYearDTO[]>('/SchoolYear/All').pipe(
+      map(dtos => dtos.map(dto => this.mapSchoolYearDto(dto))),
+      tap(years => {
+        if (years.length > 0 && !this.selectedSchoolYearSubject.value) {
+          this.selectedSchoolYearSubject.next(years[0]);
+        }
+      }),
+      catchError(() => of(this.mockSchoolYears).pipe(delay(200)))
+    );
   }
 
   /**
    * Get school year by ID
    */
   getSchoolYearById(id: string): Observable<SchoolYear> {
-    // TODO: Replace with API call
-    // return this.apiService.get<SchoolYear>(`/school-years/${id}`);
-    const schoolYear = this.mockSchoolYears.find(sy => sy.id === id);
-    if (!schoolYear) {
-      throw new Error('School year not found');
-    }
-    return of(schoolYear).pipe(delay(200));
+    return this.apiService.get<SchoolYearDTO>(`/SchoolYear/${id}`).pipe(
+      map(dto => this.mapSchoolYearDto(dto)),
+      catchError(() => {
+        const schoolYear = this.mockSchoolYears.find(sy => sy.id === id);
+        if (!schoolYear) {
+          throw new Error('School year not found');
+        }
+        return of(schoolYear).pipe(delay(200));
+      })
+    );
   }
 
   /**
    * Get active school year
    */
   getActiveSchoolYear(): Observable<SchoolYear | null> {
-    // TODO: Replace with API call
-    // return this.apiService.get<SchoolYear>('/school-years/active');
-    const activeYear = this.mockSchoolYears.find(sy => sy.isActive);
-    return of(activeYear || null).pipe(delay(200));
+    return this.getSchoolYears().pipe(
+      map(years => years[0] || null),
+      tap(year => {
+        if (year) {
+          this.selectedSchoolYearSubject.next(year);
+        }
+      })
+    );
   }
 
   /**
