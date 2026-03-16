@@ -1,8 +1,5 @@
 ﻿using Core.Entities;
-<<<<<<< HEAD
 using Core.Enums;
-=======
->>>>>>> 43a4a2b75b74e52101d6640dcd66cf65104118aa
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
@@ -93,7 +90,7 @@ namespace WebAPI.Controllers
                 .Select(ps => ps.Project)
                 .FirstOrDefaultAsync();
 
-            if (ownDiplomarbeit != null && !departmentProjects.Any(p => p.ProjectId == ownDiplomarbeit.ProjectId)
+            if (ownDiplomarbeit != null && !departmentProjects.Any(p => p.ProjectId == ownDiplomarbeit.ProjectId))
             {
                 departmentProjects.Add(ownDiplomarbeit);
             }
