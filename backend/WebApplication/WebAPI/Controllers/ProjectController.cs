@@ -42,16 +42,16 @@ namespace WebAPI.Controllers
         }
 
 
-        [HttpGet("ByYear")]
-        public async Task<IActionResult> GetByYear([FromQuery] string requesterId, [FromQuery] int schoolYearId)
+        [HttpGet("dashboard/student")]
+        public async Task<IActionResult> GetStudentProjectsByYear([FromQuery] string requesterId, [FromQuery] int schoolYearId)
         {
             var student = await _context.Person
                 .Where(p => p.Id == requesterId &&
                             p.PersonType == PersonType.Student
                             )
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(); //Es ist ein Student
 
-            if (student == null)
+            if (student == null) 
             {
                 var projectsForProfessors = await _context.SchoolYearProject.Where(s => s.SchoolYearId == schoolYearId).Select(s => s.Project).ToListAsync(); //für alle Professoren
 
@@ -96,6 +96,46 @@ namespace WebAPI.Controllers
             }
 
             return Ok(departmentProjects);
+        }
+
+        [HttpGet("dashboard/professor")]
+        public async Task<IActionResult> GetProfessorProjectsByYear([FromQuery] string requesterId, [FromQuery] int schoolYearId, [FromQuery] ProjectType? projectType, [FromQuery] string? studentId)
+        {
+            var filters = _context.Project
+                .Where(p => _context.SchoolYearProject
+                            .Any(s => s.ProjectId == p.ProjectId &&
+                                 s.SchoolYearId == schoolYearId));
+
+            //Filtern nach Projekttyp
+            if (projectType != null)
+            {
+                filters = filters.Where(p => p.ProjectType == projectType);
+            }
+
+            //Filtern nach Schülern
+            var student = await _context.Person
+                .Where(p => p.Id == requesterId &&
+                       p.PersonType == PersonType.Student
+                       )
+                .FirstOrDefaultAsync();
+
+            if(student != null)
+            {
+                filters = filters.Where(
+                    p => _context.ProjectStudent
+                    .Any(ps => ps.ProjectId == p.ProjectId &&
+                         ps.StudentClassHistory.StudentId == studentId));
+            }
+
+            //Filtern nach Professoren
+            filters = filters.Where(                        // ---> keine if abfrage benötigt, da wenn die if bedingung darüber schon nicht zutrifft, handelt es sich automatisch um einen Professor
+                p => _context.ProjectSupervisor
+                .Any(ps => ps.ProjectId == p.ProjectId &&
+                     ps.ProfessorId == requesterId));
+
+            var professorProjects = await filters.ToListAsync();
+
+            return Ok(professorProjects);
         }
 
         [HttpGet("All")]
