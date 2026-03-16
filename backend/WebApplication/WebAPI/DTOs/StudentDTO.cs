@@ -1,4 +1,4 @@
 ﻿namespace WebAPI.DTOs
 {
-    public record StudentDTO(string StudentID, string FirstName, string LastName);
+    public record StudentCreateDTO(string StudentID, string FirstName, string LastName, int ClassId, int SchoolYearId);
 }

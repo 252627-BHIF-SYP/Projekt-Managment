@@ -1,6 +1,28 @@
 [
   {
     "ContainingType": "WebAPI.Controllers.ProfessorController",
+    "Method": "Create",
+    "RelativePath": "Professor/Add",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "WebAPI.DTOs.ProfessorDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 201
+      }
+    ]
+  },
+  {
+    "ContainingType": "WebAPI.Controllers.ProfessorController",
     "Method": "Upload",
     "RelativePath": "Professor/Import",
     "HttpMethod": "POST",
@@ -58,6 +80,28 @@
           "text/json"
         ],
         "StatusCode": 400
+      }
+    ]
+  },
+  {
+    "ContainingType": "WebAPI.Controllers.StudentController",
+    "Method": "Create",
+    "RelativePath": "Student/Add",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "WebAPI.DTOs.StudentDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 201
       }
     ]
   },

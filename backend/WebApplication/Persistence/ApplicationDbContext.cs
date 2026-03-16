@@ -18,6 +18,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Project> Project => Set<Project>();
     public DbSet<ProjectStudent> ProjectStudent => Set<ProjectStudent>();
     public DbSet<ProjectSupervisor> ProjectSupervisor => Set<ProjectSupervisor>();
+    public DbSet<SchoolYearProject> SchoolYearProject => Set<SchoolYearProject>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

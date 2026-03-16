@@ -11,7 +11,6 @@
           "Core": "1.0.0",
           "Microsoft.EntityFrameworkCore": "9.0.13",
           "Microsoft.EntityFrameworkCore.Design": "9.0.13",
-          "Microsoft.EntityFrameworkCore.Tools": "9.0.13",
           "Microsoft.Extensions.Configuration": "10.0.2",
           "Microsoft.Extensions.Configuration.Json": "10.0.2",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.4"
@@ -36,7 +35,6 @@
           }
         }
       },
-      "Microsoft.Build.Framework/17.8.43": {},
       "Microsoft.Build.Locator/1.7.8": {
         "runtime": {
           "lib/net6.0/Microsoft.Build.Locator.dll": {
@@ -45,14 +43,7 @@
           }
         }
       },
-      "Microsoft.CodeAnalysis.Analyzers/3.3.4": {},
       "Microsoft.CodeAnalysis.Common/4.8.0": {
-        "dependencies": {
-          "Microsoft.CodeAnalysis.Analyzers": "3.3.4",
-          "System.Collections.Immutable": "7.0.0",
-          "System.Reflection.Metadata": "7.0.0",
-          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
-        },
         "runtime": {
           "lib/net7.0/Microsoft.CodeAnalysis.dll": {
             "assemblyVersion": "4.8.0.0",
@@ -214,8 +205,7 @@
           "Microsoft.Bcl.AsyncInterfaces": "7.0.0",
           "Microsoft.CodeAnalysis.Common": "4.8.0",
           "System.Composition": "7.0.0",
-          "System.IO.Pipelines": "10.0.2",
-          "System.Threading.Channels": "7.0.0"
+          "System.IO.Pipelines": "10.0.2"
         },
         "runtime": {
           "lib/net7.0/Microsoft.CodeAnalysis.Workspaces.dll": {
@@ -267,7 +257,6 @@
       },
       "Microsoft.CodeAnalysis.Workspaces.MSBuild/4.8.0": {
         "dependencies": {
-          "Microsoft.Build.Framework": "17.8.43",
           "Microsoft.CodeAnalysis.Common": "4.8.0",
           "Microsoft.CodeAnalysis.Workspaces.Common": "4.8.0",
           "System.Text.Json": "10.0.2"
@@ -327,7 +316,6 @@
       "Microsoft.EntityFrameworkCore/9.0.13": {
         "dependencies": {
           "Microsoft.EntityFrameworkCore.Abstractions": "9.0.13",
-          "Microsoft.EntityFrameworkCore.Analyzers": "9.0.13",
           "Microsoft.Extensions.Caching.Memory": "9.0.13",
           "Microsoft.Extensions.Logging": "9.0.13"
         },
@@ -346,11 +334,9 @@
           }
         }
       },
-      "Microsoft.EntityFrameworkCore.Analyzers/9.0.13": {},
       "Microsoft.EntityFrameworkCore.Design/9.0.13": {
         "dependencies": {
           "Humanizer.Core": "2.14.1",
-          "Microsoft.Build.Framework": "17.8.43",
           "Microsoft.Build.Locator": "1.7.8",
           "Microsoft.CodeAnalysis.CSharp": "4.8.0",
           "Microsoft.CodeAnalysis.CSharp.Workspaces": "4.8.0",
@@ -382,11 +368,6 @@
             "assemblyVersion": "9.0.13.0",
             "fileVersion": "9.0.1326.6317"
           }
-        }
-      },
-      "Microsoft.EntityFrameworkCore.Tools/9.0.13": {
-        "dependencies": {
-          "Microsoft.EntityFrameworkCore.Design": "9.0.13"
         }
       },
       "Microsoft.Extensions.Caching.Abstractions/9.0.13": {
@@ -614,7 +595,6 @@
           }
         }
       },
-      "System.Collections.Immutable/7.0.0": {},
       "System.Composition/7.0.0": {
         "dependencies": {
           "System.Composition.AttributedModel": "7.0.0",
@@ -683,12 +663,6 @@
           }
         }
       },
-      "System.Reflection.Metadata/7.0.0": {
-        "dependencies": {
-          "System.Collections.Immutable": "7.0.0"
-        }
-      },
-      "System.Runtime.CompilerServices.Unsafe/6.0.0": {},
       "System.Text.Encodings.Web/10.0.2": {
         "runtime": {
           "lib/net9.0/System.Text.Encodings.Web.dll": {
@@ -723,7 +697,6 @@
           }
         }
       },
-      "System.Threading.Channels/7.0.0": {},
       "Core/1.0.0": {
         "runtime": {
           "Core.dll": {
@@ -754,26 +727,12 @@
       "path": "microsoft.bcl.asyncinterfaces/7.0.0",
       "hashPath": "microsoft.bcl.asyncinterfaces.7.0.0.nupkg.sha512"
     },
-    "Microsoft.Build.Framework/17.8.43": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-TA6fCbd9qFSyhIKcUn5BhDN3/JrqpspO9KYsZKUvHyQpQrHVdzy4Hk6egjjBP3T0L562TLZuHEzQwJziyRBEkw==",
-      "path": "microsoft.build.framework/17.8.43",
-      "hashPath": "microsoft.build.framework.17.8.43.nupkg.sha512"
-    },
     "Microsoft.Build.Locator/1.7.8": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-sPy10x527Ph16S2u0yGME4S6ohBKJ69WfjeGG/bvELYeZVmJdKjxgnlL8cJJJLGV/cZIRqSfB12UDB8ICakOog==",
       "path": "microsoft.build.locator/1.7.8",
       "hashPath": "microsoft.build.locator.1.7.8.nupkg.sha512"
-    },
-    "Microsoft.CodeAnalysis.Analyzers/3.3.4": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-AxkxcPR+rheX0SmvpLVIGLhOUXAKG56a64kV9VQZ4y9gR9ZmPXnqZvHJnmwLSwzrEP6junUF11vuc+aqo5r68g==",
-      "path": "microsoft.codeanalysis.analyzers/3.3.4",
-      "hashPath": "microsoft.codeanalysis.analyzers.3.3.4.nupkg.sha512"
     },
     "Microsoft.CodeAnalysis.Common/4.8.0": {
       "type": "package",
@@ -824,13 +783,6 @@
       "path": "microsoft.entityframeworkcore.abstractions/9.0.13",
       "hashPath": "microsoft.entityframeworkcore.abstractions.9.0.13.nupkg.sha512"
     },
-    "Microsoft.EntityFrameworkCore.Analyzers/9.0.13": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-GQE2qm6U45Zgouw7PSojGmkDnNq+IMjO/+BOm8OHqzK0h+uNjL6MQeuansNQZ6gIM2e3w9KZTLXQTHA0FcuknQ==",
-      "path": "microsoft.entityframeworkcore.analyzers/9.0.13",
-      "hashPath": "microsoft.entityframeworkcore.analyzers.9.0.13.nupkg.sha512"
-    },
     "Microsoft.EntityFrameworkCore.Design/9.0.13": {
       "type": "package",
       "serviceable": true,
@@ -844,13 +796,6 @@
       "sha512": "sha512-eQgG7yfe3ULgRk7YS8oIeljbmtV8AJ+lmzd5ezbA1ceEa1gRo9Y/d8+AvHq9NATp7QWZoe+qhyDFvCX8+ByI/A==",
       "path": "microsoft.entityframeworkcore.relational/9.0.13",
       "hashPath": "microsoft.entityframeworkcore.relational.9.0.13.nupkg.sha512"
-    },
-    "Microsoft.EntityFrameworkCore.Tools/9.0.13": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-s1PmQTpeOX1gfCqyO3WGKiLltyUQMGQr+vXekNSnXjZn2xIrkMOQkYiATWeMo7Jk/LKTJ/LNZyOLjnow3U2+ZQ==",
-      "path": "microsoft.entityframeworkcore.tools/9.0.13",
-      "hashPath": "microsoft.entityframeworkcore.tools.9.0.13.nupkg.sha512"
     },
     "Microsoft.Extensions.Caching.Abstractions/9.0.13": {
       "type": "package",
@@ -992,13 +937,6 @@
       "path": "system.codedom/6.0.0",
       "hashPath": "system.codedom.6.0.0.nupkg.sha512"
     },
-    "System.Collections.Immutable/7.0.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-dQPcs0U1IKnBdRDBkrCTi1FoajSTBzLcVTpjO4MBCMC7f4pDOIPzgBoX8JjG7X6uZRJ8EBxsi8+DR1JuwjnzOQ==",
-      "path": "system.collections.immutable/7.0.0",
-      "hashPath": "system.collections.immutable.7.0.0.nupkg.sha512"
-    },
     "System.Composition/7.0.0": {
       "type": "package",
       "serviceable": true,
@@ -1048,20 +986,6 @@
       "path": "system.io.pipelines/10.0.2",
       "hashPath": "system.io.pipelines.10.0.2.nupkg.sha512"
     },
-    "System.Reflection.Metadata/7.0.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-MclTG61lsD9sYdpNz9xsKBzjsmsfCtcMZYXz/IUr2zlhaTaABonlr1ESeompTgM+Xk+IwtGYU7/voh3YWB/fWw==",
-      "path": "system.reflection.metadata/7.0.0",
-      "hashPath": "system.reflection.metadata.7.0.0.nupkg.sha512"
-    },
-    "System.Runtime.CompilerServices.Unsafe/6.0.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-/iUeP3tq1S0XdNNoMz5C9twLSrM/TH+qElHkXWaPvuNOt+99G75NrV0OS2EqHx5wMN7popYjpc8oTjC1y16DLg==",
-      "path": "system.runtime.compilerservices.unsafe/6.0.0",
-      "hashPath": "system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512"
-    },
     "System.Text.Encodings.Web/10.0.2": {
       "type": "package",
       "serviceable": true,
@@ -1075,13 +999,6 @@
       "sha512": "sha512-zy8ey7I16G9neZ6uzxrnYwS7pidElzN8XarsBjGu7lE2m7afTKMEe18KbY3ZSmh/z/bR40oxjd6hlUcmOEaMHw==",
       "path": "system.text.json/10.0.2",
       "hashPath": "system.text.json.10.0.2.nupkg.sha512"
-    },
-    "System.Threading.Channels/7.0.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-qmeeYNROMsONF6ndEZcIQ+VxR4Q/TX/7uIVLJqtwIWL7dDWeh0l1UIqgo4wYyjG//5lUNhwkLDSFl+pAWO6oiA==",
-      "path": "system.threading.channels/7.0.0",
-      "hashPath": "system.threading.channels.7.0.0.nupkg.sha512"
     },
     "Core/1.0.0": {
       "type": "project",

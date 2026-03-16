@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "CzFTxKbK8R4=",
+  "dgSpecHash": "B6dvd52nVf8=",
   "success": true,
   "projectFilePath": "C:\\HTL\\SYP04\\Projekt-Managment\\backend\\WebApplication\\Persistence\\Persistence.csproj",
   "expectedPackageFiles": [
@@ -47,11 +47,10 @@
     "C:\\Users\\sanja\\.nuget\\packages\\system.composition.hosting\\7.0.0\\system.composition.hosting.7.0.0.nupkg.sha512",
     "C:\\Users\\sanja\\.nuget\\packages\\system.composition.runtime\\7.0.0\\system.composition.runtime.7.0.0.nupkg.sha512",
     "C:\\Users\\sanja\\.nuget\\packages\\system.composition.typedparts\\7.0.0\\system.composition.typedparts.7.0.0.nupkg.sha512",
-    "C:\\Users\\sanja\\.nuget\\packages\\system.io.pipelines\\10.0.2\\system.io.pipelines.10.0.2.nupkg.sha512",
+    "C:\\Users\\sanja\\.nuget\\packages\\system.io.pipelines\\7.0.0\\system.io.pipelines.7.0.0.nupkg.sha512",
     "C:\\Users\\sanja\\.nuget\\packages\\system.reflection.metadata\\7.0.0\\system.reflection.metadata.7.0.0.nupkg.sha512",
     "C:\\Users\\sanja\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
-    "C:\\Users\\sanja\\.nuget\\packages\\system.text.encodings.web\\10.0.2\\system.text.encodings.web.10.0.2.nupkg.sha512",
-    "C:\\Users\\sanja\\.nuget\\packages\\system.text.json\\10.0.2\\system.text.json.10.0.2.nupkg.sha512",
+    "C:\\Users\\sanja\\.nuget\\packages\\system.text.json\\9.0.13\\system.text.json.9.0.13.nupkg.sha512",
     "C:\\Users\\sanja\\.nuget\\packages\\system.threading.channels\\7.0.0\\system.threading.channels.7.0.0.nupkg.sha512"
   ],
   "logs": []
