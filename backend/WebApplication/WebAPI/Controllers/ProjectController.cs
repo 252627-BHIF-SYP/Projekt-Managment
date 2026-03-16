@@ -1,5 +1,8 @@
 ﻿using Core.Entities;
+<<<<<<< HEAD
 using Core.Enums;
+=======
+>>>>>>> 43a4a2b75b74e52101d6640dcd66cf65104118aa
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
@@ -23,20 +26,35 @@ namespace WebAPI.Controllers
             _context = context;
         }
 
+        private static ProjectDTO ProjectToDto(Project project)
+        {
+            ProjectStudentDTO[] projectStudents = project.ProjectStudents.Select(p => new ProjectStudentDTO(p.HistoryId, p.Role)).ToArray();
+            ProjectSupervisorDTO[] projectSupervisors = project.ProjectSupervisors.Select(p => new ProjectSupervisorDTO(p.ProfessorId, p.Role)).ToArray();
+
+            return new ProjectDTO(project.Title, project.Description, project.GithubUrl, project.LogoUrl, project.SchoolYearProjects.First().SchoolYearId, project.Status.ToString(), project.Technology, project.ProjectType, projectStudents, projectSupervisors);
+        }
+
         [HttpPost("Add")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Create([FromBody] CreateProjectDTO dto)
+        public async Task<IActionResult> Create([FromBody] ProjectDTO dto)
         {
             await _importService.ImportProject(dto);
 
             return Ok(dto);
         }
 
+
         [HttpGet("ByYear")]
-        public async Task<IActionResult> GetByYear([FromQuery] string requesterId ,[FromQuery] int schoolYearId)
+        public async Task<IActionResult> GetByYear([FromQuery] string requesterId, [FromQuery] int schoolYearId)
         {
-            if(await _context.Student.SingleOrDefaultAsync(s => s.StudentId == requesterId) == null)
+            var student = await _context.Person
+                .Where(p => p.Id == requesterId &&
+                            p.PersonType == PersonType.Student
+                            )
+                .FirstOrDefaultAsync();
+
+            if (student == null)
             {
                 var projectsForProfessors = await _context.SchoolYearProject.Where(s => s.SchoolYearId == schoolYearId).Select(s => s.Project).ToListAsync(); //für alle Professoren
 
@@ -48,7 +66,7 @@ namespace WebAPI.Controllers
                 .Include(s => s.StudentClass)
                 .SingleOrDefaultAsync(s => s.StudentId == requesterId && s.SchoolYearId == schoolYearId);
 
-            if(studentHistory == null)
+            if (studentHistory == null)
             {
                 return Ok(new List<Project>());
             }
@@ -75,29 +93,39 @@ namespace WebAPI.Controllers
                 .Select(ps => ps.Project)
                 .FirstOrDefaultAsync();
 
-            if(ownDiplomarbeit != null && !departmentProjects.Any(p => p.ProjectId == ownDiplomarbeit.ProjectId)
+            if (ownDiplomarbeit != null && !departmentProjects.Any(p => p.ProjectId == ownDiplomarbeit.ProjectId)
             {
                 departmentProjects.Add(ownDiplomarbeit);
             }
 
             return Ok(departmentProjects);
+        }
 
-            //var projectsForStudents = await _context.SchoolYearProject.Where(s => s.SchoolYearId == schoolYearId).Select(s => s.Project).ToListAsync(); //für alle Students --> TODO
+        [HttpGet("All")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAll()
+        {
+            var projects = await _context.Project.Select(p => ProjectToDto(p)).ToListAsync();
 
-            //var projectsForStudentstemp = await _context.SchoolYearProject
-            //    .Where(s => s.SchoolYearId == schoolYearId &&
-            //                s.Project.ProjectType != ProjectType.Diplomarbeit &&
-            //                s.Project.ProjectType != ProjectType.Others)
-            //    .Select(s => s.Project)
-            //    .ToListAsync();
+            return Ok(projects);
+        }
 
-            ////Query um alle Schüler eines Projekts zu holen
-            //var students = await _context.ProjectStudent
-            //    .Where(ps => ps.ProjectId == projectId)
-            //    .Select(ps => ps.StudentClassHistory.StudentId)
-            //    .ToListAsync();
+        [HttpGet("Count")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetCount()
+        {
+            var projects = await _context.Project.CountAsync();
 
-            //return Ok(projectsForStudents);
+            return Ok(projects);
+        }
+
+        [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var project = await _context.Project.SingleAsync(p => p.ProjectId == id);
+
+            return Ok(ProjectToDto(project));
         }
     }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { StudentProfile, StudentStatus, StudentEnrollment, Class } from '../core/models';
+import { StudentProfile, StudentStatus, StudentEnrollment, Class, CsvPreview } from '../core/models';
 import { ApiService } from '../core/services/api.service';
 
 /**
@@ -11,6 +11,9 @@ import { ApiService } from '../core/services/api.service';
   providedIn: 'root'
 })
 export class StudentService {
+  private readonly studentsStorageKey = 'spm_mock_students';
+  private readonly classesStorageKey = 'spm_mock_classes';
+
   // Mock data
   private mockStudents: StudentProfile[] = [
     {
@@ -108,7 +111,118 @@ export class StudentService {
     }
   ];
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService) {
+    this.loadFromStorage();
+  }
+
+  private loadFromStorage(): void {
+    const storedStudents = localStorage.getItem(this.studentsStorageKey);
+    const storedClasses = localStorage.getItem(this.classesStorageKey);
+
+    if (storedStudents) {
+      const parsed: StudentProfile[] = JSON.parse(storedStudents);
+      this.mockStudents = parsed.map(s => ({
+        ...s,
+        createdAt: new Date(s.createdAt),
+        updatedAt: new Date(s.updatedAt)
+      }));
+    }
+
+    if (storedClasses) {
+      const parsed: Class[] = JSON.parse(storedClasses);
+      this.mockClasses = parsed.map(c => ({
+        ...c,
+        createdAt: new Date(c.createdAt),
+        updatedAt: new Date(c.updatedAt)
+      }));
+    }
+  }
+
+  private persistToStorage(): void {
+    localStorage.setItem(this.studentsStorageKey, JSON.stringify(this.mockStudents));
+    localStorage.setItem(this.classesStorageKey, JSON.stringify(this.mockClasses));
+  }
+
+  /**
+   * Import students from parsed CSV preview into in-memory data source.
+   */
+  importStudentsFromCsv(preview: CsvPreview, schoolYearId?: string): { total: number; success: number; failed: number } {
+    const indexByHeader = new Map<string, number>();
+    preview.headers.forEach((h, i) => indexByHeader.set(h.trim().toLowerCase(), i));
+
+    const pick = (row: string[], aliases: string[]): string => {
+      for (const alias of aliases) {
+        const idx = indexByHeader.get(alias);
+        if (idx !== undefined) {
+          return (row[idx] || '').trim();
+        }
+      }
+      return '';
+    };
+
+    let success = 0;
+    let failed = 0;
+
+    for (const row of preview.rows) {
+      const firstName = pick(row, ['first_name', 'vorname', 'firstname', 'first name']);
+      const lastName = pick(row, ['last_name', 'nachname', 'lastname', 'last name']);
+      const studentNumber = pick(row, ['if_name', 'studentid', 'if', 'ifname']);
+      const className = pick(row, ['class', 'klasse']) || 'Imported';
+
+      if (!firstName || !lastName || !studentNumber) {
+        failed++;
+        continue;
+      }
+
+      // Avoid duplicates by student number.
+      const exists = this.mockStudents.some(s => s.studentNumber.toLowerCase() === studentNumber.toLowerCase());
+      if (exists) {
+        failed++;
+        continue;
+      }
+
+      let targetClass = this.mockClasses.find(c => c.name.toLowerCase() === className.toLowerCase());
+      if (!targetClass) {
+        targetClass = {
+          id: String(this.mockClasses.length + 1),
+          name: className,
+          schoolYearId: schoolYearId || '1',
+          department: 'Imported',
+          year: 0,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        this.mockClasses.push(targetClass);
+      }
+
+      const id = String(this.mockStudents.length + 1);
+      this.mockStudents.push({
+        id,
+        userId: `imported-${id}`,
+        studentNumber,
+        firstName,
+        lastName,
+        email: `${studentNumber.toLowerCase()}@school.at`,
+        classId: targetClass.id,
+        className: targetClass.name,
+        schoolYearId: schoolYearId || targetClass.schoolYearId,
+        status: StudentStatus.SEARCHING,
+        skills: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      success++;
+    }
+
+    this.persistToStorage();
+
+    return {
+      total: preview.totalRows,
+      success,
+      failed
+    };
+  }
 
   /**
    * Get all students
@@ -170,6 +284,11 @@ export class StudentService {
       throw new Error('Student not found');
     }
     const updated = { ...existing, ...student, updatedAt: new Date() };
+    const idx = this.mockStudents.findIndex(s => s.id === id);
+    if (idx >= 0) {
+      this.mockStudents[idx] = updated;
+      this.persistToStorage();
+    }
     return of(updated).pipe(delay(300));
   }
 

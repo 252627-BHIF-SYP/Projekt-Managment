@@ -88,6 +88,55 @@
         }
       }
     },
+<<<<<<< HEAD
+=======
+    "/Professor/All": {
+      "get": {
+        "tags": [
+          "Professor"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Professor/Count": {
+      "get": {
+        "tags": [
+          "Professor"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Professor/{id}": {
+      "get": {
+        "tags": [
+          "Professor"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+>>>>>>> 43a4a2b75b74e52101d6640dcd66cf65104118aa
     "/Project/Add": {
       "post": {
         "tags": [
@@ -97,17 +146,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateProjectDTO"
+                "$ref": "#/components/schemas/ProjectDTO"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateProjectDTO"
+                "$ref": "#/components/schemas/ProjectDTO"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateProjectDTO"
+                "$ref": "#/components/schemas/ProjectDTO"
               }
             }
           }
@@ -135,6 +184,100 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/Project/All": {
+      "get": {
+        "tags": [
+          "Project"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Project/Count": {
+      "get": {
+        "tags": [
+          "Project"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Project/{id}": {
+      "get": {
+        "tags": [
+          "Project"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SchoolYear/All": {
+      "get": {
+        "tags": [
+          "SchoolYear"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SchoolYear/Count": {
+      "get": {
+        "tags": [
+          "SchoolYear"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SchoolYear/{id}": {
+      "get": {
+        "tags": [
+          "SchoolYear"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -221,11 +364,152 @@
           }
         }
       }
+<<<<<<< HEAD
+=======
+    },
+    "/Student/All": {
+      "get": {
+        "tags": [
+          "Student"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Student/Count": {
+      "get": {
+        "tags": [
+          "Student"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Student/{id}": {
+      "get": {
+        "tags": [
+          "Student"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/StudentClass/All": {
+      "get": {
+        "tags": [
+          "StudentClass"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/StudentClass/Count": {
+      "get": {
+        "tags": [
+          "StudentClass"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/StudentClass/{id}": {
+      "get": {
+        "tags": [
+          "StudentClass"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+>>>>>>> 43a4a2b75b74e52101d6640dcd66cf65104118aa
     }
   },
   "components": {
     "schemas": {
-      "CreateProjectDTO": {
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      },
+      "ProfessorDTO": {
+        "type": "object",
+        "properties": {
+          "professorID": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProjectDTO": {
         "type": "object",
         "properties": {
           "title": {
@@ -277,6 +561,7 @@
         },
         "additionalProperties": false
       },
+<<<<<<< HEAD
       "ProblemDetails": {
         "type": "object",
         "properties": {
@@ -322,6 +607,8 @@
         },
         "additionalProperties": false
       },
+=======
+>>>>>>> 43a4a2b75b74e52101d6640dcd66cf65104118aa
       "ProjectStudentDTO": {
         "type": "object",
         "properties": {
@@ -378,7 +665,13 @@
       "name": "Project"
     },
     {
+      "name": "SchoolYear"
+    },
+    {
       "name": "Student"
+    },
+    {
+      "name": "StudentClass"
     }
   ]
 }

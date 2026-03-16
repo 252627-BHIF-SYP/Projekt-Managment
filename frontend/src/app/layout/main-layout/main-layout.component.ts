@@ -18,45 +18,8 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
     TopbarComponent,
     SidebarComponent
   ],
-  template: `
-    <div class="layout-container">
-      <app-topbar></app-topbar>
-      
-      <mat-sidenav-container class="sidenav-container">
-        <mat-sidenav 
-          mode="side" 
-          opened 
-          class="sidenav">
-          <app-sidebar></app-sidebar>
-        </mat-sidenav>
-
-        <mat-sidenav-content class="main-content">
-          <router-outlet></router-outlet>
-        </mat-sidenav-content>
-      </mat-sidenav-container>
-    </div>
-  `,
-  styles: [`
-    .layout-container {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .sidenav-container {
-      flex: 1;
-      overflow: hidden;
-    }
-
-    .sidenav {
-      width: 250px;
-      border-right: 1px solid rgba(0, 0, 0, 0.12);
-    }
-
-    .main-content {
-      background-color: #f5f5f5;
-      overflow: auto;
-    }
-  `]
+  templateUrl: './main-layout.component.html',
+  styleUrl: './main-layout.component.scss'
 })
 export class MainLayoutComponent {}
+

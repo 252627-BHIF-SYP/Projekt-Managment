@@ -27,52 +27,8 @@ import { AuthService } from '../../core/services/auth.service';
     MatListModule,
     MatIconModule
   ],
-  template: `
-    <div class="page-container">
-      <div class="page-header">
-        <h1>Students</h1>
-      </div>
-
-      <mat-card>
-        <mat-card-content>
-          <div class="filters">
-            <mat-form-field appearance="outline" class="filter-item">
-              <mat-label>Class</mat-label>
-              <mat-select [(ngModel)]="selectedClassId" (ngModelChange)="applyFilter()">
-                <mat-option [value]="undefined">All Classes</mat-option>
-                <mat-option *ngFor="let c of classes" [value]="c.id">{{ c.name }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="filter-item search">
-              <mat-label>Search</mat-label>
-              <input matInput [(ngModel)]="searchTerm" (ngModelChange)="applyFilter()" placeholder="Name, email, number">
-              <mat-icon matPrefix>search</mat-icon>
-            </mat-form-field>
-          </div>
-
-          <mat-list *ngIf="filteredStudents.length > 0">
-            <mat-list-item *ngFor="let s of filteredStudents">
-              <div matListItemTitle>{{ s.firstName }} {{ s.lastName }}</div>
-              <div matListItemLine>{{ s.studentNumber }} • {{ s.className }} • {{ s.email }}</div>
-            </mat-list-item>
-          </mat-list>
-
-          <div class="no-data" *ngIf="filteredStudents.length === 0">
-            <mat-icon>info</mat-icon>
-            <p>No students found</p>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  `,
-  styles: [`
-    .filters { display: flex; gap: 12px; margin-bottom: 16px; }
-    .filter-item { min-width: 220px; }
-    .filter-item.search { flex: 1; }
-    .no-data { display: flex; flex-direction: column; align-items: center; padding: 32px; color: rgba(0,0,0,0.4); }
-    .no-data mat-icon { font-size: 40px; width: 40px; height: 40px; margin-bottom: 8px; }
-  `]
+  templateUrl: './students.component.html',
+  styleUrl: './students.component.scss'
 })
 export class StudentsComponent implements OnInit {
   students: StudentProfile[] = [];
@@ -127,3 +83,4 @@ export class StudentsComponent implements OnInit {
     });
   }
 }
+

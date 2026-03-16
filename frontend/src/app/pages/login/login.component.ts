@@ -27,146 +27,8 @@ import { LoginCredentials } from '../../core/models';
     MatIconModule,
     MatProgressSpinnerModule
   ],
-  template: `
-    <div class="login-container">
-      <mat-card class="login-card">
-        <mat-card-header>
-          <mat-card-title>School Project Management</mat-card-title>
-          <mat-card-subtitle>Sign in to continue</mat-card-subtitle>
-        </mat-card-header>
-
-        <mat-card-content>
-          <form (ngSubmit)="login()" #loginForm="ngForm">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Username</mat-label>
-              <input 
-                matInput 
-                [(ngModel)]="credentials.username" 
-                name="username"
-                required
-                autocomplete="username">
-              <mat-icon matPrefix>person</mat-icon>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Password</mat-label>
-              <input 
-                matInput 
-                type="password"
-                [(ngModel)]="credentials.password" 
-                name="password"
-                required
-                autocomplete="current-password">
-              <mat-icon matPrefix>lock</mat-icon>
-            </mat-form-field>
-
-            <div class="error-message" *ngIf="errorMessage">
-              <mat-icon>error</mat-icon>
-              {{ errorMessage }}
-            </div>
-
-            <button 
-              mat-raised-button 
-              color="primary" 
-              type="submit"
-              class="full-width"
-              [disabled]="loading || !loginForm.valid">
-              <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-              <span *ngIf="!loading">Sign In</span>
-            </button>
-          </form>
-
-          <div class="demo-accounts">
-            <p class="demo-title">Demo Accounts:</p>
-            <div class="demo-account" *ngFor="let demo of demoAccounts">
-              <strong>{{ demo.role }}:</strong> {{ demo.username }} / password
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  `,
-  styles: [`
-    .login-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 20px;
-    }
-
-    .login-card {
-      width: 100%;
-      max-width: 400px;
-    }
-
-    mat-card-header {
-      margin-bottom: 24px;
-      text-align: center;
-
-      mat-card-title {
-        font-size: 24px;
-        margin-bottom: 8px;
-      }
-    }
-
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .error-message {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #d32f2f;
-      font-size: 14px;
-      padding: 12px;
-      background: #ffebee;
-      border-radius: 4px;
-
-      mat-icon {
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
-      }
-    }
-
-    button[type="submit"] {
-      height: 48px;
-      font-size: 16px;
-      margin-top: 8px;
-
-      mat-spinner {
-        display: inline-block;
-        margin: 0 auto;
-      }
-    }
-
-    .demo-accounts {
-      margin-top: 32px;
-      padding-top: 24px;
-      border-top: 1px solid #e0e0e0;
-
-      .demo-title {
-        font-weight: 500;
-        margin-bottom: 12px;
-        color: rgba(0, 0, 0, 0.6);
-      }
-
-      .demo-account {
-        font-size: 13px;
-        padding: 4px 0;
-        color: rgba(0, 0, 0, 0.8);
-
-        strong {
-          color: rgba(0, 0, 0, 0.9);
-        }
-      }
-    }
-  `]
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.scss'
 })
 export class LoginComponent implements OnInit {
   credentials: LoginCredentials = {
@@ -190,9 +52,13 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Redirect if already logged in
+    // If returning from Keycloak and already authenticated, move to dashboard
     if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/dashboard']);
+      this.authService.currentUser$.subscribe(user => {
+        if (user) {
+          this.router.navigate(['/dashboard']);
+        }
+      });
     }
   }
 
@@ -210,4 +76,24 @@ export class LoginComponent implements OnInit {
       }
     });
   }
+
+  /**
+   * Login with Keycloak
+   */
+  loginWithKeycloak(): void {
+    this.loading = true;
+    this.errorMessage = '';
+
+    this.authService.loginWithKeycloak().subscribe({
+      next: () => {
+        this.loading = false;
+      },
+      error: (error) => {
+        this.errorMessage = error?.message || 'Keycloak login failed. Please try again.';
+        this.loading = false;
+      }
+    });
+  }
 }
+
+

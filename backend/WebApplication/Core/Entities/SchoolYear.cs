@@ -10,7 +10,6 @@ namespace Core.Entities
 {
     public class SchoolYear
     {
-        [Key]
         public int SchoolYearId { get; set; }
 
         public required string Year { get; set; }
