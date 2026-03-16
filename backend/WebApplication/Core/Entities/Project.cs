@@ -31,6 +31,6 @@ namespace Core.Entities
 
         public required string Technology { get; set; }
 
-        public required string ProjectType { get; set; }
+        public required ProjectType ProjectType { get; set; }
     }
 }

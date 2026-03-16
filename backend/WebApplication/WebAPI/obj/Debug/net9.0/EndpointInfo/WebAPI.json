@@ -88,6 +88,8 @@
         }
       }
     },
+<<<<<<< HEAD
+=======
     "/Professor/All": {
       "get": {
         "tags": [
@@ -134,6 +136,7 @@
         }
       }
     },
+>>>>>>> 43a4a2b75b74e52101d6640dcd66cf65104118aa
     "/Project/Add": {
       "post": {
         "tags": [
@@ -361,6 +364,8 @@
           }
         }
       }
+<<<<<<< HEAD
+=======
     },
     "/Student/All": {
       "get": {
@@ -454,6 +459,7 @@
           }
         }
       }
+>>>>>>> 43a4a2b75b74e52101d6640dcd66cf65104118aa
     }
   },
   "components": {
@@ -555,6 +561,54 @@
         },
         "additionalProperties": false
       },
+<<<<<<< HEAD
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      },
+      "ProfessorDTO": {
+        "type": "object",
+        "properties": {
+          "professorID": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+=======
+>>>>>>> 43a4a2b75b74e52101d6640dcd66cf65104118aa
       "ProjectStudentDTO": {
         "type": "object",
         "properties": {

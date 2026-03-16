@@ -135,7 +135,7 @@ namespace WebAPI.Service
             await Context.SaveChangesAsync();
         }
 
-        public async Task<Boolean> ImportStudent(StudentDTO dto)
+        public async Task<Boolean> ImportStudent(StudentCreateDTO dto)
         {
             try
             {
@@ -147,6 +147,17 @@ namespace WebAPI.Service
                 };
 
                 await Context.Student.AddAsync(student);
+                await Context.SaveChangesAsync();
+
+                var studentClassHistory = new StudentClassHistory()
+                {
+                    StudentId = student.StudentId,
+                    ClassId = dto.ClassId,
+                    //HistoryId automatically generated
+                    SchoolYearId = dto.SchoolYearId
+                };
+
+                await Context.StudentClassHistory.AddAsync(studentClassHistory);
                 await Context.SaveChangesAsync();
 
                 return true;

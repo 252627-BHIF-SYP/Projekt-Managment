@@ -1,6 +1,8 @@
 [
   {
     "ContainingType": "WebAPI.Controllers.ProfessorController",
+<<<<<<< HEAD
+=======
     "Method": "GetById",
     "RelativePath": "Professor/{id}",
     "HttpMethod": "GET",
@@ -23,6 +25,7 @@
   },
   {
     "ContainingType": "WebAPI.Controllers.ProfessorController",
+>>>>>>> 43a4a2b75b74e52101d6640dcd66cf65104118aa
     "Method": "Create",
     "RelativePath": "Professor/Add",
     "HttpMethod": "POST",
@@ -45,6 +48,8 @@
   },
   {
     "ContainingType": "WebAPI.Controllers.ProfessorController",
+<<<<<<< HEAD
+=======
     "Method": "GetAll",
     "RelativePath": "Professor/All",
     "HttpMethod": "GET",
@@ -77,6 +82,7 @@
   },
   {
     "ContainingType": "WebAPI.Controllers.ProfessorController",
+>>>>>>> 43a4a2b75b74e52101d6640dcd66cf65104118aa
     "Method": "Upload",
     "RelativePath": "Professor/Import",
     "HttpMethod": "POST",
@@ -318,6 +324,28 @@
         "Type": "System.Void",
         "MediaTypes": [],
         "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "WebAPI.Controllers.StudentController",
+    "Method": "Create",
+    "RelativePath": "Student/Add",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "WebAPI.DTOs.StudentDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 201
       }
     ]
   },

@@ -46,7 +46,7 @@ namespace WebAPI.Controllers
 
         [HttpPost("Add")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> Create([FromBody] StudentDTO dto)
+        public async Task<IActionResult> Create([FromBody] StudentCreateDTO dto)
         {
             var result = await _importService.ImportStudent(dto);
 
