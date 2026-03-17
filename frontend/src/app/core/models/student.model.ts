@@ -2,9 +2,13 @@ import { Role } from './user.model';
 
 /**
  * Backend API DTO from StudentController
+ *
+ * The backend uses System.Text.Json camel casing (e.g. StudentID -> studentID),
+ * but older clients may use studentId. Support both.
  */
 export interface StudentDTO {
-  studentID: string;
+  studentID?: string;
+  studentId?: string;
   firstName: string;
   lastName: string;
 }

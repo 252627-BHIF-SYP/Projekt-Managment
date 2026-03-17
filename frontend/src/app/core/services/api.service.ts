@@ -19,7 +19,9 @@ export class ApiService {
    * GET request
    */
   get<T>(endpoint: string, params?: any): Observable<T> {
-    return this.http.get<T>(`${this.baseUrl}${endpoint}`, {
+    const url = `${this.baseUrl}${endpoint}`;
+    console.debug('[ApiService] GET', url, params);
+    return this.http.get<T>(url, {
       params: this.buildParams(params),
       headers: this.getHeaders()
     });

@@ -62,7 +62,8 @@
               "buildTarget": "school-project-management:build:production"
             },
             "development": {
-              "buildTarget": "school-project-management:build:development"
+              "buildTarget": "school-project-management:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

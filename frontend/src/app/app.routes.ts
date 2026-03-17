@@ -3,6 +3,7 @@ import { authGuard, roleGuard } from './core/guards';
 import { Role } from './core/models';
 import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { AdminDashboardComponent } from './pages/admin-dashboard/admin-dashboard.component';
 import { ProjectListComponent } from './pages/project-list/project-list.component';
 import { ProjectDetailComponent } from './pages/project-detail/project-detail.component';
 import { ProjectCreateComponent } from './pages/project-create/project-create.component';
@@ -32,6 +33,12 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         component: DashboardComponent
+      },
+      {
+        path: 'admin-dashboard',
+        component: AdminDashboardComponent,
+        canActivate: [roleGuard],
+        data: { roles: [Role.SYS_ADMIN, Role.AV] }
       },
       {
         path: 'projects',

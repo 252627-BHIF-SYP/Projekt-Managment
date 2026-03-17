@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, delay, map } from 'rxjs/operators';
 import { StudentProfile, StudentStatus, StudentEnrollment, Class, CsvPreview, StudentDTO, StudentClassDTO } from '../core/models';
@@ -111,18 +112,19 @@ export class StudentService {
     }
   ];
 
-  constructor(private apiService: ApiService) {
+  constructor(private apiService: ApiService, private http: HttpClient) {
     this.loadFromStorage();
   }
 
   private mapStudentDto(dto: StudentDTO): StudentProfile {
+    const id = dto.studentID ?? dto.studentId ?? '';
     return {
-      id: dto.studentID,
-      userId: dto.studentID,
-      studentNumber: dto.studentID,
+      id,
+      userId: id,
+      studentNumber: id,
       firstName: dto.firstName,
       lastName: dto.lastName,
-      email: `${dto.studentID.toLowerCase()}@school.at`,
+      email: `${id.toLowerCase()}@school.at`,
       classId: '',
       schoolYearId: '',
       status: StudentStatus.SEARCHING,
@@ -343,5 +345,40 @@ export class StudentService {
     // TODO: Replace with API call
     // return this.apiService.get<Class[]>(`/classes?schoolYearId=${schoolYearId}`);
     return of(this.mockClasses.filter(c => c.schoolYearId === schoolYearId)).pipe(delay(200));
+  }
+
+  /**
+   * Get history ID by student ID
+   * Calls backend directly - bypasses proxy issues with Vite
+   */
+  getHistoryIdByStudentId(studentId: string): Observable<number> {
+    const backendUrl = `https://localhost:7113/Student/${studentId}/historyId`;
+    console.debug(`[StudentService] Fetching from backend: ${backendUrl}`);
+    
+    // Use responseType: 'text' because backend returns plain number
+    return this.http.get(backendUrl, { 
+      responseType: 'text',
+      withCredentials: false  // Important: no credentials for plain text
+    }).pipe(
+      map((response: string) => {
+        console.debug(`[StudentService] Raw response for ${studentId}:`, response);
+        
+        // Parse the plain text response as a number
+        const numValue = Number(response.trim());
+        
+        if (!isNaN(numValue) && numValue > 0) {
+          console.debug(`[StudentService] Parsed historyId: ${numValue}`);
+          return numValue;
+        }
+        
+        console.warn(`[StudentService] Could not parse historyId from response: "${response}"`);
+        return 0;
+      }),
+      catchError((error) => {
+        console.error(`Failed to fetch historyId for student ${studentId}:`, error);
+        // Fallback: return 0 which will be filtered out
+        return of(0);
+      })
+    );
   }
 }

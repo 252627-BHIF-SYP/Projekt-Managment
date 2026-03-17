@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../core/services/auth.service';
 import { ProjectService } from '../../services/project.service';
-import { User, Project, Role } from '../../core/models';
+import { User, Project, Role, ProjectStatus } from '../../core/models';
 import { Observable } from 'rxjs';
 
 /**
@@ -45,11 +45,11 @@ export class DashboardComponent implements OnInit {
   }
 
   getInProgressCount(): number {
-    return this.projects.filter(p => p.status === 'IN_PROGRESS').length;
+    return this.projects.filter(p => p.status === ProjectStatus.ON_GOING).length;
   }
 
   getCompletedCount(): number {
-    return this.projects.filter(p => p.status === 'COMPLETED').length;
+    return this.projects.filter(p => p.status === ProjectStatus.COMPLETED).length;
   }
 
   canCreateProject(): boolean {

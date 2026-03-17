@@ -57,6 +57,12 @@ export class SidebarComponent implements OnInit {
       roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN]
     },
     {
+      label: 'Admin Dashboard',
+      icon: 'admin_panel_settings',
+      route: '/admin-dashboard',
+      roles: [Role.SYS_ADMIN, Role.AV]
+    },
+    {
       label: 'Import',
       icon: 'upload_file',
       route: '/import',

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { catchError, delay, map, tap } from 'rxjs/operators';
-import { Project, ProjectDTO, ProjectFilter, ProjectStatus, ProjectStudent, ProjectStudentDTO, ProjectSupervisor, ProjectSupervisorDTO } from '../core/models';
+import { CreateProjectPayload, Project, ProjectDTO, ProjectFilter, ProjectStatus, ProjectStudent, ProjectStudentDTO, ProjectSupervisor, ProjectSupervisorDTO } from '../core/models';
 import { ApiService } from '../core/services/api.service';
 
 /**
@@ -226,19 +226,11 @@ export class ProjectService {
   /**
    * Create new project
    */
-  createProject(project: Partial<Project>): Observable<Project> {
-    const payload: ProjectDTO = {
-      title: project.title || '',
-      description: project.description || '',
-      githubURL: project.githubUrl || '',
-      logoURL: project.logoUrl || '',
-      schoolYearId: Number(project.schoolYearId || 0),
-      projectStatus: this.toBackendStatus(project.status),
-      technologies: (project.technologies || []).join(', '),
-      projectType: project.projectType || 'General',
-      students: [],
-      supervisors: []
-    };
+  createProject(payload: CreateProjectPayload): Observable<Project> {
+    // Ensure required fields are present
+    if (!payload.schoolYearId || payload.schoolYearId === 0) {
+      throw new Error('schoolYearId is required to create a project');
+    }
 
     return this.apiService.post<ProjectDTO>('/Project/Add', payload).pipe(
       map(dto => this.mapProjectDto(dto, this.mockProjects.length)),
@@ -247,20 +239,21 @@ export class ProjectService {
         this.projectsSubject.next(this.mockProjects);
       }),
       catchError(() => {
+        // Fallback to local mock behavior if API fails (e.g. backend not running)
         const newProject: Project = {
           id: String(this.mockProjects.length + 1),
-          title: project.title || '',
-          description: project.description || '',
-          schoolYearId: project.schoolYearId || '',
-          classId: project.classId || '',
-          status: project.status || ProjectStatus.NEW,
-          maxStudents: project.maxStudents || 4,
-          minStudents: project.minStudents || 2,
+          title: payload.title || '',
+          description: payload.description || '',
+          schoolYearId: String(payload.schoolYearId),
+          classId: '',
+          status: this.toUiStatus(payload.projectStatus),
+          maxStudents: 4,
+          minStudents: 2,
           createdById: '3',
-          githubUrl: project.githubUrl,
-          logoUrl: project.logoUrl,
-          tags: project.tags || [],
-          technologies: project.technologies || [],
+          githubUrl: payload.githubURL,
+          logoUrl: payload.logoURL,
+          tags: [],
+          technologies: payload.technologies ? payload.technologies.split(',').map(t => t.trim()).filter(t => t.length > 0) : [],
           createdAt: new Date(),
           updatedAt: new Date()
         };

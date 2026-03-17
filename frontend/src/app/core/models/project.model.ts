@@ -2,16 +2,16 @@
  * Project status enum
  */
 export enum ProjectStatus {
-  // Backend enum string representations
+  // Backend enum string representations (must match C# backend exactly)
   NEW = 'New',
   PENDING = 'Pending',
   ON_GOING = 'OnGoing',
+  COMPLETED = 'Completed',
+  ARCHIVED = 'Archived',
   // Legacy frontend values kept for compatibility
   DRAFT = 'DRAFT',
   OPEN = 'OPEN',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  ARCHIVED = 'ARCHIVED'
+  IN_PROGRESS = 'IN_PROGRESS'
 }
 
 /**
@@ -60,6 +60,11 @@ export interface ProjectDTO {
   students: ProjectStudentDTO[];
   supervisors: ProjectSupervisorDTO[];
 }
+
+/**
+ * Payload used when creating a project (matches backend ProjectDTO exactly)
+ */
+export interface CreateProjectPayload extends ProjectDTO {}
 
 /**
  * Backend API DTO for project-student assignment

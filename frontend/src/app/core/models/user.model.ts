@@ -44,9 +44,13 @@ export interface AuthResponse {
 
 /**
  * Backend API DTO from ProfessorController
+ *
+ * The backend uses System.Text.Json camel casing (e.g. ProfessorID -> professorID),
+ * but older clients may use professorId. Support both.
  */
 export interface ProfessorDTO {
-  professorID: string;
+  professorID?: string;
+  professorId?: string;
   firstName: string;
   lastName: string;
 }

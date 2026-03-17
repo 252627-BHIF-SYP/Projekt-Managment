@@ -1,0 +1,32 @@
+{
+  "/Professor/*": {
+    "target": "https://localhost:7113",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/Project/*": {
+    "target": "https://localhost:7113",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/Student/*": {
+    "target": "https://localhost:7113",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/SchoolYear/*": {
+    "target": "https://localhost:7113",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/StudentClass/*": {
+    "target": "https://localhost:7113",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

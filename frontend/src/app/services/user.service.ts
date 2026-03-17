@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { catchError, delay, map } from 'rxjs/operators';
+import { catchError, delay, map, tap } from 'rxjs/operators';
 import { User, Role, ProfessorDTO } from '../core/models';
 import { ApiService } from '../core/services/api.service';
 
@@ -48,10 +48,11 @@ export class UserService {
   constructor(private apiService: ApiService) {}
 
   private mapProfessorDtoToUser(dto: ProfessorDTO): User {
+    const id = dto.professorID ?? dto.professorId ?? '';
     return {
-      id: dto.professorID,
-      username: dto.professorID,
-      email: `${dto.professorID.toLowerCase()}@school.at`,
+      id,
+      username: id,
+      email: `${id.toLowerCase()}@school.at`,
       firstName: dto.firstName,
       lastName: dto.lastName,
       roles: [Role.PROFESSOR],
@@ -83,14 +84,18 @@ export class UserService {
    */
   getSupervisors(): Observable<User[]> {
     return this.apiService.get<ProfessorDTO[]>('/Professor/All').pipe(
+      tap((professors) => {
+        console.debug('[UserService] /Professor/All response', professors);
+      }),
       map(professors => professors.map(p => this.mapProfessorDtoToUser(p))),
-      catchError(() =>
-        of(this.mockUsers.filter(u =>
+      catchError((error) => {
+        console.error('[UserService] Failed to load supervisors from backend', error);
+        return of(this.mockUsers.filter(u =>
           u.roles.includes(Role.PROFESSOR) ||
           u.roles.includes(Role.BETREUER) ||
           u.roles.includes(Role.AV)
-        )).pipe(delay(200))
-      )
+        )).pipe(delay(200));
+      })
     );
   }
 

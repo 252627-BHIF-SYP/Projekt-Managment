@@ -40,17 +40,14 @@
                   <mat-icon matPrefix>image</mat-icon>
                 </mat-form-field>
 
-                <div class="form-row">
-                  <mat-form-field appearance="outline">
-                    <mat-label>Minimum Students</mat-label>
-                    <input matInput type="number" [(ngModel)]="project.minStudents" min="1">
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline">
-                    <mat-label>Maximum Students</mat-label>
-                    <input matInput type="number" [(ngModel)]="project.maxStudents" min="1">
-                  </mat-form-field>
-                </div>
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Project Type</mat-label>
+                  <mat-select [(ngModel)]="project.projectType" required>
+                    <mat-option *ngFor="let type of projectTypes" [value]="type.value">
+                      {{ type.label }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
 
                 <mat-form-field appearance="outline" class="full-width">
                   <mat-label>School Year</mat-label>
@@ -96,7 +93,6 @@
               <mat-card-content>
                 <app-student-picker
                   [schoolYearId]="project.schoolYearId"
-                  [maxStudents]="project.maxStudents"
                   [showStatus]="false"
                   (studentsSelected)="onStudentsSelected($event)">
                 </app-student-picker>
