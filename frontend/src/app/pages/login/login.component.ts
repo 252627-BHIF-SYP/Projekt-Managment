@@ -52,11 +52,22 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // If returning from Keycloak and already authenticated, move to dashboard
+    // If returning from Keycloak and already authenticated, move to projects
     if (this.authService.isAuthenticated()) {
+      this.authService.syncKeycloakUser().subscribe({
+        next: user => {
+          if (user) {
+            this.router.navigate(['/projects']);
+          }
+        },
+        error: () => {
+          this.loading = false;
+        }
+      });
+
       this.authService.currentUser$.subscribe(user => {
-        if (user) {
-          this.router.navigate(['/dashboard']);
+        if (user && this.authService.isAuthenticated()) {
+          this.router.navigate(['/projects']);
         }
       });
     }
@@ -68,7 +79,7 @@ export class LoginComponent implements OnInit {
 
     this.authService.login(this.credentials).subscribe({
       next: () => {
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/projects']);
       },
       error: (error) => {
         this.errorMessage = error.message || 'Login failed. Please try again.';

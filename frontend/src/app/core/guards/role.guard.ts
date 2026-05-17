@@ -21,7 +21,7 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
     return true;
   }
 
-  // User doesn't have required role, redirect to dashboard
-  router.navigate(['/dashboard']);
+  // User doesn't have required role, redirect to project overview
+  router.navigate(['/projects']);
   return false;
 };

@@ -57,8 +57,7 @@ export class DashboardComponent implements OnInit {
       Role.PROFESSOR,
       Role.AV,
       Role.SYS_ADMIN,
-      Role.STUDENT_SEARCHING,
-      Role.STUDENT_PROJECT
+      Role.STUDENT
     ]);
   }
 

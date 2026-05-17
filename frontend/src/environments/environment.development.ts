@@ -3,8 +3,8 @@
  */
 export const environment = {
   production: false,
-  apiUrl: '', // Use proxy to avoid CORS issues in development
-  keycloakUrl: 'http://localhost:8081', // Keycloak URL - to be configured
+  apiUrl: '/api',
+  keycloakUrl: 'http://localhost:8081',
   keycloakRealm: 'school-management',
   keycloakClientId: 'school-management-frontend'
 };

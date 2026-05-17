@@ -53,7 +53,7 @@ export class ProfileComponent implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       if (user && this.isStudent()) {
-        this.loadStudentProfile(user.id);
+        this.loadStudentProfile(user.username || user.id);
       }
     });
   }
@@ -61,12 +61,12 @@ export class ProfileComponent implements OnInit {
   loadStudentProfile(userId: string): void {
     // Mock: In real app, fetch student profile by userId
     this.studentService.getStudents().subscribe(students => {
-      this.studentProfile = students.find(s => s.userId === userId);
+      this.studentProfile = students.find(s => s.userId === userId || s.studentNumber === userId);
     });
   }
 
   isStudent(): boolean {
-    return this.authService.hasAnyRole([Role.STUDENT_SEARCHING, Role.STUDENT_PROJECT]);
+    return this.authService.hasRole(Role.STUDENT);
   }
 
   startEditing(): void {

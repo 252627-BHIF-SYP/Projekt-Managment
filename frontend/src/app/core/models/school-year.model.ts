@@ -20,3 +20,7 @@ export interface SchoolYearDTO {
   schoolYearId: number;
   year: string;
 }
+
+export interface CreateSchoolYearPayload {
+  year: string;
+}

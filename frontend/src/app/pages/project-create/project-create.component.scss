@@ -47,37 +47,58 @@
           font-weight: 500;
         }
 
-        button {
-          padding: 4px 8px;
-          font-size: 13px;
+        .selection-info {
+          font-size: 14px;
+          color: rgba(0, 0, 0, 0.6);
         }
       }
 
-      .supervisors-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+      .supervisor-picker-list {
+        max-height: 320px;
+        overflow-y: auto;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
         margin-bottom: 12px;
 
         .supervisor-item {
-          display: flex;
-          gap: 12px;
-          align-items: flex-start;
+          padding: 8px 0;
 
-          mat-form-field {
-            flex: 1;
+          .supervisor-name {
+            font-weight: 500;
+            margin-bottom: 4px;
           }
 
-          button {
-            margin-top: 8px;
+          .supervisor-meta {
+            font-size: 12px;
+            color: rgba(0, 0, 0, 0.6);
           }
         }
       }
 
-      .info-text {
-        color: rgba(0, 0, 0, 0.4);
-        font-style: italic;
-        margin: 12px 0;
+      .selected-supervisors {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        span {
+          padding: 4px 10px;
+          border-radius: 16px;
+          background: #f0f2f5;
+          font-size: 13px;
+          color: rgba(0, 0, 0, 0.72);
+        }
+      }
+
+      .no-supervisors {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 16px;
+        color: rgba(0, 0, 0, 0.45);
+
+        p {
+          margin: 0;
+        }
       }
     }
 

@@ -1,119 +1,101 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { KeycloakAuthService } from './keycloak.service';
 
 /**
- * Central API service for all HTTP requests
- * Handles authentication headers and base URL configuration
+ * Central API service for all HTTP requests.
+ * Adds the Keycloak bearer token to every outgoing request.
  */
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = environment.apiUrl;
+  private readonly http = inject(HttpClient);
+  private readonly keycloakAuthService = inject(KeycloakAuthService);
 
-  constructor(private http: HttpClient) {}
+  private readonly baseUrl = environment.apiUrl;
 
-  /**
-   * GET request
-   */
-  get<T>(endpoint: string, params?: any): Observable<T> {
+  get<T>(endpoint: string, params?: Record<string, unknown>): Observable<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    console.debug('[ApiService] GET', url, params);
-    return this.http.get<T>(url, {
-      params: this.buildParams(params),
-      headers: this.getHeaders()
-    });
+    return this.getHeaders().pipe(
+      switchMap(headers => this.http.get<T>(url, {
+        params: this.buildParams(params),
+        headers
+      }))
+    );
   }
 
-  /**
-   * POST request
-   */
-  post<T>(endpoint: string, data: any): Observable<T> {
-    return this.http.post<T>(`${this.baseUrl}${endpoint}`, data, {
-      headers: this.getHeaders()
-    });
+  post<T>(endpoint: string, data: unknown): Observable<T> {
+    return this.getHeaders().pipe(
+      switchMap(headers => this.http.post<T>(`${this.baseUrl}${endpoint}`, data, { headers }))
+    );
   }
 
-  /**
-   * PUT request
-   */
-  put<T>(endpoint: string, data: any): Observable<T> {
-    return this.http.put<T>(`${this.baseUrl}${endpoint}`, data, {
-      headers: this.getHeaders()
-    });
+  put<T>(endpoint: string, data: unknown): Observable<T> {
+    return this.getHeaders().pipe(
+      switchMap(headers => this.http.put<T>(`${this.baseUrl}${endpoint}`, data, { headers }))
+    );
   }
 
-  /**
-   * PATCH request
-   */
-  patch<T>(endpoint: string, data: any): Observable<T> {
-    return this.http.patch<T>(`${this.baseUrl}${endpoint}`, data, {
-      headers: this.getHeaders()
-    });
+  patch<T>(endpoint: string, data: unknown): Observable<T> {
+    return this.getHeaders().pipe(
+      switchMap(headers => this.http.patch<T>(`${this.baseUrl}${endpoint}`, data, { headers }))
+    );
   }
 
-  /**
-   * DELETE request
-   */
   delete<T>(endpoint: string): Observable<T> {
-    return this.http.delete<T>(`${this.baseUrl}${endpoint}`, {
-      headers: this.getHeaders()
-    });
+    return this.getHeaders().pipe(
+      switchMap(headers => this.http.delete<T>(`${this.baseUrl}${endpoint}`, { headers }))
+    );
   }
 
-  /**
-   * Upload file
-   */
   upload<T>(endpoint: string, formData: FormData): Observable<T> {
-    // Don't set Content-Type header for FormData, browser will set it with boundary
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${this.getToken()}`
-    });
-
-    return this.http.post<T>(`${this.baseUrl}${endpoint}`, formData, {
-      headers
-    });
+    // Do not set Content-Type for FormData — the browser adds it with the boundary.
+    return this.getHeaders().pipe(
+      switchMap(headers => this.http.post<T>(`${this.baseUrl}${endpoint}`, formData, { headers }))
+    );
   }
 
-  /**
-   * Build HTTP params from object
-   */
-  private buildParams(params?: any): HttpParams {
+  private buildParams(params?: Record<string, unknown>): HttpParams {
     let httpParams = new HttpParams();
-    
-    if (params) {
-      Object.keys(params).forEach(key => {
-        if (params[key] !== null && params[key] !== undefined) {
-          httpParams = httpParams.append(key, params[key].toString());
-        }
-      });
+    if (!params) {
+      return httpParams;
     }
-
+    for (const key of Object.keys(params)) {
+      const value = params[key];
+      if (value !== null && value !== undefined) {
+        httpParams = httpParams.append(key, String(value));
+      }
+    }
     return httpParams;
   }
 
-  /**
-   * Get authentication headers
-   */
-  private getHeaders(): HttpHeaders {
-    const token = this.getToken();
-    let headers = new HttpHeaders({
-      'Content-Type': 'application/json'
-    });
-
-    if (token) {
-      headers = headers.set('Authorization', `Bearer ${token}`);
+  private getHeaders(): Observable<HttpHeaders> {
+    if (!this.keycloakAuthService.isLoggedIn()) {
+      return of(new HttpHeaders());
     }
 
-    return headers;
+    return this.keycloakAuthService.updateToken().pipe(
+      map(() => this.createAuthHeaders()),
+      catchError(() => of(this.createAuthHeaders()))
+    );
   }
 
-  /**
-   * Get authentication token from storage
-   */
   private getToken(): string | null {
-    return localStorage.getItem('auth_token');
+    try {
+      return this.keycloakAuthService.getToken();
+    } catch {
+      return localStorage.getItem('auth_token');
+    }
+  }
+
+  private createAuthHeaders(): HttpHeaders {
+    const token = this.getToken();
+    return token
+      ? new HttpHeaders().set('Authorization', `Bearer ${token}`)
+      : new HttpHeaders();
   }
 }

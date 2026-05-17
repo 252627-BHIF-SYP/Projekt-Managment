@@ -1,0 +1,55 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>Create Student</h1>
+  </div>
+
+  <mat-card class="form-card">
+    <mat-card-header>
+      <div mat-card-avatar class="form-avatar">
+        <mat-icon>school</mat-icon>
+      </div>
+      <mat-card-title>Student data</mat-card-title>
+      <mat-card-subtitle>Create a student and optionally assign class history</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="wide">
+          <mat-label>IF name / username</mat-label>
+          <input matInput [(ngModel)]="student.id" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>First name</mat-label>
+          <input matInput [(ngModel)]="student.firstName" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Last name</mat-label>
+          <input matInput [(ngModel)]="student.lastName" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Class</mat-label>
+          <mat-select [(ngModel)]="student.classId">
+            <mat-option *ngFor="let c of classes" [value]="c.id">{{ c.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>School Year</mat-label>
+          <mat-select [(ngModel)]="student.schoolYearId">
+            <mat-option *ngFor="let year of schoolYears" [value]="year.id">{{ year.year }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="actions">
+        <button mat-button type="button" (click)="cancel()">Cancel</button>
+        <button mat-raised-button color="primary" type="button" (click)="save()" [disabled]="saving">
+          <mat-icon>person_add</mat-icon>
+          {{ saving ? 'Saving...' : 'Create Student' }}
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

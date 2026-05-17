@@ -3,6 +3,7 @@
  */
 export interface Class {
   // Backend DTO field (StudentClassDTO)
+  classId?: number;
   studentClassId?: number;
   id: string;
   name: string; // e.g., "5AHIF"
@@ -18,7 +19,13 @@ export interface Class {
  * Backend API DTO from StudentClassController
  */
 export interface StudentClassDTO {
-  studentClassId: number;
+  classId: number;
+  studentClassId?: number;
+  name: string;
+  branch: string;
+}
+
+export interface CreateStudentClassPayload {
   name: string;
   branch: string;
 }

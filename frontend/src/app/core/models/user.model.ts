@@ -5,9 +5,7 @@ export enum Role {
   SYS_ADMIN = 'SYS_ADMIN',
   AV = 'AV',
   PROFESSOR = 'PROFESSOR',
-  BETREUER = 'BETREUER',
-  STUDENT_SEARCHING = 'STUDENT_SEARCHING',
-  STUDENT_PROJECT = 'STUDENT_PROJECT'
+  STUDENT = 'STUDENT'
 }
 
 /**
@@ -49,8 +47,16 @@ export interface AuthResponse {
  * but older clients may use professorId. Support both.
  */
 export interface ProfessorDTO {
-  professorID?: string;
-  professorId?: string;
+  id: string;
   firstName: string;
   lastName: string;
+}
+
+export interface PersonCreatePayload {
+  id: string;
+  firstName: string;
+  lastName: string;
+  personType: 'Student' | 'Professor';
+  classId?: number;
+  schoolYearId?: number;
 }

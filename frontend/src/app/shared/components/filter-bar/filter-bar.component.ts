@@ -6,7 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { ProjectFilter, ProjectStatus, SchoolYear, Class } from '../../../core/models';
+import { ProjectFilter, ProjectStatus, SchoolYear } from '../../../core/models';
 
 /**
  * Filter bar for projects
@@ -28,11 +28,11 @@ import { ProjectFilter, ProjectStatus, SchoolYear, Class } from '../../../core/m
 })
 export class FilterBarComponent {
   @Input() schoolYears?: SchoolYear[];
-  @Input() classes?: Class[];
   @Output() filterChange = new EventEmitter<ProjectFilter>();
 
   filter: ProjectFilter = {};
   ProjectStatus = ProjectStatus;
+  projectTypes = ['SYP', 'Diplomarbeit', 'ProjectAward', 'Others'];
 
   onFilterChange(): void {
     this.filterChange.emit({ ...this.filter });

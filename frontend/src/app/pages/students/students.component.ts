@@ -8,7 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
-import { StudentProfile, Class, Role } from '../../core/models';
+import { StudentClassHistoryDTO, StudentProfile, Class, Role, SchoolYear } from '../../core/models';
 import { StudentService } from '../../services/student.service';
 import { SchoolYearService } from '../../services/schoolyear.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -34,8 +34,21 @@ export class StudentsComponent implements OnInit {
   students: StudentProfile[] = [];
   filteredStudents: StudentProfile[] = [];
   classes: Class[] = [];
+  schoolYears: SchoolYear[] = [];
   selectedClassId?: string;
+  selectedSchoolYearId?: string;
   searchTerm = '';
+
+  get availableClasses(): Class[] {
+    const classIds = new Set(
+      this.students
+        .filter(student => this.matchesSearch(student))
+        .map(student => String(this.getVisibleHistory(student)?.classId ?? student.classId))
+        .filter(Boolean)
+    );
+
+    return this.classes.filter(studentClass => classIds.has(studentClass.id));
+  }
 
   constructor(
     private studentService: StudentService,
@@ -57,6 +70,7 @@ export class StudentsComponent implements OnInit {
         this.applyFilter();
       });
       this.studentService.getClasses().subscribe(classes => this.classes = classes);
+      this.schoolYearService.getSchoolYears().subscribe(years => this.schoolYears = years);
     } else if (selectedYear) {
       this.studentService.getStudentsBySchoolYear(selectedYear.id).subscribe(students => {
         this.students = students;
@@ -70,17 +84,58 @@ export class StudentsComponent implements OnInit {
         this.applyFilter();
       });
       this.studentService.getClasses().subscribe(classes => this.classes = classes);
+      this.schoolYearService.getSchoolYears().subscribe(years => this.schoolYears = years);
     }
   }
 
   applyFilter(): void {
     const term = (this.searchTerm || '').toLowerCase().trim();
     this.filteredStudents = this.students.filter(s => {
-      if (this.selectedClassId && s.classId !== this.selectedClassId) return false;
+      const visibleHistory = this.getVisibleHistory(s);
+      const visibleClassId = String(visibleHistory?.classId ?? s.classId);
+      const visibleSchoolYearId = String(visibleHistory?.schoolYearId ?? s.schoolYearId);
+
+      if (this.selectedClassId && visibleClassId !== this.selectedClassId) return false;
+      if (this.selectedSchoolYearId && visibleSchoolYearId !== this.selectedSchoolYearId) return false;
       if (!term) return true;
-      const haystack = `${s.firstName} ${s.lastName} ${s.email} ${s.studentNumber}`.toLowerCase();
-      return haystack.includes(term);
+      return this.matchesSearch(s);
     });
+  }
+
+  getDisplayClassName(student: StudentProfile): string {
+    return this.getVisibleHistory(student)?.className || student.className || '';
+  }
+
+  private getVisibleHistory(student: StudentProfile): StudentClassHistoryDTO | undefined {
+    if (!student.histories || student.histories.length === 0) {
+      return undefined;
+    }
+
+    if (this.selectedSchoolYearId) {
+      const historyForYear = student.histories.find(history => String(history.schoolYearId) === this.selectedSchoolYearId);
+      if (historyForYear) {
+        return historyForYear;
+      }
+    }
+
+    if (student.historyId) {
+      const currentHistory = student.histories.find(history => history.historyId === student.historyId);
+      if (currentHistory) {
+        return currentHistory;
+      }
+    }
+
+    return student.histories[0];
+  }
+
+  private matchesSearch(student: StudentProfile): boolean {
+    const term = (this.searchTerm || '').toLowerCase().trim();
+    if (!term) {
+      return true;
+    }
+
+    const haystack = `${student.firstName} ${student.lastName} ${student.email} ${student.studentNumber}`.toLowerCase();
+    return haystack.includes(term);
   }
 }
 

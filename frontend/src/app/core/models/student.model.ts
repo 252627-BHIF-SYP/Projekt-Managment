@@ -7,10 +7,19 @@ import { Role } from './user.model';
  * but older clients may use studentId. Support both.
  */
 export interface StudentDTO {
-  studentID?: string;
-  studentId?: string;
+  id: string;
   firstName: string;
   lastName: string;
+  histories?: StudentClassHistoryDTO[];
+}
+
+export interface StudentClassHistoryDTO {
+  historyId: number;
+  classId: number;
+  className: string;
+  branch: string;
+  schoolYearId: number;
+  schoolYear: string;
 }
 
 /**
@@ -33,6 +42,8 @@ export interface StudentProfile {
   skills?: string[];
   profileImageUrl?: string;
   status: StudentStatus;
+  historyId?: number;
+  histories?: StudentClassHistoryDTO[];
   createdAt: Date;
   updatedAt: Date;
 }

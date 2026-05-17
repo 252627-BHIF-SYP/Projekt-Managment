@@ -1,10 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDividerModule } from '@angular/material/divider';
 import { AuthService } from '../../core/services/auth.service';
 import { Role } from '../../core/models';
 
@@ -16,85 +14,42 @@ interface MenuItem {
 }
 
 /**
- * Sidebar navigation component
+ * Sidebar navigation. Items are filtered against the current user roles.
  */
 @Component({
   selector: 'app-sidebar',
-  standalone: true,
   imports: [
-    CommonModule,
-    RouterModule,
-    MatSidenavModule,
+    RouterLink,
+    RouterLinkActive,
     MatListModule,
-    MatIconModule,
-    MatDividerModule
+    MatIconModule
   ],
   templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.scss'
+  styleUrl: './sidebar.component.css'
 })
-export class SidebarComponent implements OnInit {
-  menuItems: MenuItem[] = [
-    {
-      label: 'Dashboard',
-      icon: 'dashboard',
-      route: '/dashboard'
-    },
-    {
-      label: 'Projects',
-      icon: 'folder',
-      route: '/projects'
-    },
-    {
-      label: 'Create Project',
-      icon: 'add_circle',
-      route: '/projects/create',
-      roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN, Role.STUDENT_SEARCHING, Role.STUDENT_PROJECT]
-    },
-    {
-      label: 'Students',
-      icon: 'school',
-      route: '/students',
-      roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN]
-    },
-    {
-      label: 'Admin Dashboard',
-      icon: 'admin_panel_settings',
-      route: '/admin-dashboard',
-      roles: [Role.SYS_ADMIN, Role.AV]
-    },
-    {
-      label: 'Import',
-      icon: 'upload_file',
-      route: '/import',
-      roles: [Role.SYS_ADMIN, Role.AV]
-    },
-    {
-      label: 'Profile',
-      icon: 'person',
-      route: '/profile'
-    }
+export class SidebarComponent {
+  private readonly authService = inject(AuthService);
+
+  // Re-evaluate when current user changes.
+  private readonly user = toSignal(this.authService.currentUser$, { initialValue: null });
+
+  private readonly menuItems: MenuItem[] = [
+    { label: 'Projects', icon: 'folder', route: '/projects' },
+    { label: 'Create Project', icon: 'add_circle', route: '/projects/create', roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN, Role.STUDENT] },
+    { label: 'Students', icon: 'school', route: '/students', roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] },
+    { label: 'Create Student', icon: 'person_add', route: '/students/create', roles: [Role.AV, Role.SYS_ADMIN] },
+    { label: 'Professors', icon: 'groups', route: '/professors', roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] },
+    { label: 'Create Professor', icon: 'person_add', route: '/professors/create', roles: [Role.AV, Role.SYS_ADMIN] },
+    { label: 'Admin Dashboard', icon: 'admin_panel_settings', route: '/admin-dashboard', roles: [Role.SYS_ADMIN, Role.AV] },
+    { label: 'Import', icon: 'upload_file', route: '/import', roles: [Role.SYS_ADMIN, Role.AV] },
+    { label: 'Profile', icon: 'person', route: '/profile' }
   ];
 
-  visibleMenuItems: MenuItem[] = [];
-
-  constructor(private authService: AuthService) {}
-
-  ngOnInit(): void {
-    this.updateVisibleMenuItems();
-    
-    // Update menu when user changes
-    this.authService.currentUser$.subscribe(() => {
-      this.updateVisibleMenuItems();
-    });
-  }
-
-  private updateVisibleMenuItems(): void {
-    this.visibleMenuItems = this.menuItems.filter(item => {
-      if (!item.roles || item.roles.length === 0) {
-        return true;
-      }
-      return this.authService.hasAnyRole(item.roles);
-    });
-  }
+  readonly visibleMenuItems = computed<MenuItem[]>(() => {
+    // Touch the user signal so this recomputes on login/logout.
+    this.user();
+    return this.menuItems.filter(item =>
+      !item.roles || item.roles.length === 0 || this.authService.hasAnyRole(item.roles)
+    );
+  });
 }
-

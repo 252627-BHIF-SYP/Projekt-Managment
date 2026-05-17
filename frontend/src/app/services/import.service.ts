@@ -1,106 +1,41 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { catchError, delay, map, switchMap } from 'rxjs/operators';
-import { ImportLog, ImportType, ImportStatus, ImportValidation, CsvPreview } from '../core/models';
+import { delay, map, switchMap } from 'rxjs/operators';
+import {
+  CsvPreview,
+  ImportLog,
+  ImportResultDTO,
+  ImportStatus,
+  ImportType,
+  ImportValidation
+} from '../core/models';
 import { ApiService } from '../core/services/api.service';
-import { StudentService } from './student.service';
 
-/**
- * Import service for managing CSV imports
- */
 @Injectable({
   providedIn: 'root'
 })
 export class ImportService {
-  // Mock data
-  private mockImportLogs: ImportLog[] = [
-    {
-      id: '1',
-      type: ImportType.STUDENTS,
-      fileName: 'students_2024.csv',
-      schoolYearId: '1',
-      importedById: '1',
-      importedByName: 'Admin User',
-      status: ImportStatus.COMPLETED,
-      totalRecords: 150,
-      successfulRecords: 148,
-      failedRecords: 2,
-      errors: [
-        { row: 45, field: 'email', message: 'Invalid email format' },
-        { row: 87, field: 'studentNumber', message: 'Duplicate student number' }
-      ],
-      startedAt: new Date('2024-09-01T10:00:00'),
-      completedAt: new Date('2024-09-01T10:05:00'),
-      createdAt: new Date('2024-09-01T10:00:00'),
-      updatedAt: new Date('2024-09-01T10:05:00')
-    },
-    {
-      id: '2',
-      type: ImportType.TEACHERS,
-      fileName: 'teachers_2024.csv',
-      importedById: '2',
-      importedByName: 'AV Schmidt',
-      status: ImportStatus.COMPLETED,
-      totalRecords: 45,
-      successfulRecords: 45,
-      failedRecords: 0,
-      errors: [],
-      startedAt: new Date('2024-08-28T14:00:00'),
-      completedAt: new Date('2024-08-28T14:02:00'),
-      createdAt: new Date('2024-08-28T14:00:00'),
-      updatedAt: new Date('2024-08-28T14:02:00')
-    }
-  ];
+  private readonly apiService = inject(ApiService);
+  private importLogs: ImportLog[] = [];
 
-  constructor(
-    private apiService: ApiService,
-    private studentService: StudentService
-  ) {}
-
-  /**
-   * Get all import logs
-   */
   getImportLogs(): Observable<ImportLog[]> {
-    // TODO: Replace with API call
-    // return this.apiService.get<ImportLog[]>('/imports');
-    return of(this.mockImportLogs).pipe(delay(200));
+    return of(this.importLogs).pipe(delay(100));
   }
 
-  /**
-   * Get import logs by type
-   */
   getImportLogsByType(type: ImportType): Observable<ImportLog[]> {
-    // TODO: Replace with API call
-    // return this.apiService.get<ImportLog[]>(`/imports?type=${type}`);
-    return of(this.mockImportLogs.filter(log => log.type === type)).pipe(delay(200));
+    return of(this.importLogs.filter(log => log.type === type)).pipe(delay(100));
   }
 
-  /**
-   * Get import log by ID
-   */
   getImportLogById(id: string): Observable<ImportLog> {
-    // TODO: Replace with API call
-    // return this.apiService.get<ImportLog>(`/imports/${id}`);
-    const log = this.mockImportLogs.find(l => l.id === id);
+    const log = this.importLogs.find(l => l.id === id);
     if (!log) {
       throw new Error('Import log not found');
     }
-    return of(log).pipe(delay(200));
+    return of(log).pipe(delay(100));
   }
 
-  /**
-   * Validate CSV file
-   */
   validateCsv(file: File, type: ImportType): Observable<ImportValidation> {
-    // TODO: Replace with API call
-    // const formData = new FormData();
-    // formData.append('file', file);
-    // formData.append('type', type);
-    // return this.apiService.upload<ImportValidation>('/imports/validate', formData);
-
-    // Mock validation
     return this.parseCsvFile(file).pipe(
-      delay(500),
       map(preview => {
         const validation: ImportValidation = {
           isValid: preview.rows.length > 0,
@@ -109,57 +44,35 @@ export class ImportService {
           preview
         };
 
-        // Mock validation rules
         if (preview.rows.length === 0) {
-          validation.errors.push({
-            row: 0,
-            message: 'File is empty'
-          });
+          validation.errors.push({ row: 0, message: 'File is empty' });
+          validation.isValid = false;
+          return validation;
         }
 
-        // Header checks per import type to match current data model and legacy templates.
         const headers = preview.headers.map(h => h.trim().toLowerCase());
         const hasAnyAlias = (aliases: string[]) => aliases.some(a => headers.includes(a));
         const missingRequiredGroups = (requiredGroups: string[][]) =>
           requiredGroups.filter(group => !hasAnyAlias(group));
 
-        switch (type) {
-          case ImportType.STUDENTS: {
-            // Canonical: first_name,last_name,if_name
-            // Legacy templates may use German headers and StudentID.
-            const requiredGroups = [
+        const requiredGroups = type === ImportType.STUDENTS
+          ? [
               ['first_name', 'vorname', 'firstname', 'first name'],
               ['last_name', 'nachname', 'lastname', 'last name'],
-              ['if_name', 'studentid', 'if', 'ifname']
-            ];
-            const missing = missingRequiredGroups(requiredGroups);
-            if (missing.length > 0) {
-              validation.isValid = false;
-              validation.errors.push({
-                row: 0,
-                message: `Missing required headers: ${missing.map(g => g[0]).join(', ')}`
-              });
-            }
-            break;
-          }
-          case ImportType.TEACHERS: {
-            // Canonical: first_name,last_name
-            // Legacy templates may use Vorname/Nachname.
-            const requiredGroups = [
+              ['if_name', 'studentid', 'student_id', 'if', 'ifname', 'username']
+            ]
+          : [
               ['first_name', 'vorname', 'firstname', 'first name'],
               ['last_name', 'nachname', 'lastname', 'last name']
             ];
-            const missing = missingRequiredGroups(requiredGroups);
-            if (missing.length > 0) {
-              validation.isValid = false;
-              validation.errors.push({
-                row: 0,
-                message: `Missing required headers: ${missing.map(g => g[0]).join(', ')}`
-              });
-            }
-            break;
-          }
-          
+
+        const missing = missingRequiredGroups(requiredGroups);
+        if (missing.length > 0) {
+          validation.isValid = false;
+          validation.errors.push({
+            row: 0,
+            message: `Missing required headers: ${missing.map(g => g[0]).join(', ')}`
+          });
         }
 
         return validation;
@@ -167,9 +80,6 @@ export class ImportService {
     );
   }
 
-  /**
-   * Import CSV file
-   */
   importCsv(file: File, type: ImportType, schoolYearId?: string): Observable<ImportLog> {
     const endpoint = type === ImportType.STUDENTS ? '/Student/Import' : '/Professor/Import';
 
@@ -177,126 +87,71 @@ export class ImportService {
       switchMap(preview => {
         const formData = new FormData();
         formData.append('file', file);
+        const startedAt = new Date();
 
-        const now = new Date();
-
-        return this.apiService.upload<string>(endpoint, formData).pipe(
-          map(() => {
-            const importLog: ImportLog = {
-              id: String(this.mockImportLogs.length + 1),
+        return this.apiService.upload<ImportResultDTO>(endpoint, formData).pipe(
+          map(result => {
+            const log: ImportLog = {
+              id: String(Date.now()),
               type,
               fileName: file.name,
               schoolYearId,
-              importedById: '1',
+              importedById: 'current-user',
               importedByName: 'Current User',
-              status: ImportStatus.COMPLETED,
-              totalRecords: preview.totalRows,
-              successfulRecords: preview.totalRows,
-              failedRecords: 0,
-              errors: [],
-              startedAt: now,
-              completedAt: now,
-              createdAt: now,
-              updatedAt: now
+              status: result.failedCount > 0 ? ImportStatus.PARTIALLY_COMPLETED : ImportStatus.COMPLETED,
+              totalRecords: result.totalRows || preview.totalRows,
+              successfulRecords: result.importedCount,
+              failedRecords: result.failedCount,
+              errors: result.rows
+                .filter(row => row.status === 'Failed')
+                .map(row => ({ row: row.rowNumber, message: row.reason || 'Import failed' })),
+              startedAt,
+              completedAt: new Date(),
+              createdAt: startedAt,
+              updatedAt: new Date()
             };
 
-            this.mockImportLogs = [importLog, ...this.mockImportLogs];
-            return importLog;
+            this.importLogs = [log, ...this.importLogs];
+            return log;
           })
         );
-      }),
-      catchError(() => this.importCsvLocal(file, type, schoolYearId))
-    );
-  }
-
-  private importCsvLocal(file: File, type: ImportType, schoolYearId?: string): Observable<ImportLog> {
-    return this.parseCsvFile(file).pipe(
-      delay(600),
-      map(preview => {
-        let total = preview.totalRows;
-        let success = preview.totalRows;
-        let failed = 0;
-
-        if (type === ImportType.STUDENTS) {
-          const result = this.studentService.importStudentsFromCsv(preview, schoolYearId);
-          total = result.total;
-          success = result.success;
-          failed = result.failed;
-        }
-
-        const now = new Date();
-        const importLog: ImportLog = {
-          id: String(this.mockImportLogs.length + 1),
-          type,
-          fileName: file.name,
-          schoolYearId,
-          importedById: '1',
-          importedByName: 'Current User',
-          status: failed > 0 ? ImportStatus.PARTIALLY_COMPLETED : ImportStatus.COMPLETED,
-          totalRecords: total,
-          successfulRecords: success,
-          failedRecords: failed,
-          errors: [],
-          startedAt: now,
-          completedAt: now,
-          createdAt: now,
-          updatedAt: now
-        };
-
-        this.mockImportLogs = [importLog, ...this.mockImportLogs];
-        return importLog;
       })
     );
   }
 
-  /**
-   * Parse CSV file for preview (client-side)
-   */
   private parseCsvFile(file: File): Observable<CsvPreview> {
     return new Observable(observer => {
       const reader = new FileReader();
 
       reader.onload = (e: any) => {
         let text: string = e.target.result || '';
-        // Strip UTF-8 BOM if present
         if (text.charCodeAt(0) === 0xFEFF) {
           text = text.slice(1);
         }
-        // Support CRLF and LF line endings
+
         const lines = text.split(/\r?\n/).filter((line: string) => line.trim().length > 0);
-        
         if (lines.length === 0) {
-          observer.next({
-            headers: [],
-            rows: [],
-            totalRows: 0
-          });
+          observer.next({ headers: [], rows: [], totalRows: 0 });
           observer.complete();
           return;
         }
 
-        // Auto-detect delimiter: prefer the one with higher count in header
         const headerLine = lines[0];
-        const commaCount = (headerLine.match(/,/g) || []).length;
-        const semicolonCount = (headerLine.match(/;/g) || []).length;
-        const delimiter = semicolonCount > commaCount ? ';' : ',';
-
-        // Simple CSV line splitter supporting quoted fields
-        const splitLine = (line: string, delim: string): string[] => {
+        const delimiter = (headerLine.match(/;/g) || []).length >= (headerLine.match(/,/g) || []).length ? ';' : ',';
+        const splitLine = (line: string): string[] => {
           const result: string[] = [];
           let current = '';
           let inQuotes = false;
           for (let i = 0; i < line.length; i++) {
             const char = line[i];
             if (char === '"') {
-              // Toggle quote state or handle escaped quotes
               if (inQuotes && line[i + 1] === '"') {
                 current += '"';
-                i++; // skip escaped quote
+                i++;
               } else {
                 inQuotes = !inQuotes;
               }
-            } else if (char === delim && !inQuotes) {
+            } else if (char === delimiter && !inQuotes) {
               result.push(current.trim());
               current = '';
             } else {
@@ -304,53 +159,27 @@ export class ImportService {
             }
           }
           result.push(current.trim());
-          // Strip wrapping quotes
-          return result.map(cell => {
-            if (cell.startsWith('"') && cell.endsWith('"')) {
-              return cell.slice(1, -1);
-            }
-            return cell;
-          });
+          return result;
         };
 
-        const headers = splitLine(headerLine, delimiter).map((h: string) => h.trim().toLowerCase());
-        const rows = lines
-          .slice(1, Math.min(11, lines.length))
-          .map((line: string) => splitLine(line, delimiter).map((cell: string) => cell.trim()));
-
         observer.next({
-          headers,
-          rows,
+          headers: splitLine(headerLine).map((h: string) => h.trim().toLowerCase()),
+          rows: lines.slice(1, Math.min(11, lines.length)).map((line: string) => splitLine(line)),
           totalRows: lines.length - 1
         });
         observer.complete();
       };
 
-      reader.onerror = () => {
-        observer.error(new Error('Failed to read file'));
-      };
-
+      reader.onerror = () => observer.error(new Error('Failed to read file'));
       reader.readAsText(file);
     });
   }
 
-  /**
-   * Download import template
-   */
   downloadTemplate(type: ImportType): void {
-    let headers: string[] = [];
+    const csv = type === ImportType.STUDENTS
+      ? 'if_name;first_name;last_name;class;schoolyear;branch\n'
+      : 'if_name;first_name;last_name\n';
 
-    switch (type) {
-      case ImportType.STUDENTS:
-        headers = ['first_name', 'last_name', 'if_name', 'schoolyear', 'branch', 'class', 'year_level'];
-        break;
-      case ImportType.TEACHERS:
-        headers = ['first_name', 'last_name'];
-        break;
-      
-    }
-
-    const csv = headers.join(',') + '\n';
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');

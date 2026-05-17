@@ -1,4 +1,13 @@
 # Projektantrag
+
+## Docker Start
+
+```bash
+docker compose up --build
+```
+
+Details stehen in [docs/DOCKER_SETUP.md](docs/DOCKER_SETUP.md).
+
 **Projektteam:**  
 Milan Nuzdic, Semih Yüzüak, Danis Mezildzic
 
@@ -63,8 +72,8 @@ Sie können Projekte anlegen, bearbeiten, löschen, Schüler zuordnen und Betreu
 
 ### 3.2 Schülerinnen und Schüler
 
-Schüler können ausschließlich ihr eigenes Projekt einsehen.  
-Sie dürfen Projektdaten bearbeiten (z. B. Beschreibung oder Logo), diese Änderungen müssen jedoch von einem Betreuer bestätigt werden.
+Schüler können Projekte einsehen und Projekte anlegen.  
+Sie dürfen ihr eigenes Projekt bearbeiten; ein Approval-System ist aktuell nicht vorgesehen.
 
 ---
 
@@ -81,7 +90,7 @@ Sie dürfen Projektdaten bearbeiten (z. B. Beschreibung oder Logo), diese Änder
   - GitHub-Repository-Link  
 
 - **Schüler und Betreuer zuordnen**  
-  - Nur Professoren dürfen Schüler zu Projekten hinzufügen oder entfernen  
+  - Professoren, AV und Admins dürfen Schüler zu Projekten hinzufügen oder entfernen  
   - Ein Projekt kann mehrere Betreuer haben  
 
 - **CSV-Import**  
@@ -97,14 +106,14 @@ Sie dürfen Projektdaten bearbeiten (z. B. Beschreibung oder Logo), diese Änder
 
 ### 4.2 Schülerfunktionen
 
-- Schüler sehen ausschließlich ihr eigenes Projekt  
+- Schüler sehen die Projektübersicht und dürfen Projekte anlegen  
 - Schüler dürfen folgende Daten bearbeiten:
   - Projektname  
   - Projektbeschreibung  
   - GitHub-Repository-Link  
   - Projektlogo  
-- Änderungen müssen von einem Betreuer bestätigt werden  
-- Status der Änderungen ist sichtbar (z. B. „Wartet auf Bestätigung“)  
+- Änderungen am eigenen Projekt werden direkt gespeichert  
+
 
 ---
 

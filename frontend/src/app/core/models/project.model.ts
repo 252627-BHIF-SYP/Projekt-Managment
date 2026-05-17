@@ -24,6 +24,7 @@ export interface Project {
   title: string;
   description: string;
   schoolYearId: string;
+  schoolYearIds?: string[];
   schoolYear?: string;
   classId: string;
   className?: string;
@@ -49,27 +50,57 @@ export interface Project {
  * Backend API DTO from ProjectController
  */
 export interface ProjectDTO {
+  projectId: number;
   title: string;
   description: string;
-  githubURL: string;
-  logoURL: string;
-  schoolYearId: number;
-  projectStatus: string;
-  technologies: string;
+  githubUrl?: string;
+  logoUrl?: string;
+  status: string;
+  technology?: string;
   projectType: string;
+  schoolYears: ProjectSchoolYearDTO[];
   students: ProjectStudentDTO[];
   supervisors: ProjectSupervisorDTO[];
 }
 
 /**
- * Payload used when creating a project (matches backend ProjectDTO exactly)
+ * Payload used when creating or updating a project.
  */
-export interface CreateProjectPayload extends ProjectDTO {}
+export interface CreateProjectPayload {
+  title: string;
+  description: string;
+  githubUrl?: string;
+  logoUrl?: string;
+  status: string;
+  technology?: string;
+  projectType: string;
+  schoolYearIds: number[];
+  students: ProjectStudentWriteDTO[];
+  supervisors: ProjectSupervisorWriteDTO[];
+}
+
+export interface ProjectSchoolYearDTO {
+  schoolYearId: number;
+  year: string;
+}
 
 /**
  * Backend API DTO for project-student assignment
  */
 export interface ProjectStudentDTO {
+  projectStudentId: number;
+  historyId: number;
+  studentId: string;
+  firstName: string;
+  lastName: string;
+  className: string;
+  branch: string;
+  schoolYearId: number;
+  schoolYear: string;
+  role: string;
+}
+
+export interface ProjectStudentWriteDTO {
   historyId: number;
   role: string;
 }
@@ -78,6 +109,14 @@ export interface ProjectStudentDTO {
  * Backend API DTO for project-supervisor assignment
  */
 export interface ProjectSupervisorDTO {
+  projectSupervisorId: number;
+  professorId: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+}
+
+export interface ProjectSupervisorWriteDTO {
   professorId: string;
   role: string;
 }
@@ -88,9 +127,13 @@ export interface ProjectSupervisorDTO {
 export interface ProjectStudent {
   id: string;
   projectId: string;
+  historyId?: number;
   studentId: string;
+  firstName?: string;
+  lastName?: string;
   studentName?: string;
   studentEmail?: string;
+  className?: string;
   role?: string; // e.g., "Frontend Developer", "Backend Developer"
   joinedAt: Date;
   status: 'ACTIVE' | 'LEFT' | 'COMPLETED';
@@ -107,6 +150,7 @@ export interface ProjectSupervisor {
   supervisorId: string;
   supervisorName?: string;
   supervisorEmail?: string;
+  role?: string;
   isPrimary: boolean;
   assignedAt: Date;
   status: 'ACTIVE' | 'INACTIVE';
@@ -123,5 +167,6 @@ export interface ProjectFilter {
   classId?: string;
   supervisorId?: string;
   status?: ProjectStatus;
+  projectType?: string;
   tags?: string[];
 }

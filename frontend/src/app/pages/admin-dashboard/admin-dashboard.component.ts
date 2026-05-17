@@ -35,61 +35,57 @@ export class AdminDashboardComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  generateLinePath(data: { year: number; value: number }[], width: number, height: number, padding: number): string {
+  generateLinePath(data: { year: string; value: number }[], width: number, height: number, padding: number): string {
     if (!data || data.length === 0) return '';
 
-    const maxValue = Math.max(...data.map(d => d.value));
-    const minValue = 0;
-    const range = maxValue - minValue;
-
-    const xStep = (width - 2 * padding) / (data.length - 1);
+    const maxValue = Math.max(1, ...data.map(d => d.value));
+    const xStep = data.length > 1 ? (width - 2 * padding) / (data.length - 1) : 0;
     const points = data.map((point, index) => {
-      const x = padding + index * xStep;
-      const y = height - padding - ((point.value - minValue) / range) * (height - 2 * padding);
+      const x = data.length > 1 ? padding + index * xStep : width / 2;
+      const y = height - padding - (point.value / maxValue) * (height - 2 * padding);
       return `${x},${y}`;
     });
 
     return `M ${points.join(' L ')}`;
   }
 
-  getCircles(data: { year: number; value: number }[], width: number, height: number, padding: number) {
+  getCircles(data: { year: string; value: number }[], width: number, height: number, padding: number) {
     if (!data || data.length === 0) return [];
 
-    const maxValue = Math.max(...data.map(d => d.value));
-    const minValue = 0;
-    const range = maxValue - minValue;
-
-    const xStep = (width - 2 * padding) / (data.length - 1);
+    const maxValue = Math.max(1, ...data.map(d => d.value));
+    const xStep = data.length > 1 ? (width - 2 * padding) / (data.length - 1) : 0;
     return data.map((point, index) => ({
-      cx: padding + index * xStep,
-      cy: height - padding - ((point.value - minValue) / range) * (height - 2 * padding),
+      cx: data.length > 1 ? padding + index * xStep : width / 2,
+      cy: height - padding - (point.value / maxValue) * (height - 2 * padding),
       value: point.value
     }));
   }
 
-  getYAxisLabels(data: { year: number; value: number }[], height: number, padding: number): Array<{ y: number; label: string }> {
+  getYAxisLabels(data: { year: string; value: number }[], height: number, padding: number): Array<{ y: number; label: string }> {
     if (!data || data.length === 0) return [];
 
-    const maxValue = Math.max(...data.map(d => d.value));
-    const step = Math.ceil(maxValue / 5);
-    const labels = [];
+    const maxValue = Math.max(1, ...data.map(d => d.value));
+    const middleValue = Math.round(maxValue / 2);
 
-    for (let i = 0; i <= 5; i++) {
-      const value = i * step;
-      const y = height - padding - (value / maxValue) * (height - 2 * padding);
-      labels.push({ y, label: value.toString() });
-    }
-
-    return labels;
+    return [
+      { y: padding + 4, label: maxValue.toString() },
+      { y: height / 2 + 4, label: middleValue.toString() },
+      { y: height - padding + 4, label: '0' }
+    ];
   }
 
-  getXAxisLabels(data: { year: number; value: number }[], width: number, padding: number) {
+  getXAxisLabels(data: { year: string; value: number }[], width: number, padding: number) {
     if (!data || data.length === 0) return [];
 
-    const xStep = (width - 2 * padding) / (data.length - 1);
+    const xStep = data.length > 1 ? (width - 2 * padding) / (data.length - 1) : 0;
     return data.map((point, index) => ({
-      x: padding + index * xStep,
-      label: point.year.toString()
+      x: data.length > 1 ? padding + index * xStep : width / 2,
+      label: point.year
     }));
+  }
+
+  getGridLines(height: number, padding: number): number[] {
+    const plotHeight = height - 2 * padding;
+    return [0, 1, 2, 3, 4].map(index => padding + (plotHeight / 4) * index);
   }
 }

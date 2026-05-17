@@ -1,0 +1,25 @@
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.app-title {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.user-info {
+  cursor: default !important;
+}
+
+.user-info .user-name {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.user-info .user-email {
+  font-size: 12px;
+  opacity: 0.7;
+}

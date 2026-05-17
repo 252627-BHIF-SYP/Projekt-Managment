@@ -66,14 +66,13 @@ The required packages are already installed:
 
 Create the following roles in Keycloak (either realm roles or client roles):
 
+- `admin` - Administrator
 - `sys-admin` - System Administrator
 - `av` - Abteilungsvorstand (Department Head)
 - `professor` - Professor/Teacher
-- `betreuer` - Supervisor
-- `student-searching` - Student looking for project
-- `student-project` - Student already in project
+- `student` - Student
 
-**Important**: Role names in Keycloak should be lowercase with hyphens (e.g., `sys-admin`), they will be automatically mapped to the application roles (e.g., `SYS_ADMIN`).
+**Important**: `admin` and `sys-admin` are treated as the same permission level. Supervisors are modeled fachlich through `ProjectSupervisor`, not as a separate Keycloak role.
 
 ### 4. Create Users
 

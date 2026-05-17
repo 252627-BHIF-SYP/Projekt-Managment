@@ -3,7 +3,7 @@
         <button mat-icon-button (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
-        <h1>Create New Project</h1>
+        <h1>{{ isEditMode ? 'Edit Project' : 'Create New Project' }}</h1>
       </div>
 
       <mat-stepper linear #stepper>
@@ -50,8 +50,12 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>School Year</mat-label>
-                  <mat-select [(ngModel)]="project.schoolYearId" required>
+                  <mat-label>School Years</mat-label>
+                  <mat-select
+                    [(ngModel)]="project.schoolYearIds"
+                    (ngModelChange)="onSchoolYearsChange($event)"
+                    multiple
+                    required>
                     <mat-option *ngFor="let year of schoolYears" [value]="year.id">
                       {{ year.year }}
                     </mat-option>
@@ -93,6 +97,7 @@
               <mat-card-content>
                 <app-student-picker
                   [schoolYearId]="project.schoolYearId"
+                  [selectedStudentIds]="selectedStudentIds"
                   [showStatus]="false"
                   (studentsSelected)="onStudentsSelected($event)">
                 </app-student-picker>
@@ -118,8 +123,11 @@
                   <h3>Primary Supervisor <span class="required">*</span></h3>
                   <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Select Primary Supervisor</mat-label>
-                    <mat-select [(ngModel)]="primarySupervisorId" required>
-                      <mat-option *ngFor="let supervisor of supervisors" [value]="supervisor.id">
+                    <mat-select [(ngModel)]="primarySupervisorId" (ngModelChange)="onPrimarySupervisorChange()" required>
+                      <mat-option
+                        *ngFor="let supervisor of supervisors"
+                        [value]="supervisor.id"
+                        [disabled]="additionalSupervisors.includes(supervisor.id)">
                         {{ supervisor.firstName }} {{ supervisor.lastName }} ({{ supervisor.email }})
                       </mat-option>
                     </mat-select>
@@ -129,28 +137,34 @@
                 <div class="additional-supervisors-section">
                   <div class="section-header">
                     <h3>Additional Supervisors (Optional)</h3>
-                    <button mat-button color="primary" type="button" (click)="addAdditionalSupervisor()">
-                      <mat-icon>add</mat-icon>
-                      Add Supervisor
-                    </button>
-                  </div>
-
-                  <div *ngIf="additionalSupervisors.length > 0" class="supervisors-list">
-                    <div *ngFor="let supervisor of additionalSupervisors; let i = index" class="supervisor-item">
-                      <mat-form-field appearance="outline" class="full-width">
-                        <mat-label>Select Supervisor</mat-label>
-                        <mat-select [(ngModel)]="additionalSupervisors[i]" (ngModelChange)="onAdditionalSupervisorChange()">
-                          <mat-option *ngFor="let sup of supervisors" [value]="sup.id">
-                            {{ getSupervisorName(sup.id) }}
-                          </mat-option>
-                        </mat-select>
-                      </mat-form-field>
-                      <button mat-icon-button type="button" (click)="removeAdditionalSupervisor(i)" color="warn">
-                        <mat-icon>delete</mat-icon>
-                      </button>
+                    <div class="selection-info">
+                      {{ selectedAdditionalSupervisorIds.length }} selected
                     </div>
                   </div>
-                  <p *ngIf="additionalSupervisors.length === 0" class="info-text">No additional supervisors added yet</p>
+
+                  <mat-selection-list
+                    class="supervisor-picker-list"
+                    [(ngModel)]="additionalSupervisors"
+                    (ngModelChange)="onAdditionalSupervisorsChange($event)">
+                    <mat-list-option
+                      *ngFor="let supervisor of additionalSupervisorOptions"
+                      [value]="supervisor.id">
+                      <div class="supervisor-item">
+                        <div class="supervisor-name">{{ supervisor.firstName }} {{ supervisor.lastName }}</div>
+                        <div class="supervisor-meta">{{ supervisor.username }} &bull; {{ supervisor.email }}</div>
+                      </div>
+                    </mat-list-option>
+                  </mat-selection-list>
+
+                  <div class="no-supervisors" *ngIf="additionalSupervisorOptions.length === 0">
+                    <mat-icon>info</mat-icon>
+                    <p>No additional supervisors available</p>
+                  </div>
+                  <div class="selected-supervisors" *ngIf="selectedAdditionalSupervisorIds.length > 0">
+                    <span *ngFor="let supervisorId of selectedAdditionalSupervisorIds">
+                      {{ getSupervisorName(supervisorId) }}
+                    </span>
+                  </div>
                 </div>
 
                 <div class="step-actions">
@@ -189,12 +203,12 @@
                   </div>
                   <div class="review-item">
                     <span class="label">Team Size:</span>
-                    <span class="value">{{ project.minStudents }}-{{ project.maxStudents }} students</span>
+                    <span class="value">{{ teamSize }} student(s)</span>
                   </div>
                 </div>
 
                 <div class="review-section">
-                  <h3>Selected Students ({{ selectedStudents.length }})</h3>
+                  <h3>Selected Students</h3>
                   <ul *ngIf="selectedStudents.length > 0">
                     <li *ngFor="let student of selectedStudents">
                       {{ student.firstName }} {{ student.lastName }} ({{ student.className }})
@@ -220,9 +234,9 @@
                   <button 
                     mat-raised-button 
                     color="primary" 
-                    (click)="createProject()"
+                    (click)="saveProject()"
                     [disabled]="saving">
-                    {{ saving ? 'Creating...' : 'Create Project' }}
+                    {{ saving ? 'Saving...' : (isEditMode ? 'Save Project' : 'Create Project') }}
                   </button>
                 </div>
               </mat-card-content>

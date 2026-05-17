@@ -1,58 +1,20 @@
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { catchError, delay, map, tap } from 'rxjs/operators';
-import { User, Role, ProfessorDTO } from '../core/models';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { User, Role, ProfessorDTO, PersonCreatePayload } from '../core/models';
 import { ApiService } from '../core/services/api.service';
 
-/**
- * User service for managing users (professors, supervisors, etc.)
- */
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  // Mock data
-  private mockUsers: User[] = [
-    {
-      id: '3',
-      username: 'professor',
-      email: 'max.mueller@school.at',
-      firstName: 'Max',
-      lastName: 'Müller',
-      roles: [Role.PROFESSOR],
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-01')
-    },
-    {
-      id: '8',
-      username: 'betreuer1',
-      email: 'peter.wagner@company.at',
-      firstName: 'Peter',
-      lastName: 'Wagner',
-      roles: [Role.BETREUER],
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-01')
-    },
-    {
-      id: '9',
-      username: 'professor2',
-      email: 'maria.schmidt@school.at',
-      firstName: 'Maria',
-      lastName: 'Schmidt',
-      roles: [Role.PROFESSOR],
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-01')
-    }
-  ];
-
-  constructor(private apiService: ApiService) {}
+  private readonly apiService = inject(ApiService);
 
   private mapProfessorDtoToUser(dto: ProfessorDTO): User {
-    const id = dto.professorID ?? dto.professorId ?? '';
     return {
-      id,
-      username: id,
-      email: `${id.toLowerCase()}@school.at`,
+      id: dto.id,
+      username: dto.id,
+      email: `${dto.id.toLowerCase()}@school.at`,
       firstName: dto.firstName,
       lastName: dto.lastName,
       roles: [Role.PROFESSOR],
@@ -61,68 +23,35 @@ export class UserService {
     };
   }
 
-  /**
-   * Get all users
-   */
   getUsers(): Observable<User[]> {
-    // TODO: Replace with API call
-    // return this.apiService.get<User[]>('/users');
-    return of(this.mockUsers).pipe(delay(200));
+    return this.getSupervisors();
   }
 
-  /**
-   * Get users by role
-   */
   getUsersByRole(role: Role): Observable<User[]> {
-    // TODO: Replace with API call
-    // return this.apiService.get<User[]>(`/users?role=${role}`);
-    return of(this.mockUsers.filter(u => u.roles.includes(role))).pipe(delay(200));
-  }
-
-  /**
-   * Get professors/supervisors
-   */
-  getSupervisors(): Observable<User[]> {
-    return this.apiService.get<ProfessorDTO[]>('/Professor/All').pipe(
-      tap((professors) => {
-        console.debug('[UserService] /Professor/All response', professors);
-      }),
-      map(professors => professors.map(p => this.mapProfessorDtoToUser(p))),
-      catchError((error) => {
-        console.error('[UserService] Failed to load supervisors from backend', error);
-        return of(this.mockUsers.filter(u =>
-          u.roles.includes(Role.PROFESSOR) ||
-          u.roles.includes(Role.BETREUER) ||
-          u.roles.includes(Role.AV)
-        )).pipe(delay(200));
-      })
+    return this.getSupervisors().pipe(
+      map(users => users.filter(user => user.roles.includes(role)))
     );
   }
 
-  /**
-   * Get user by ID
-   */
-  getUserById(id: string): Observable<User> {
-    // TODO: Replace with API call
-    // return this.apiService.get<User>(`/users/${id}`);
-    const user = this.mockUsers.find(u => u.id === id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    return of(user).pipe(delay(200));
+  getSupervisors(): Observable<User[]> {
+    return this.apiService.get<ProfessorDTO[]>('/Professor/All').pipe(
+      map(professors => professors.map(p => this.mapProfessorDtoToUser(p)))
+    );
   }
 
-  /**
-   * Update user
-   */
+  createProfessor(payload: PersonCreatePayload): Observable<User> {
+    return this.apiService.post<ProfessorDTO>('/Professor/Add', payload).pipe(
+      map(dto => this.mapProfessorDtoToUser(dto))
+    );
+  }
+
+  getUserById(id: string): Observable<User> {
+    return this.apiService.get<ProfessorDTO>(`/Professor/${id}`).pipe(
+      map(dto => this.mapProfessorDtoToUser(dto))
+    );
+  }
+
   updateUser(id: string, user: Partial<User>): Observable<User> {
-    // TODO: Replace with API call
-    // return this.apiService.put<User>(`/users/${id}`, user);
-    const existing = this.mockUsers.find(u => u.id === id);
-    if (!existing) {
-      throw new Error('User not found');
-    }
-    const updated = { ...existing, ...user, updatedAt: new Date() };
-    return of(updated).pipe(delay(300));
+    throw new Error('Professor update is not implemented in the backend yet.');
   }
 }

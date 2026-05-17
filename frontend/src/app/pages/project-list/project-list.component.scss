@@ -1,67 +1,46 @@
-    .page-container {
-      padding: 0;
-    }
+.filter-section {
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
 
-    .page-toolbar {
-      padding: 0 24px;
-      margin-bottom: 24px;
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
 
-      h1 {
-        margin: 0;
-        font-size: 28px;
-        font-weight: 500;
-      }
-    }
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 24px;
+}
 
-    .filter-section {
-      padding: 12px 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
+.no-projects {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: rgba(0, 0, 0, 0.4);
+}
 
-    .filter-accordion {
-      width: 100%;
-      max-width: 920px;
-    }
+.no-projects mat-icon {
+  font-size: 80px;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 16px;
+}
 
-    .loading-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 400px;
-    }
+.no-projects h3 {
+  font-size: 24px;
+  font-weight: 400;
+  margin-bottom: 8px;
+}
 
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-      gap: 24px;
-    }
-
-    .no-projects {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 400px;
-      color: rgba(0, 0, 0, 0.4);
-
-      mat-icon {
-        font-size: 80px;
-        width: 80px;
-        height: 80px;
-        margin-bottom: 16px;
-      }
-
-      h3 {
-        font-size: 24px;
-        font-weight: 400;
-        margin-bottom: 8px;
-      }
-
-      p {
-        font-size: 16px;
-      }
-    }
-  
+.no-projects p {
+  font-size: 16px;
+}

@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { authGuard, roleGuard } from './core/guards';
 import { Role } from './core/models';
 import { LoginComponent } from './pages/login/login.component';
-import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { AdminDashboardComponent } from './pages/admin-dashboard/admin-dashboard.component';
 import { ProjectListComponent } from './pages/project-list/project-list.component';
 import { ProjectDetailComponent } from './pages/project-detail/project-detail.component';
@@ -11,6 +10,9 @@ import { ProfileComponent } from './pages/profile/profile.component';
 import { ImportComponent } from './pages/import/import.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { StudentsComponent } from './pages/students/students.component';
+import { StudentCreateComponent } from './pages/student-create/student-create.component';
+import { ProfessorsComponent } from './pages/professors/professors.component';
+import { ProfessorCreateComponent } from './pages/professor-create/professor-create.component';
 
 /**
  * Application routes
@@ -27,12 +29,13 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'dashboard',
+        redirectTo: 'projects',
         pathMatch: 'full'
       },
       {
         path: 'dashboard',
-        component: DashboardComponent
+        redirectTo: 'projects',
+        pathMatch: 'full'
       },
       {
         path: 'admin-dashboard',
@@ -51,10 +54,34 @@ export const routes: Routes = [
         data: { roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] }
       },
       {
+        path: 'students/create',
+        component: StudentCreateComponent,
+        canActivate: [roleGuard],
+        data: { roles: [Role.AV, Role.SYS_ADMIN] }
+      },
+      {
+        path: 'professors',
+        component: ProfessorsComponent,
+        canActivate: [roleGuard],
+        data: { roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] }
+      },
+      {
+        path: 'professors/create',
+        component: ProfessorCreateComponent,
+        canActivate: [roleGuard],
+        data: { roles: [Role.AV, Role.SYS_ADMIN] }
+      },
+      {
         path: 'projects/create',
         component: ProjectCreateComponent,
         canActivate: [roleGuard],
-        data: { roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN, Role.STUDENT_SEARCHING, Role.STUDENT_PROJECT] }
+        data: { roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN, Role.STUDENT] }
+      },
+      {
+        path: 'projects/:id/edit',
+        component: ProjectCreateComponent,
+        canActivate: [roleGuard],
+        data: { roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN, Role.STUDENT] }
       },
       {
         path: 'projects/:id',
@@ -74,6 +101,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'dashboard'
+    redirectTo: 'projects'
   }
 ];

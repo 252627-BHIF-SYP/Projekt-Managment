@@ -1,0 +1,30 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>Professors</h1>
+  </div>
+
+  <mat-card>
+    <mat-card-content>
+      <div class="filter-row">
+        <mat-form-field appearance="outline" class="search">
+          <mat-label>Search</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (ngModelChange)="applyFilter()" placeholder="Name, email, username">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <mat-list *ngIf="filteredProfessors.length > 0">
+        <mat-list-item *ngFor="let professor of filteredProfessors">
+          <mat-icon matListItemIcon>school</mat-icon>
+          <div matListItemTitle>{{ professor.firstName }} {{ professor.lastName }}</div>
+          <div matListItemLine>{{ professor.username }} &bull; {{ professor.email }}</div>
+        </mat-list-item>
+      </mat-list>
+
+      <div class="no-data" *ngIf="filteredProfessors.length === 0">
+        <mat-icon>info</mat-icon>
+        <p>No professors found</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -10,14 +10,13 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatStepperModule } from '@angular/material/stepper';
+import { MatListModule } from '@angular/material/list';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { forkJoin } from 'rxjs';
 import { StudentPickerComponent } from '../../shared/components/student-picker/student-picker.component';
 import { ProjectService } from '../../services/project.service';
 import { SchoolYearService } from '../../services/schoolyear.service';
 import { UserService } from '../../services/user.service';
-import { StudentService } from '../../services/student.service';
-import { Project, SchoolYear, User, StudentProfile, ProjectStatus } from '../../core/models';
+import { Project, SchoolYear, User, StudentProfile, ProjectStatus, StudentStatus } from '../../core/models';
 
 /**
  * Create project page
@@ -36,6 +35,7 @@ import { Project, SchoolYear, User, StudentProfile, ProjectStatus } from '../../
     MatButtonModule,
     MatIconModule,
     MatStepperModule,
+    MatListModule,
     MatSnackBarModule,
     StudentPickerComponent
   ],
@@ -55,7 +55,10 @@ export class ProjectCreateComponent implements OnInit {
   selectedStudents: StudentProfile[] = [];
   primarySupervisorId = '';
   additionalSupervisors: string[] = [];
+  selectedStudentIds: string[] = [];
   saving = false;
+  isEditMode = false;
+  projectId?: string;
   ProjectStatus = ProjectStatus;
   projectStatuses: ProjectStatus[] = [
     ProjectStatus.NEW,
@@ -65,58 +68,51 @@ export class ProjectCreateComponent implements OnInit {
     ProjectStatus.ARCHIVED
   ];
   projectTypes = [
-    { value: 'SYP', label: 'SYP' },
-    { value: 'Diplomarbeit', label: 'Diplomarbeit' },
+    { value: 'SYP', label: 'SYP-Projekt' },
+    { value: 'Diplomarbeit', label: 'DA' },
     { value: 'ProjectAward', label: 'Project Award' },
-    { value: 'Others', label: 'Others' }
+    { value: 'Others', label: 'Sonstiges' }
   ];
   technologiesText = '';
 
   constructor(
+    private route: ActivatedRoute,
     private projectService: ProjectService,
     private schoolYearService: SchoolYearService,
     private userService: UserService,
-    private studentService: StudentService,
     private router: Router,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
-    // Preselect currently selected/active year immediately (before async load)
-    const preselected = this.schoolYearService.getSelectedSchoolYear();
-    if (preselected) {
-      this.project.schoolYearId = preselected.id;
+    this.projectId = this.route.snapshot.paramMap.get('id') || undefined;
+    this.isEditMode = !!this.projectId;
+
+    if (!this.isEditMode) {
+      const preselected = this.schoolYearService.getSelectedSchoolYear();
+      if (preselected) {
+        this.project.schoolYearId = preselected.id;
+        this.project.schoolYearIds = [preselected.id];
+      }
     }
+
     this.loadData();
+
+    if (this.isEditMode && this.projectId) {
+      this.loadProjectForEdit(this.projectId);
+    }
   }
 
   loadData(): void {
     this.schoolYearService.getSchoolYears().subscribe({
       next: (years) => {
         this.schoolYears = years || [];
-        const activeYear = this.schoolYears.find(y => y.isActive);
-        if (activeYear) {
-          this.project.schoolYearId = activeYear.id;
-        } else if (this.schoolYears.length > 0 && !this.project.schoolYearId) {
-          this.project.schoolYearId = this.schoolYears[0].id;
-        } else {
-          // Fallback: try to fetch active year directly
-          this.schoolYearService.getActiveSchoolYear().subscribe((sy) => {
-            if (sy) {
-              this.schoolYears = [sy];
-              this.project.schoolYearId = sy.id;
-            }
-          });
+        if (!this.isEditMode && this.schoolYears.length > 0 && (!this.project.schoolYearIds || this.project.schoolYearIds.length === 0)) {
+          this.onSchoolYearsChange([this.schoolYears[0].id]);
         }
       },
-      error: () => {
-        // Final fallback: attempt active year, else leave empty
-        this.schoolYearService.getActiveSchoolYear().subscribe((sy) => {
-          if (sy) {
-            this.schoolYears = [sy];
-            this.project.schoolYearId = sy.id;
-          }
-        });
+      error: (error) => {
+        console.error('Error loading school years:', error);
       }
     });
 
@@ -125,11 +121,63 @@ export class ProjectCreateComponent implements OnInit {
     });
   }
 
+  loadProjectForEdit(id: string): void {
+    this.projectService.getProjectById(id).subscribe({
+      next: (project) => {
+        this.project = {
+          ...project,
+          schoolYearIds: project.schoolYearIds || [],
+          schoolYearId: project.schoolYearIds?.[0] || project.schoolYearId
+        };
+        this.technologiesText = project.technologies?.join(', ') || '';
+
+        const primarySupervisor = project.supervisors?.find(supervisor => supervisor.isPrimary) || project.supervisors?.[0];
+        this.primarySupervisorId = primarySupervisor?.supervisorId || '';
+        this.additionalSupervisors = project.supervisors
+          ?.filter(supervisor => supervisor.supervisorId !== this.primarySupervisorId)
+          .map(supervisor => supervisor.supervisorId) || [];
+
+        this.selectedStudentIds = project.students?.map(student => student.studentId) || [];
+        this.selectedStudents = project.students?.map(student => ({
+          id: student.studentId,
+          userId: student.studentId,
+          studentNumber: student.studentId,
+          firstName: student.firstName || student.studentName?.split(' ')[0] || '',
+          lastName: student.lastName || student.studentName?.split(' ').slice(1).join(' ') || '',
+          email: student.studentEmail || `${student.studentId.toLowerCase()}@school.at`,
+          classId: '',
+          className: student.className,
+          schoolYearId: this.project.schoolYearId || '',
+          status: StudentStatus.ASSIGNED,
+          historyId: student.historyId,
+          histories: student.historyId ? [{
+            historyId: student.historyId,
+            classId: 0,
+            className: student.className || '',
+            branch: '',
+            schoolYearId: Number(this.project.schoolYearId || 0),
+            schoolYear: this.project.schoolYear || ''
+          }] : [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })) || [];
+      },
+      error: (error) => {
+        console.error('Error loading project:', error);
+        this.snackBar.open('Failed to load project.', 'Close', {
+          duration: 5000
+        });
+        this.router.navigate(['/projects']);
+      }
+    });
+  }
+
   isBasicInfoComplete(): boolean {
     return !!(
       this.project.title &&
       this.project.description &&
-      this.project.schoolYearId &&
+      this.project.schoolYearIds &&
+      this.project.schoolYearIds.length > 0 &&
       this.project.status &&
       this.project.projectType
     );
@@ -139,30 +187,43 @@ export class ProjectCreateComponent implements OnInit {
     this.selectedStudents = students;
   }
 
+  onSchoolYearsChange(ids: string[]): void {
+    this.project.schoolYearIds = ids;
+    this.project.schoolYearId = ids[0] || '';
+  }
+
+  get teamSize(): number {
+    return this.selectedStudents.length;
+  }
+
   getSupervisorName(id: string): string {
     const supervisor = this.supervisors.find(s => s.id === id);
     return supervisor ? `${supervisor.firstName} ${supervisor.lastName}` : '';
   }
 
+  get additionalSupervisorOptions(): User[] {
+    return this.supervisors.filter(supervisor => supervisor.id !== this.primarySupervisorId);
+  }
+
+  get selectedAdditionalSupervisorIds(): string[] {
+    return [...new Set(this.additionalSupervisors.filter(id => !!id && id !== this.primarySupervisorId))];
+  }
+
   getAdditionalSupervisorNames(): string {
-    return this.additionalSupervisors
+    return this.selectedAdditionalSupervisorIds
       .map(id => this.getSupervisorName(id))
       .join(', ');
   }
 
-  addAdditionalSupervisor(): void {
-    this.additionalSupervisors.push('');
+  onPrimarySupervisorChange(): void {
+    this.additionalSupervisors = this.selectedAdditionalSupervisorIds;
   }
 
-  removeAdditionalSupervisor(index: number): void {
-    this.additionalSupervisors.splice(index, 1);
+  onAdditionalSupervisorsChange(ids: string[]): void {
+    this.additionalSupervisors = [...new Set((ids || []).filter(id => !!id && id !== this.primarySupervisorId))];
   }
 
-  onAdditionalSupervisorChange(): void {
-    // Placeholder for change detection
-  }
-
-  createProject(): void {
+  saveProject(): void {
     this.saving = true;
 
     if (this.technologiesText) {
@@ -172,68 +233,33 @@ export class ProjectCreateComponent implements OnInit {
         .filter(t => t.length > 0);
     }
 
-    // If there are no selected students, create the project without them
-    if (this.selectedStudents.length === 0) {
-      console.debug(`[ProjectCreate] No students selected, creating project without students`);
-      this.submitProject([]);
-      return;
-    }
+    const selectedSchoolYearIds = this.project.schoolYearIds || [];
+    const students = this.selectedStudents
+      .map(student => {
+        const matchingHistory = student.histories?.find(history =>
+          selectedSchoolYearIds.includes(String(history.schoolYearId)));
+        const historyId = matchingHistory?.historyId ?? student.historyId;
+        return historyId ? { historyId, role: 'Member' } : undefined;
+      })
+      .filter((student): student is { historyId: number; role: string } => !!student);
 
-    console.debug(`[ProjectCreate] Selected students:`, this.selectedStudents);
-
-    // Fetch historyIds for all selected students in parallel
-    // Use studentNumber (e.g., "IF200174") as the student identifier
-    const historyIdRequests = this.selectedStudents.map(student => {
-      console.debug(`[ProjectCreate] Mapping student - id: ${student.id}, studentNumber: ${student.studentNumber}, firstName: ${student.firstName}`);
-      return this.studentService.getHistoryIdByStudentId(student.studentNumber);
-    });
-
-    forkJoin(historyIdRequests).subscribe({
-      next: (historyIds: number[]) => {
-        console.debug(`[ProjectCreate] Raw fetched historyIds:`, historyIds);
-        
-        // Build students array with fetched historyIds
-        const students: { historyId: number; role: string }[] = [];
-        
-        historyIds.forEach((id, index) => {
-          console.debug(`[ProjectCreate] Processing historyId ${index}: value=${id}, student=${this.selectedStudents[index].studentNumber}`);
-          if (id > 0) {
-            students.push({ historyId: id, role: 'Member' });
-          } else {
-            console.warn(`[ProjectCreate] Invalid historyId for student ${this.selectedStudents[index].studentNumber}: ${id}`);
-          }
-        });
-
-        console.debug(`[ProjectCreate] Final students array (after filtering):`, students);
-        this.submitProject(students);
-      },
-      error: (error) => {
-        console.error('Error fetching history IDs:', error);
-        this.snackBar.open('Failed to fetch student data. Please try again.', 'Close', {
-          duration: 5000
-        });
-        this.saving = false;
-      }
-    });
+    this.submitProject(students);
   }
 
   private submitProject(students: { historyId: number; role: string }[]): void {
-    const supervisors = [] as { professorId: string; role: string }[];
-    if (this.primarySupervisorId) {
-      supervisors.push({ professorId: this.primarySupervisorId, role: 'Primary' });
-    }
-    this.additionalSupervisors
-      .filter(id => !!id)
-      .forEach(id => supervisors.push({ professorId: id, role: 'Secondary' }));
+    const supervisors = [
+      ...(this.primarySupervisorId ? [{ professorId: this.primarySupervisorId, role: 'Primary' }] : []),
+      ...this.selectedAdditionalSupervisorIds.map(id => ({ professorId: id, role: 'Secondary' }))
+    ];
 
     const payload = {
       title: this.project.title || '',
       description: this.project.description || '',
-      githubURL: this.project.githubUrl || '',
-      logoURL: this.project.logoUrl || '',
-      schoolYearId: Number(this.project.schoolYearId || 0),
-      projectStatus: this.project.status || ProjectStatus.NEW,
-      technologies: (this.project.technologies || []).join(', '),
+      githubUrl: this.project.githubUrl || '',
+      logoUrl: this.project.logoUrl || '',
+      schoolYearIds: (this.project.schoolYearIds || []).map(id => Number(id)),
+      status: this.project.status || ProjectStatus.NEW,
+      technology: (this.project.technologies || []).join(', '),
       projectType: this.project.projectType || 'Others',
       students,
       supervisors
@@ -241,16 +267,20 @@ export class ProjectCreateComponent implements OnInit {
 
     console.debug(`[ProjectCreate] Final payload:`, payload);
 
-    this.projectService.createProject(payload).subscribe({
-      next: (createdProject) => {
-        this.snackBar.open('Project created successfully!', 'Close', {
+    const request = this.isEditMode && this.projectId
+      ? this.projectService.updateProject(this.projectId, payload)
+      : this.projectService.createProject(payload);
+
+    request.subscribe({
+      next: (savedProject) => {
+        this.snackBar.open(this.isEditMode ? 'Project updated successfully!' : 'Project created successfully!', 'Close', {
           duration: 3000
         });
-        this.router.navigate(['/projects']);
+        this.router.navigate(this.isEditMode ? ['/projects', savedProject.id] : ['/projects']);
       },
       error: (error) => {
-        console.error('Error creating project:', error);
-        this.snackBar.open('Failed to create project. Please try again.', 'Close', {
+        console.error('Error saving project:', error);
+        this.snackBar.open('Failed to save project. Please try again.', 'Close', {
           duration: 5000
         });
         this.saving = false;

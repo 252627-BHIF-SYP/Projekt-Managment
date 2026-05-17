@@ -36,6 +36,30 @@ export class ProjectCardComponent {
     }
   }
 
+  getPrimarySupervisorNames(): string {
+    const supervisors = (this.project.supervisors || [])
+      .filter(supervisor => supervisor.isPrimary || (supervisor.role || '').toLowerCase().includes('primary'))
+      .map(supervisor => supervisor.supervisorName || supervisor.supervisorId)
+      .filter(Boolean);
+
+    return supervisors.length > 0 ? supervisors.join(', ') : (this.project.createdByName || '');
+  }
+
+  getSecondarySupervisorNames(): string {
+    return (this.project.supervisors || [])
+      .filter(supervisor => !supervisor.isPrimary && !(supervisor.role || '').toLowerCase().includes('primary'))
+      .map(supervisor => supervisor.supervisorName || supervisor.supervisorId)
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  getStudentNames(): string {
+    return (this.project.students || [])
+      .map(student => student.studentName || `${student.firstName || ''} ${student.lastName || ''}`.trim() || student.studentId)
+      .filter(Boolean)
+      .join(', ');
+  }
+
   getStatusLabel(status: ProjectStatus): string {
     const labels: Record<ProjectStatus, string> = {
       [ProjectStatus.DRAFT]: 'Draft',

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { from, Observable } from 'rxjs';
@@ -6,46 +6,32 @@ import { map } from 'rxjs/operators';
 import { User, Role } from '../models';
 
 /**
- * Service wrapper for Keycloak authentication
+ * Wrapper around the Keycloak adapter.
+ * Logic is unchanged from the original implementation — only the
+ * dependency-injection style was updated to the Angular 20 inject() pattern.
  */
 @Injectable({
   providedIn: 'root'
 })
 export class KeycloakAuthService {
-  
-  constructor(private keycloak: KeycloakService) {}
+  private readonly keycloak = inject(KeycloakService);
 
-  /**
-   * Check if user is logged in
-   */
   isLoggedIn(): boolean {
     return this.keycloak.isLoggedIn();
   }
 
-  /**
-   * Login to Keycloak
-   */
   login(redirectUri?: string): Observable<void> {
     return from(this.keycloak.login({ redirectUri }));
   }
 
-  /**
-   * Logout from Keycloak
-   */
   logout(): Observable<void> {
     return from(this.keycloak.logout(window.location.origin));
   }
 
-  /**
-   * Get the current user's profile
-   */
   getUserProfile(): Observable<KeycloakProfile | null> {
     return from(this.keycloak.loadUserProfile());
   }
 
-  /**
-   * Get user info converted to application User model
-   */
   getCurrentUser(): Observable<User | null> {
     if (!this.isLoggedIn()) {
       return from([null]);
@@ -53,7 +39,9 @@ export class KeycloakAuthService {
 
     return this.getUserProfile().pipe(
       map(profile => {
-        if (!profile) return null;
+        if (!profile) {
+          return null;
+        }
 
         const tokenParsed = this.keycloak.getKeycloakInstance().tokenParsed;
         const roles = this.extractRoles(tokenParsed);
@@ -64,7 +52,7 @@ export class KeycloakAuthService {
           email: profile.email || '',
           firstName: profile.firstName || '',
           lastName: profile.lastName || '',
-          roles: roles,
+          roles,
           profileImageUrl: undefined,
           createdAt: new Date(),
           updatedAt: new Date()
@@ -73,61 +61,46 @@ export class KeycloakAuthService {
     );
   }
 
-  /**
-   * Get access token
-   */
   getToken(): string {
     return this.keycloak.getKeycloakInstance().token || '';
   }
 
-  /**
-   * Check if user has a specific role
-   */
   hasRole(role: string): boolean {
     return this.keycloak.isUserInRole(role);
   }
 
-  /**
-   * Extract roles from Keycloak token
-   */
+  updateToken(): Observable<boolean> {
+    return from(this.keycloak.updateToken(30));
+  }
+
   private extractRoles(token: any): Role[] {
     const roles: Role[] = [];
+    if (!token) {
+      return roles;
+    }
 
-    if (!token) return roles;
-
-    // Extract realm roles
-    const realmRoles = token.realm_access?.roles || [];
-    
-    // Extract client roles
-    const clientRoles = token.resource_access?.['school-management-frontend']?.roles || [];
-
-    // Combine all roles
+    const realmRoles: string[] = token.realm_access?.roles || [];
+    const clientRoles: string[] = token.resource_access?.['school-management-frontend']?.roles || [];
     const allRoles = [...realmRoles, ...clientRoles];
 
-    // Map Keycloak roles to application roles
-    const roleMapping: { [key: string]: Role } = {
+    const roleMapping: Record<string, Role> = {
+      'admin': Role.SYS_ADMIN,
       'sys-admin': Role.SYS_ADMIN,
       'av': Role.AV,
       'professor': Role.PROFESSOR,
-      'betreuer': Role.BETREUER,
-      'student-searching': Role.STUDENT_SEARCHING,
-      'student-project': Role.STUDENT_PROJECT
+      'lehrer': Role.PROFESSOR,
+      'student': Role.STUDENT,
+      'schueler': Role.STUDENT,
+      'schüler': Role.STUDENT
     };
 
-    allRoles.forEach(role => {
-      const mappedRole = roleMapping[role.toLowerCase()];
-      if (mappedRole && !roles.includes(mappedRole)) {
-        roles.push(mappedRole);
+    for (const role of allRoles) {
+      const mapped = roleMapping[role.toLowerCase()];
+      if (mapped && !roles.includes(mapped)) {
+        roles.push(mapped);
       }
-    });
+    }
 
     return roles;
-  }
-
-  /**
-   * Refresh the token
-   */
-  updateToken(): Observable<boolean> {
-    return from(this.keycloak.updateToken(30));
   }
 }

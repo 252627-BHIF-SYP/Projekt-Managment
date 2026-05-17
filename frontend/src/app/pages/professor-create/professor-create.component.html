@@ -1,0 +1,41 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>Create Professor</h1>
+  </div>
+
+  <mat-card class="form-card">
+    <mat-card-header>
+      <div mat-card-avatar class="form-avatar">
+        <mat-icon>groups</mat-icon>
+      </div>
+      <mat-card-title>Professor data</mat-card-title>
+      <mat-card-subtitle>Create a professor who can be selected as supervisor</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="wide">
+          <mat-label>IF name / username</mat-label>
+          <input matInput [(ngModel)]="professor.id" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>First name</mat-label>
+          <input matInput [(ngModel)]="professor.firstName" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Last name</mat-label>
+          <input matInput [(ngModel)]="professor.lastName" required>
+        </mat-form-field>
+      </div>
+
+      <div class="actions">
+        <button mat-button type="button" (click)="cancel()">Cancel</button>
+        <button mat-raised-button color="primary" type="button" (click)="save()" [disabled]="saving">
+          <mat-icon>person_add</mat-icon>
+          {{ saving ? 'Saving...' : 'Create Professor' }}
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -13,6 +13,7 @@ export function initializeKeycloak(keycloak: KeycloakService): () => Promise<boo
         clientId: environment.keycloakClientId
       },
       initOptions: {
+        onLoad: 'check-sso',
         checkLoginIframe: false,
         silentCheckSsoFallback: false,
         flow: 'standard',

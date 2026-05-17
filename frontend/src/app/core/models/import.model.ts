@@ -66,3 +66,18 @@ export interface ImportValidation {
   warnings: string[];
   preview: CsvPreview;
 }
+
+export interface ImportResultDTO {
+  totalRows: number;
+  importedCount: number;
+  skippedCount: number;
+  failedCount: number;
+  rows: ImportRowResultDTO[];
+}
+
+export interface ImportRowResultDTO {
+  rowNumber: number;
+  status: 'Imported' | 'Skipped' | 'Failed';
+  identifier?: string;
+  reason?: string;
+}

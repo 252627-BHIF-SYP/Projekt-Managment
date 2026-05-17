@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: school-project-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-project_catalog_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-project_catalog_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.6
+    container_name: school-project-keycloak
+    command: start-dev --import-realm --hostname-strict=false
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    ports:
+      - "8081:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./infra/keycloak/realm-import:/opt/keycloak/data/import:ro
+
+  backend:
+    build:
+      context: ./backend/WebApplication
+      dockerfile: WebAPI/Dockerfile
+    container_name: school-project-backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-project_catalog_db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      Cors__AllowedOrigins__0: http://localhost:4200
+      Authentication__Authority: http://keycloak:8080/realms/school-management
+      Authentication__Audience: school-management-frontend
+      Authentication__RequireHttpsMetadata: "false"
+    ports:
+      - "5144:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: school-project-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+      - keycloak
+
+volumes:
+  postgres_data:
+  keycloak_data:
