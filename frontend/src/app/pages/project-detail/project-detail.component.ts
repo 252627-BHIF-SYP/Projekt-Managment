@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -9,8 +9,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ProjectService } from '../../services/project.service';
-import { AuthService } from '../../core/services/auth.service';
-import { Project, ProjectSupervisor, Role } from '../../core/models';
+import { Project, ProjectSupervisor } from '../../core/models';
 
 /**
  * Project detail page
@@ -32,16 +31,13 @@ import { Project, ProjectSupervisor, Role } from '../../core/models';
   styleUrl: './project-detail.component.scss'
 })
 export class ProjectDetailComponent implements OnInit {
-  project?: Project;
-  loading = true;
-  projectId?: string;
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly projectService = inject(ProjectService);
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private projectService: ProjectService,
-    private authService: AuthService
-  ) {}
+  project = signal<Project | undefined>(undefined);
+  loading = signal(true);
+  projectId?: string;
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -53,16 +49,16 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   loadProject(id: string): void {
-    this.loading = true;
+    this.loading.set(true);
 
     this.projectService.getProjectById(id).subscribe({
       next: (project) => {
-      this.project = project;
-      this.loading = false;
+        this.project.set(project);
+        this.loading.set(false);
       },
       error: (error) => {
         console.error('Error loading project:', error);
-        this.loading = false;
+        this.loading.set(false);
       }
     });
   }
@@ -71,80 +67,16 @@ export class ProjectDetailComponent implements OnInit {
     this.router.navigate(['/projects']);
   }
 
-  canAdministrate(): boolean {
-    return this.authService.hasAnyRole([Role.SYS_ADMIN, Role.AV]);
-  }
-
-  canEditProject(): boolean {
-    if (this.canAdministrate() || this.isAssignedSupervisor()) {
-      return true;
+  getStudentRoleLabel(role?: string): string {
+    if (!role || role.toLowerCase() === 'member') {
+      return 'Student';
     }
 
-    return this.isAssignedStudent();
-  }
-
-  canDeleteProject(): boolean {
-    return this.canAdministrate() || this.isAssignedSupervisor();
+    return role;
   }
 
   getSupervisorRoleLabel(supervisor: ProjectSupervisor): string {
-    return supervisor.isPrimary ? 'Betreuer' : 'Nebenbetreuer';
-  }
-
-  private isAssignedStudent(): boolean {
-    const user = this.authService.currentUserValue;
-    if (!this.project || !user || !this.authService.hasRole(Role.STUDENT)) {
-      return false;
-    }
-
-    return this.project.students?.some(student =>
-      this.matchesCurrentUser(student.studentId)) || false;
-  }
-
-  private isAssignedSupervisor(): boolean {
-    const user = this.authService.currentUserValue;
-    if (!this.project || !user || !this.authService.hasRole(Role.PROFESSOR)) {
-      return false;
-    }
-
-    return this.project.supervisors?.some(supervisor =>
-      this.matchesCurrentUser(supervisor.supervisorId)) || false;
-  }
-
-  private matchesCurrentUser(id: string): boolean {
-    const user = this.authService.currentUserValue;
-    if (!user) {
-      return false;
-    }
-
-    const normalizedId = this.normalizeIdentity(id);
-    const candidates = [
-      user.id,
-      user.username,
-      user.email,
-      user.email?.split('@')[0]
-    ].map(value => this.normalizeIdentity(value || ''));
-
-    return candidates.includes(normalizedId);
-  }
-
-  private normalizeIdentity(value: string): string {
-    return value.trim().toLowerCase();
-  }
-
-  editProject(): void {
-    if (!this.project || !this.canEditProject()) return;
-
-    this.router.navigate(['/projects', this.project.id, 'edit']);
-  }
-
-  deleteProject(): void {
-    if (!this.project || !this.canDeleteProject()) return;
-
-    this.projectService.deleteProject(this.project.id).subscribe({
-      next: () => this.router.navigate(['/projects']),
-      error: error => console.error('Error deleting project:', error)
-    });
+    return 'Supervisor';
   }
 }
 

@@ -66,8 +66,6 @@ public interface IProjectService
     Task<IReadOnlyList<ProjectDto>> GetProjectsAsync(ProjectFilterDto filter);
     Task<ProjectDto?> GetProjectByIdAsync(int id);
     Task<ServiceResult<ProjectDto>> CreateProjectAsync(UpsertProjectDto dto);
-    Task<ServiceResult<ProjectDto>> UpdateProjectAsync(int id, UpsertProjectDto dto, string? requesterId, bool requesterCanAdministrate);
-    Task<ServiceResult> DeleteProjectAsync(int id, string? requesterId, bool requesterCanAdministrate);
     Task<int> CountProjectsAsync();
     Task<IReadOnlyList<ProjectCountPerYearDto>> GetProjectCountPerYearAsync();
 }

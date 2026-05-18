@@ -1,19 +1,9 @@
-<div class="page-container" *ngIf="project">
+<div class="page-container" *ngIf="project() as project">
   <div class="page-header">
     <button mat-icon-button (click)="goBack()">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <h1>{{ project.title }}</h1>
-    <div class="header-actions" *ngIf="canEditProject()">
-      <button mat-raised-button color="primary" (click)="editProject()">
-        <mat-icon>edit</mat-icon>
-        Edit
-      </button>
-      <button mat-button color="warn" (click)="deleteProject()" *ngIf="canDeleteProject()">
-        <mat-icon>delete</mat-icon>
-        Delete
-      </button>
-    </div>
   </div>
 
   <mat-tab-group>
@@ -36,10 +26,6 @@
               <div class="info-item">
                 <span class="label">School Year:</span>
                 <span class="value">{{ project.schoolYear }}</span>
-              </div>
-              <div class="info-item">
-                <span class="label">Created By:</span>
-                <span class="value">{{ project.createdByName }}</span>
               </div>
               <div class="info-item">
                 <span class="label">Team Size:</span>
@@ -73,14 +59,14 @@
       <div class="tab-content">
         <mat-card>
           <mat-card-header>
-            <mat-card-title>Team Members</mat-card-title>
+            <mat-card-title>Students</mat-card-title>
           </mat-card-header>
           <mat-card-content>
             <mat-list *ngIf="project.students && project.students.length > 0">
               <mat-list-item *ngFor="let student of project.students">
                 <mat-icon matListItemIcon>person</mat-icon>
                 <div matListItemTitle>{{ student.studentName }}</div>
-                <div matListItemLine>{{ student.studentEmail }}{{ student.role ? ' - ' + student.role : '' }}</div>
+                <div matListItemLine>{{ student.studentEmail }} - {{ getStudentRoleLabel(student.role) }}</div>
               </mat-list-item>
             </mat-list>
 
@@ -121,6 +107,6 @@
   </mat-tab-group>
 </div>
 
-<div class="loading-container" *ngIf="loading">
+<div class="loading-container" *ngIf="loading()">
   <mat-spinner></mat-spinner>
 </div>

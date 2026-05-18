@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -16,7 +16,7 @@ import { StudentPickerComponent } from '../../shared/components/student-picker/s
 import { ProjectService } from '../../services/project.service';
 import { SchoolYearService } from '../../services/schoolyear.service';
 import { UserService } from '../../services/user.service';
-import { Project, SchoolYear, User, StudentProfile, ProjectStatus, StudentStatus } from '../../core/models';
+import { Project, SchoolYear, User, StudentProfile, ProjectStatus } from '../../core/models';
 
 /**
  * Create project page
@@ -43,6 +43,12 @@ import { Project, SchoolYear, User, StudentProfile, ProjectStatus, StudentStatus
   styleUrl: './project-create.component.scss'
 })
 export class ProjectCreateComponent implements OnInit {
+  private readonly projectService = inject(ProjectService);
+  private readonly schoolYearService = inject(SchoolYearService);
+  private readonly userService = inject(UserService);
+  private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
+
   project: Partial<Project> = {
     title: '',
     description: '',
@@ -50,15 +56,13 @@ export class ProjectCreateComponent implements OnInit {
     status: ProjectStatus.NEW
   };
 
-  schoolYears: SchoolYear[] = [];
-  supervisors: User[] = [];
-  selectedStudents: StudentProfile[] = [];
+  schoolYears = signal<SchoolYear[]>([]);
+  supervisors = signal<User[]>([]);
+  selectedStudents = signal<StudentProfile[]>([]);
   primarySupervisorId = '';
   additionalSupervisors: string[] = [];
   selectedStudentIds: string[] = [];
-  saving = false;
-  isEditMode = false;
-  projectId?: string;
+  saving = signal(false);
   ProjectStatus = ProjectStatus;
   projectStatuses: ProjectStatus[] = [
     ProjectStatus.NEW,
@@ -75,40 +79,23 @@ export class ProjectCreateComponent implements OnInit {
   ];
   technologiesText = '';
 
-  constructor(
-    private route: ActivatedRoute,
-    private projectService: ProjectService,
-    private schoolYearService: SchoolYearService,
-    private userService: UserService,
-    private router: Router,
-    private snackBar: MatSnackBar
-  ) {}
-
   ngOnInit(): void {
-    this.projectId = this.route.snapshot.paramMap.get('id') || undefined;
-    this.isEditMode = !!this.projectId;
-
-    if (!this.isEditMode) {
-      const preselected = this.schoolYearService.getSelectedSchoolYear();
-      if (preselected) {
-        this.project.schoolYearId = preselected.id;
-        this.project.schoolYearIds = [preselected.id];
-      }
+    const preselected = this.schoolYearService.getSelectedSchoolYear();
+    if (preselected) {
+      this.project.schoolYearId = preselected.id;
+      this.project.schoolYearIds = [preselected.id];
     }
 
     this.loadData();
-
-    if (this.isEditMode && this.projectId) {
-      this.loadProjectForEdit(this.projectId);
-    }
   }
 
   loadData(): void {
     this.schoolYearService.getSchoolYears().subscribe({
       next: (years) => {
-        this.schoolYears = years || [];
-        if (!this.isEditMode && this.schoolYears.length > 0 && (!this.project.schoolYearIds || this.project.schoolYearIds.length === 0)) {
-          this.onSchoolYearsChange([this.schoolYears[0].id]);
+        const loadedYears = years || [];
+        this.schoolYears.set(loadedYears);
+        if (loadedYears.length > 0 && (!this.project.schoolYearIds || this.project.schoolYearIds.length === 0)) {
+          this.onSchoolYearsChange([loadedYears[0].id]);
         }
       },
       error: (error) => {
@@ -117,58 +104,7 @@ export class ProjectCreateComponent implements OnInit {
     });
 
     this.userService.getSupervisors().subscribe(supervisors => {
-      this.supervisors = supervisors;
-    });
-  }
-
-  loadProjectForEdit(id: string): void {
-    this.projectService.getProjectById(id).subscribe({
-      next: (project) => {
-        this.project = {
-          ...project,
-          schoolYearIds: project.schoolYearIds || [],
-          schoolYearId: project.schoolYearIds?.[0] || project.schoolYearId
-        };
-        this.technologiesText = project.technologies?.join(', ') || '';
-
-        const primarySupervisor = project.supervisors?.find(supervisor => supervisor.isPrimary) || project.supervisors?.[0];
-        this.primarySupervisorId = primarySupervisor?.supervisorId || '';
-        this.additionalSupervisors = project.supervisors
-          ?.filter(supervisor => supervisor.supervisorId !== this.primarySupervisorId)
-          .map(supervisor => supervisor.supervisorId) || [];
-
-        this.selectedStudentIds = project.students?.map(student => student.studentId) || [];
-        this.selectedStudents = project.students?.map(student => ({
-          id: student.studentId,
-          userId: student.studentId,
-          studentNumber: student.studentId,
-          firstName: student.firstName || student.studentName?.split(' ')[0] || '',
-          lastName: student.lastName || student.studentName?.split(' ').slice(1).join(' ') || '',
-          email: student.studentEmail || `${student.studentId.toLowerCase()}@school.at`,
-          classId: '',
-          className: student.className,
-          schoolYearId: this.project.schoolYearId || '',
-          status: StudentStatus.ASSIGNED,
-          historyId: student.historyId,
-          histories: student.historyId ? [{
-            historyId: student.historyId,
-            classId: 0,
-            className: student.className || '',
-            branch: '',
-            schoolYearId: Number(this.project.schoolYearId || 0),
-            schoolYear: this.project.schoolYear || ''
-          }] : [],
-          createdAt: new Date(),
-          updatedAt: new Date()
-        })) || [];
-      },
-      error: (error) => {
-        console.error('Error loading project:', error);
-        this.snackBar.open('Failed to load project.', 'Close', {
-          duration: 5000
-        });
-        this.router.navigate(['/projects']);
-      }
+      this.supervisors.set(supervisors);
     });
   }
 
@@ -184,7 +120,7 @@ export class ProjectCreateComponent implements OnInit {
   }
 
   onStudentsSelected(students: StudentProfile[]): void {
-    this.selectedStudents = students;
+    this.selectedStudents.set(students);
   }
 
   onSchoolYearsChange(ids: string[]): void {
@@ -193,16 +129,16 @@ export class ProjectCreateComponent implements OnInit {
   }
 
   get teamSize(): number {
-    return this.selectedStudents.length;
+    return this.selectedStudents().length;
   }
 
   getSupervisorName(id: string): string {
-    const supervisor = this.supervisors.find(s => s.id === id);
+    const supervisor = this.supervisors().find(s => s.id === id);
     return supervisor ? `${supervisor.firstName} ${supervisor.lastName}` : '';
   }
 
   get additionalSupervisorOptions(): User[] {
-    return this.supervisors.filter(supervisor => supervisor.id !== this.primarySupervisorId);
+    return this.supervisors().filter(supervisor => supervisor.id !== this.primarySupervisorId);
   }
 
   get selectedAdditionalSupervisorIds(): string[] {
@@ -224,7 +160,7 @@ export class ProjectCreateComponent implements OnInit {
   }
 
   saveProject(): void {
-    this.saving = true;
+    this.saving.set(true);
 
     if (this.technologiesText) {
       this.project.technologies = this.technologiesText
@@ -234,12 +170,12 @@ export class ProjectCreateComponent implements OnInit {
     }
 
     const selectedSchoolYearIds = this.project.schoolYearIds || [];
-    const students = this.selectedStudents
+    const students = this.selectedStudents()
       .map(student => {
         const matchingHistory = student.histories?.find(history =>
           selectedSchoolYearIds.includes(String(history.schoolYearId)));
         const historyId = matchingHistory?.historyId ?? student.historyId;
-        return historyId ? { historyId, role: 'Member' } : undefined;
+        return historyId ? { historyId, role: 'Student' } : undefined;
       })
       .filter((student): student is { historyId: number; role: string } => !!student);
 
@@ -267,23 +203,19 @@ export class ProjectCreateComponent implements OnInit {
 
     console.debug(`[ProjectCreate] Final payload:`, payload);
 
-    const request = this.isEditMode && this.projectId
-      ? this.projectService.updateProject(this.projectId, payload)
-      : this.projectService.createProject(payload);
-
-    request.subscribe({
+    this.projectService.createProject(payload).subscribe({
       next: (savedProject) => {
-        this.snackBar.open(this.isEditMode ? 'Project updated successfully!' : 'Project created successfully!', 'Close', {
+        this.snackBar.open('Project created successfully!', 'Close', {
           duration: 3000
         });
-        this.router.navigate(this.isEditMode ? ['/projects', savedProject.id] : ['/projects']);
+        this.router.navigate(['/projects', savedProject.id]);
       },
       error: (error) => {
         console.error('Error saving project:', error);
         this.snackBar.open('Failed to save project. Please try again.', 'Close', {
           duration: 5000
         });
-        this.saving = false;
+        this.saving.set(false);
       }
     });
   }

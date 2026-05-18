@@ -105,7 +105,7 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
             project.ProjectStudents.Add(new ProjectStudent
             {
                 HistoryId = student.HistoryId,
-                Role = string.IsNullOrWhiteSpace(student.Role) ? "Member" : student.Role.Trim()
+                Role = string.IsNullOrWhiteSpace(student.Role) ? "Student" : student.Role.Trim()
             });
         }
 
@@ -133,130 +133,6 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
         catch (DbUpdateException ex)
         {
             return ServiceResult<ProjectDto>.DatabaseError(ex.InnerException?.Message ?? ex.Message);
-        }
-    }
-
-    public async Task<ServiceResult<ProjectDto>> UpdateProjectAsync(
-        int id,
-        UpsertProjectDto dto,
-        string? requesterId,
-        bool requesterCanAdministrate)
-    {
-        var project = await _context.Projects
-            .Include(p => p.ProjectStudents)
-            .ThenInclude(s => s.StudentClassHistory)
-            .Include(p => p.ProjectSupervisors)
-            .Include(p => p.SchoolYearProjects)
-            .FirstOrDefaultAsync(p => p.Id == id);
-
-        if (project == null)
-        {
-            return ServiceResult<ProjectDto>.NotFound($"Project with id {id} was not found.");
-        }
-
-        var requesterIsSupervisor = IsProjectSupervisor(project, requesterId);
-        var requesterIsStudent = IsProjectStudent(project, requesterId);
-
-        if (!requesterCanAdministrate && !requesterIsSupervisor && !requesterIsStudent)
-        {
-            return ServiceResult<ProjectDto>.Forbidden("Only administrators, assigned supervisors and assigned students may edit this project.");
-        }
-
-        if (!requesterCanAdministrate && !requesterIsSupervisor)
-        {
-            project.Title = dto.Title.Trim();
-            project.Description = dto.Description.Trim();
-            project.GithubUrl = NullIfWhiteSpace(dto.GithubUrl);
-            project.LogoUrl = NullIfWhiteSpace(dto.LogoUrl);
-            project.Technology = NullIfWhiteSpace(dto.Technology);
-
-            await _context.SaveChangesAsync();
-            return ServiceResult<ProjectDto>.Success((await GetProjectByIdAsync(id))!);
-        }
-
-        var validation = await ValidateUpsertDtoAsync(dto);
-        if (!validation.IsSuccess)
-        {
-            return ServiceResult<ProjectDto>.ValidationError(validation.Message ?? "Invalid project data.");
-        }
-
-        project.Title = dto.Title.Trim();
-        project.Description = dto.Description.Trim();
-        project.GithubUrl = NullIfWhiteSpace(dto.GithubUrl);
-        project.LogoUrl = NullIfWhiteSpace(dto.LogoUrl);
-        project.Status = dto.Status;
-        project.Technology = NullIfWhiteSpace(dto.Technology);
-        project.ProjectType = dto.ProjectType;
-
-        _context.SchoolYearProjects.RemoveRange(project.SchoolYearProjects);
-        _context.ProjectStudents.RemoveRange(project.ProjectStudents);
-        _context.ProjectSupervisors.RemoveRange(project.ProjectSupervisors);
-
-        foreach (var schoolYearId in dto.SchoolYearIds.Distinct())
-        {
-            project.SchoolYearProjects.Add(new SchoolYearProject { ProjectId = id, SchoolYearId = schoolYearId });
-        }
-
-        foreach (var student in dto.Students.DistinctBy(s => s.HistoryId))
-        {
-            project.ProjectStudents.Add(new ProjectStudent
-            {
-                ProjectId = id,
-                HistoryId = student.HistoryId,
-                Role = string.IsNullOrWhiteSpace(student.Role) ? "Member" : student.Role.Trim()
-            });
-        }
-
-        foreach (var supervisor in dto.Supervisors.DistinctBy(s => s.ProfessorId))
-        {
-            project.ProjectSupervisors.Add(new ProjectSupervisor
-            {
-                ProjectId = id,
-                ProfessorId = supervisor.ProfessorId,
-                Role = string.IsNullOrWhiteSpace(supervisor.Role) ? "Supervisor" : supervisor.Role.Trim()
-            });
-        }
-
-        try
-        {
-            await _context.SaveChangesAsync();
-            return ServiceResult<ProjectDto>.Success((await GetProjectByIdAsync(id))!);
-        }
-        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
-        {
-            return ServiceResult<ProjectDto>.Conflict("A project relation was added more than once.");
-        }
-        catch (DbUpdateException ex)
-        {
-            return ServiceResult<ProjectDto>.DatabaseError(ex.InnerException?.Message ?? ex.Message);
-        }
-    }
-
-    public async Task<ServiceResult> DeleteProjectAsync(int id, string? requesterId, bool requesterCanAdministrate)
-    {
-        var project = await _context.Projects
-            .Include(p => p.ProjectSupervisors)
-            .FirstOrDefaultAsync(p => p.Id == id);
-        if (project == null)
-        {
-            return ServiceResult.NotFound($"Project with id {id} was not found.");
-        }
-
-        if (!requesterCanAdministrate && !IsProjectSupervisor(project, requesterId))
-        {
-            return ServiceResult.Forbidden("Only administrators, AV or assigned supervisors may delete projects.");
-        }
-
-        _context.Projects.Remove(project);
-
-        try
-        {
-            await _context.SaveChangesAsync();
-            return ServiceResult.Success();
-        }
-        catch (DbUpdateException ex)
-        {
-            return ServiceResult.DatabaseError(ex.InnerException?.Message ?? ex.Message);
         }
     }
 
@@ -382,20 +258,6 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
 
     private static string? NullIfWhiteSpace(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-
-    private static bool IsProjectSupervisor(Project project, string? requesterId) =>
-        !string.IsNullOrWhiteSpace(requesterId) &&
-        project.ProjectSupervisors.Any(s => SameIdentity(s.ProfessorId, requesterId));
-
-    private static bool IsProjectStudent(Project project, string? requesterId) =>
-        !string.IsNullOrWhiteSpace(requesterId) &&
-        project.ProjectStudents.Any(s => SameIdentity(s.StudentClassHistory?.StudentId, requesterId));
-
-    private static bool SameIdentity(string? entityId, string? requesterId) =>
-        !string.IsNullOrWhiteSpace(entityId) &&
-        !string.IsNullOrWhiteSpace(requesterId) &&
-        (string.Equals(entityId.Trim(), requesterId.Trim(), StringComparison.OrdinalIgnoreCase) ||
-         string.Equals(entityId.Trim(), requesterId.Split('@')[0].Trim(), StringComparison.OrdinalIgnoreCase));
 
     private static bool IsUniqueConstraintViolation(DbUpdateException ex) =>
         ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };

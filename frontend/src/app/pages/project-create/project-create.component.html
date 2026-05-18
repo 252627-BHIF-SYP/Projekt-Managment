@@ -3,7 +3,7 @@
         <button mat-icon-button (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
-        <h1>{{ isEditMode ? 'Edit Project' : 'Create New Project' }}</h1>
+        <h1>Create New Project</h1>
       </div>
 
       <mat-stepper linear #stepper>
@@ -56,7 +56,7 @@
                     (ngModelChange)="onSchoolYearsChange($event)"
                     multiple
                     required>
-                    <mat-option *ngFor="let year of schoolYears" [value]="year.id">
+                    <mat-option *ngFor="let year of schoolYears()" [value]="year.id">
                       {{ year.year }}
                     </mat-option>
                   </mat-select>
@@ -125,7 +125,7 @@
                     <mat-label>Select Primary Supervisor</mat-label>
                     <mat-select [(ngModel)]="primarySupervisorId" (ngModelChange)="onPrimarySupervisorChange()" required>
                       <mat-option
-                        *ngFor="let supervisor of supervisors"
+                        *ngFor="let supervisor of supervisors()"
                         [value]="supervisor.id"
                         [disabled]="additionalSupervisors.includes(supervisor.id)">
                         {{ supervisor.firstName }} {{ supervisor.lastName }} ({{ supervisor.email }})
@@ -209,12 +209,12 @@
 
                 <div class="review-section">
                   <h3>Selected Students</h3>
-                  <ul *ngIf="selectedStudents.length > 0">
-                    <li *ngFor="let student of selectedStudents">
+                  <ul *ngIf="selectedStudents().length > 0">
+                    <li *ngFor="let student of selectedStudents()">
                       {{ student.firstName }} {{ student.lastName }} ({{ student.className }})
                     </li>
                   </ul>
-                  <p *ngIf="selectedStudents.length === 0" class="no-data">No students selected</p>
+                  <p *ngIf="selectedStudents().length === 0" class="no-data">No students selected</p>
                 </div>
 
                 <div class="review-section">
@@ -235,8 +235,8 @@
                     mat-raised-button 
                     color="primary" 
                     (click)="saveProject()"
-                    [disabled]="saving">
-                    {{ saving ? 'Saving...' : (isEditMode ? 'Save Project' : 'Create Project') }}
+                    [disabled]="saving()">
+                    {{ saving() ? 'Saving...' : 'Create Project' }}
                   </button>
                 </div>
               </mat-card-content>

@@ -4,7 +4,7 @@
           <mat-label>Filter by Class</mat-label>
           <mat-select [(ngModel)]="selectedClassId" (ngModelChange)="onClassFilterChange()">
             <mat-option [value]="undefined">All Classes</mat-option>
-            <mat-option *ngFor="let class of classes" [value]="class.id">
+            <mat-option *ngFor="let class of classes()" [value]="class.id">
               {{ class.name }}
             </mat-option>
           </mat-select>
@@ -41,7 +41,7 @@
       <!-- Student List -->
       <mat-selection-list [(ngModel)]="selectedStudents" (ngModelChange)="onSelectionChange()">
         <mat-list-option 
-          *ngFor="let student of filteredStudents" 
+          *ngFor="let student of filteredStudents()" 
           [value]="student"
           [disabled]="isStudentDisabled(student)">
           <div class="student-item">
@@ -58,7 +58,7 @@
         </mat-list-option>
       </mat-selection-list>
 
-      <div class="no-students" *ngIf="filteredStudents.length === 0">
+      <div class="no-students" *ngIf="filteredStudents().length === 0">
         <mat-icon>info</mat-icon>
         <p>No students available</p>
       </div>

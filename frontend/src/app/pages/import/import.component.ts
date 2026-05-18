@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -37,23 +37,21 @@ import { ImportType, ImportLog, ImportValidation, SchoolYear } from '../../core/
   styleUrl: './import.component.scss'
 })
 export class ImportComponent implements OnInit {
+  private readonly importService = inject(ImportService);
+  private readonly schoolYearService = inject(SchoolYearService);
+  private readonly snackBar = inject(MatSnackBar);
+
   ImportType = ImportType;
   
-  schoolYears: SchoolYear[] = [];
-  importLogs: ImportLog[] = [];
-  selectedFile?: File;
+  schoolYears = signal<SchoolYear[]>([]);
+  importLogs = signal<ImportLog[]>([]);
+  selectedFile = signal<File | undefined>(undefined);
   selectedSchoolYearId?: string;
-  validation?: ImportValidation;
-  importing = false;
-  currentImportType?: ImportType;
+  validation = signal<ImportValidation | undefined>(undefined);
+  importing = signal(false);
+  currentImportType = signal<ImportType | undefined>(undefined);
 
   displayedColumns = ['fileName', 'type', 'status', 'records', 'date'];
-
-  constructor(
-    private importService: ImportService,
-    private schoolYearService: SchoolYearService,
-    private snackBar: MatSnackBar
-  ) {}
 
   ngOnInit(): void {
     this.loadSchoolYears();
@@ -62,7 +60,7 @@ export class ImportComponent implements OnInit {
 
   loadSchoolYears(): void {
     this.schoolYearService.getSchoolYears().subscribe(years => {
-      this.schoolYears = years;
+      this.schoolYears.set(years);
       const active = years.find(y => y.isActive);
       if (active) {
         this.selectedSchoolYearId = active.id;
@@ -72,7 +70,7 @@ export class ImportComponent implements OnInit {
 
   loadImportHistory(): void {
     this.importService.getImportLogs().subscribe(logs => {
-      this.importLogs = logs;
+      this.importLogs.set(logs);
     });
   }
 
@@ -83,9 +81,10 @@ export class ImportComponent implements OnInit {
   handleFileInput(event: Event, type: ImportType): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.selectedFile = input.files[0];
-      this.currentImportType = type;
-      this.validateFile(this.selectedFile, type);
+      const file = input.files[0];
+      this.selectedFile.set(file);
+      this.currentImportType.set(type);
+      this.validateFile(file, type);
 
       // Allow selecting the same file again (browser otherwise may not fire change).
       input.value = '';
@@ -95,7 +94,7 @@ export class ImportComponent implements OnInit {
   validateFile(file: File, type: ImportType): void {
     this.importService.validateCsv(file, type).subscribe({
       next: (validation) => {
-        this.validation = validation;
+        this.validation.set(validation);
         if (!validation.isValid) {
           this.snackBar.open('Validation errors found. Please fix them before importing.', 'Close', {
             duration: 5000
@@ -112,11 +111,12 @@ export class ImportComponent implements OnInit {
   }
 
   performImport(type: ImportType): void {
-    if (!this.selectedFile || !this.validation?.isValid) return;
+    const file = this.selectedFile();
+    if (!file || !this.validation()?.isValid) return;
 
-    this.importing = true;
+    this.importing.set(true);
 
-    this.importService.importCsv(this.selectedFile, type, this.selectedSchoolYearId).subscribe({
+    this.importService.importCsv(file, type, this.selectedSchoolYearId).subscribe({
       next: (log) => {
         this.snackBar.open(
           `Import completed! ${log.successfulRecords}/${log.totalRecords} records imported successfully.`,
@@ -131,16 +131,16 @@ export class ImportComponent implements OnInit {
         this.snackBar.open('Import failed. Please try again.', 'Close', {
           duration: 5000
         });
-        this.importing = false;
+        this.importing.set(false);
       }
     });
   }
 
   reset(): void {
-    this.selectedFile = undefined;
-    this.validation = undefined;
-    this.importing = false;
-    this.currentImportType = undefined;
+    this.selectedFile.set(undefined);
+    this.validation.set(undefined);
+    this.importing.set(false);
+    this.currentImportType.set(undefined);
   }
 }
 

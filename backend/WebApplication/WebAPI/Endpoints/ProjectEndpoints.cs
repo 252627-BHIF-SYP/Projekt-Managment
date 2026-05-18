@@ -36,19 +36,6 @@ public static class ProjectEndpoints
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status409Conflict);
 
-        group.MapPut("{id:int}", UpdateProject)
-            .WithName(nameof(UpdateProject))
-            .AddEndpointFilter<FluentValidationFilter<UpsertProjectDto>>()
-            .Produces<ProjectDto>()
-            .Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status403Forbidden)
-            .Produces(StatusCodes.Status404NotFound);
-
-        group.MapDelete("{id:int}", DeleteProject)
-            .WithName(nameof(DeleteProject))
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status404NotFound);
-
         group.MapGet("Count", async (IProjectService service) => TypedResults.Ok(await service.CountProjectsAsync()))
             .WithName("GetProjectCount");
 
@@ -122,71 +109,4 @@ public static class ProjectEndpoints
         };
     }
 
-    private static async Task<IResult> UpdateProject(
-        IProjectService service,
-        HttpContext httpContext,
-        int id,
-        UpsertProjectDto dto)
-    {
-        var user = httpContext.User;
-        var authDisabled = user.Identity?.IsAuthenticated != true;
-        var requesterCanAdministrate = authDisabled || AuthRoles.CanAdministrate(user);
-        var requesterId = user.FindFirst("preferred_username")?.Value ?? user.FindFirst("sub")?.Value;
-
-        var result = await service.UpdateProjectAsync(id, dto, requesterId, requesterCanAdministrate);
-        return result.Status switch
-        {
-            ServiceResultStatus.Success when result.Value != null => TypedResults.Ok(result.Value),
-            ServiceResultStatus.NotFound => TypedResults.NotFound(),
-            ServiceResultStatus.ValidationError => TypedResults.Problem(
-                statusCode: StatusCodes.Status400BadRequest,
-                title: "Validation Error",
-                detail: result.Message),
-            ServiceResultStatus.Conflict => TypedResults.Problem(
-                statusCode: StatusCodes.Status409Conflict,
-                title: "Conflict",
-                detail: result.Message),
-            ServiceResultStatus.Forbidden => TypedResults.Problem(
-                statusCode: StatusCodes.Status403Forbidden,
-                title: "Forbidden",
-                detail: result.Message),
-            ServiceResultStatus.DatabaseError => TypedResults.Problem(
-                statusCode: StatusCodes.Status500InternalServerError,
-                title: "Database Error",
-                detail: result.Message),
-            _ => TypedResults.Problem(detail: result.Message)
-        };
-    }
-
-    private static async Task<IResult> DeleteProject(IProjectService service, HttpContext httpContext, int id)
-    {
-        var user = httpContext.User;
-        var authDisabled = user.Identity?.IsAuthenticated != true;
-        var requesterCanAdministrate = authDisabled || AuthRoles.CanAdministrate(user);
-        var requesterId = user.FindFirst("preferred_username")?.Value ?? user.FindFirst("sub")?.Value;
-
-        var result = await service.DeleteProjectAsync(id, requesterId, requesterCanAdministrate);
-        return result.Status switch
-        {
-            ServiceResultStatus.Success => TypedResults.NoContent(),
-            ServiceResultStatus.NotFound => TypedResults.NotFound(),
-            ServiceResultStatus.ValidationError => TypedResults.Problem(
-                statusCode: StatusCodes.Status400BadRequest,
-                title: "Validation Error",
-                detail: result.Message),
-            ServiceResultStatus.Conflict => TypedResults.Problem(
-                statusCode: StatusCodes.Status409Conflict,
-                title: "Conflict",
-                detail: result.Message),
-            ServiceResultStatus.Forbidden => TypedResults.Problem(
-                statusCode: StatusCodes.Status403Forbidden,
-                title: "Forbidden",
-                detail: result.Message),
-            ServiceResultStatus.DatabaseError => TypedResults.Problem(
-                statusCode: StatusCodes.Status500InternalServerError,
-                title: "Database Error",
-                detail: result.Message),
-            _ => TypedResults.Problem(detail: result.Message)
-        };
-    }
 }

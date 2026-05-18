@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -33,9 +33,14 @@ import { SchoolYearService } from '../../services/schoolyear.service';
   styleUrl: './student-create.component.scss'
 })
 export class StudentCreateComponent implements OnInit {
-  classes: Class[] = [];
-  schoolYears: SchoolYear[] = [];
-  saving = false;
+  private readonly studentService = inject(StudentService);
+  private readonly schoolYearService = inject(SchoolYearService);
+  private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
+
+  classes = signal<Class[]>([]);
+  schoolYears = signal<SchoolYear[]>([]);
+  saving = signal(false);
   student = {
     id: '',
     firstName: '',
@@ -44,16 +49,13 @@ export class StudentCreateComponent implements OnInit {
     schoolYearId: undefined as string | undefined
   };
 
-  constructor(
-    private studentService: StudentService,
-    private schoolYearService: SchoolYearService,
-    private router: Router,
-    private snackBar: MatSnackBar
-  ) {}
-
   ngOnInit(): void {
-    this.studentService.getClasses().subscribe(classes => this.classes = classes);
-    this.schoolYearService.getSchoolYears().subscribe(years => this.schoolYears = years);
+    this.studentService.getClasses().subscribe(classes => {
+      this.classes.set(classes);
+    });
+    this.schoolYearService.getSchoolYears().subscribe(years => {
+      this.schoolYears.set(years);
+    });
   }
 
   save(): void {
@@ -70,7 +72,7 @@ export class StudentCreateComponent implements OnInit {
       schoolYearId: this.student.schoolYearId ? Number(this.student.schoolYearId) : undefined
     };
 
-    this.saving = true;
+    this.saving.set(true);
     this.studentService.createStudent(payload).subscribe({
       next: () => {
         this.snackBar.open('Student created.', 'Close', { duration: 3000 });
@@ -78,7 +80,7 @@ export class StudentCreateComponent implements OnInit {
       },
       error: error => {
         console.error('Error creating student:', error);
-        this.saving = false;
+        this.saving.set(false);
         this.snackBar.open('Student could not be created.', 'Close', { duration: 5000 });
       }
     });

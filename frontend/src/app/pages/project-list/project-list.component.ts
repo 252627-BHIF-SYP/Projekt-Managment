@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,6 +11,7 @@ import { ProjectService } from '../../services/project.service';
 import { SchoolYearService } from '../../services/schoolyear.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Project, ProjectFilter, SchoolYear, Role } from '../../core/models';
+import { firstValueFrom } from 'rxjs';
 
 /**
  * Projects list page
@@ -31,50 +32,47 @@ import { Project, ProjectFilter, SchoolYear, Role } from '../../core/models';
   styleUrl: './project-list.component.scss'
 })
 export class ProjectListComponent implements OnInit {
-  projects: Project[] = [];
-  filteredProjects: Project[] = [];
-  schoolYears: SchoolYear[] = [];
-  loading = true;
+  private readonly projectService = inject(ProjectService);
+  private readonly schoolYearService = inject(SchoolYearService);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
-  constructor(
-    private projectService: ProjectService,
-    private schoolYearService: SchoolYearService,
-    private authService: AuthService,
-    private router: Router
-  ) {}
+  projects = signal<Project[]>([]);
+  filteredProjects = signal<Project[]>([]);
+  schoolYears = signal<SchoolYear[]>([]);
+  loading = signal(true);
 
   ngOnInit(): void {
     this.loadData();
   }
 
   loadData(): void {
-    this.loading = true;
+    this.loading.set(true);
 
-    // Load all data in parallel
     Promise.all([
-      this.projectService.getProjects().toPromise(),
-      this.schoolYearService.getSchoolYears().toPromise()
+      firstValueFrom(this.projectService.getProjects()),
+      firstValueFrom(this.schoolYearService.getSchoolYears())
     ]).then(([projects, schoolYears]) => {
-      this.projects = projects || [];
-      this.filteredProjects = this.projects;
-      this.schoolYears = schoolYears || [];
-      this.loading = false;
+      this.projects.set(projects);
+      this.filteredProjects.set(projects);
+      this.schoolYears.set(schoolYears);
+      this.loading.set(false);
     }).catch(error => {
       console.error('Error loading data:', error);
-      this.loading = false;
+      this.loading.set(false);
     });
   }
 
   onFilterChange(filter: ProjectFilter): void {
-    this.loading = true;
+    this.loading.set(true);
     this.projectService.getProjectsFiltered(filter).subscribe({
       next: (projects) => {
-        this.filteredProjects = projects;
-        this.loading = false;
+        this.filteredProjects.set(projects);
+        this.loading.set(false);
       },
       error: (error) => {
         console.error('Error filtering projects:', error);
-        this.loading = false;
+        this.loading.set(false);
       }
     });
   }

@@ -33,8 +33,6 @@ export interface Project {
   logoUrl?: string;
   maxStudents: number;
   minStudents: number;
-  createdById: string;
-  createdByName?: string;
   students?: ProjectStudent[];
   supervisors?: ProjectSupervisor[];
   tags?: string[];
@@ -64,7 +62,7 @@ export interface ProjectDTO {
 }
 
 /**
- * Payload used when creating or updating a project.
+ * Payload used when creating a project.
  */
 export interface CreateProjectPayload {
   title: string;

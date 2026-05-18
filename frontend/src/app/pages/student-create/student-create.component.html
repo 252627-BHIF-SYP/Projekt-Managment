@@ -31,23 +31,23 @@
         <mat-form-field appearance="outline">
           <mat-label>Class</mat-label>
           <mat-select [(ngModel)]="student.classId">
-            <mat-option *ngFor="let c of classes" [value]="c.id">{{ c.name }}</mat-option>
+            <mat-option *ngFor="let c of classes()" [value]="c.id">{{ c.name }}</mat-option>
           </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>School Year</mat-label>
           <mat-select [(ngModel)]="student.schoolYearId">
-            <mat-option *ngFor="let year of schoolYears" [value]="year.id">{{ year.year }}</mat-option>
+            <mat-option *ngFor="let year of schoolYears()" [value]="year.id">{{ year.year }}</mat-option>
           </mat-select>
         </mat-form-field>
       </div>
 
       <div class="actions">
         <button mat-button type="button" (click)="cancel()">Cancel</button>
-        <button mat-raised-button color="primary" type="button" (click)="save()" [disabled]="saving">
+        <button mat-raised-button color="primary" type="button" (click)="save()" [disabled]="saving()">
           <mat-icon>person_add</mat-icon>
-          {{ saving ? 'Saving...' : 'Create Student' }}
+          {{ saving() ? 'Saving...' : 'Create Student' }}
         </button>
       </div>
     </mat-card-content>

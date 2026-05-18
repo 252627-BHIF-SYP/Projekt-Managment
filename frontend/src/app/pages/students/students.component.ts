@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -31,30 +31,28 @@ import { AuthService } from '../../core/services/auth.service';
   styleUrl: './students.component.scss'
 })
 export class StudentsComponent implements OnInit {
-  students: StudentProfile[] = [];
-  filteredStudents: StudentProfile[] = [];
-  classes: Class[] = [];
-  schoolYears: SchoolYear[] = [];
+  private readonly studentService = inject(StudentService);
+  private readonly schoolYearService = inject(SchoolYearService);
+  private readonly authService = inject(AuthService);
+
+  students = signal<StudentProfile[]>([]);
+  filteredStudents = signal<StudentProfile[]>([]);
+  classes = signal<Class[]>([]);
+  schoolYears = signal<SchoolYear[]>([]);
   selectedClassId?: string;
   selectedSchoolYearId?: string;
   searchTerm = '';
 
-  get availableClasses(): Class[] {
+  availableClasses = computed<Class[]>(() => {
     const classIds = new Set(
-      this.students
+      this.students()
         .filter(student => this.matchesSearch(student))
         .map(student => String(this.getVisibleHistory(student)?.classId ?? student.classId))
         .filter(Boolean)
     );
 
-    return this.classes.filter(studentClass => classIds.has(studentClass.id));
-  }
-
-  constructor(
-    private studentService: StudentService,
-    private schoolYearService: SchoolYearService,
-    private authService: AuthService
-  ) {}
+    return this.classes().filter(studentClass => classIds.has(studentClass.id));
+  });
 
   ngOnInit(): void {
     this.loadData();
@@ -66,31 +64,40 @@ export class StudentsComponent implements OnInit {
 
     if (canViewAll) {
       this.studentService.getStudents().subscribe(students => {
-        this.students = students;
+        this.students.set(students);
         this.applyFilter();
       });
-      this.studentService.getClasses().subscribe(classes => this.classes = classes);
-      this.schoolYearService.getSchoolYears().subscribe(years => this.schoolYears = years);
+      this.studentService.getClasses().subscribe(classes => {
+        this.classes.set(classes);
+      });
+      this.schoolYearService.getSchoolYears().subscribe(years => {
+        this.schoolYears.set(years);
+      });
     } else if (selectedYear) {
       this.studentService.getStudentsBySchoolYear(selectedYear.id).subscribe(students => {
-        this.students = students;
+        this.students.set(students);
         this.applyFilter();
       });
-      this.studentService.getClassesBySchoolYear(selectedYear.id).subscribe(classes => this.classes = classes);
+      this.studentService.getClassesBySchoolYear(selectedYear.id).subscribe(classes => {
+        this.classes.set(classes);
+      });
     } else {
-      // Fallback to all
       this.studentService.getStudents().subscribe(students => {
-        this.students = students;
+        this.students.set(students);
         this.applyFilter();
       });
-      this.studentService.getClasses().subscribe(classes => this.classes = classes);
-      this.schoolYearService.getSchoolYears().subscribe(years => this.schoolYears = years);
+      this.studentService.getClasses().subscribe(classes => {
+        this.classes.set(classes);
+      });
+      this.schoolYearService.getSchoolYears().subscribe(years => {
+        this.schoolYears.set(years);
+      });
     }
   }
 
   applyFilter(): void {
     const term = (this.searchTerm || '').toLowerCase().trim();
-    this.filteredStudents = this.students.filter(s => {
+    const filtered = this.students().filter(s => {
       const visibleHistory = this.getVisibleHistory(s);
       const visibleClassId = String(visibleHistory?.classId ?? s.classId);
       const visibleSchoolYearId = String(visibleHistory?.schoolYearId ?? s.schoolYearId);
@@ -100,6 +107,8 @@ export class StudentsComponent implements OnInit {
       if (!term) return true;
       return this.matchesSearch(s);
     });
+
+    this.filteredStudents.set(filtered);
   }
 
   getDisplayClassName(student: StudentProfile): string {

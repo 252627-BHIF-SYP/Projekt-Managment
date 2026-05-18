@@ -17,7 +17,7 @@
             <mat-label>Class</mat-label>
             <mat-select [(ngModel)]="selectedClassId" (ngModelChange)="applyFilter()">
               <mat-option [value]="undefined">All Classes</mat-option>
-              <mat-option *ngFor="let c of availableClasses" [value]="c.id">{{ c.name }}</mat-option>
+              <mat-option *ngFor="let c of availableClasses()" [value]="c.id">{{ c.name }}</mat-option>
             </mat-select>
           </mat-form-field>
 
@@ -25,20 +25,20 @@
             <mat-label>School Year</mat-label>
             <mat-select [(ngModel)]="selectedSchoolYearId" (ngModelChange)="applyFilter()">
               <mat-option [value]="undefined">All Years</mat-option>
-              <mat-option *ngFor="let year of schoolYears" [value]="year.id">{{ year.year }}</mat-option>
+              <mat-option *ngFor="let year of schoolYears()" [value]="year.id">{{ year.year }}</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
       </div>
 
-      <mat-list *ngIf="filteredStudents.length > 0">
-        <mat-list-item *ngFor="let s of filteredStudents">
+      <mat-list *ngIf="filteredStudents().length > 0">
+        <mat-list-item *ngFor="let s of filteredStudents()">
           <div matListItemTitle>{{ s.firstName }} {{ s.lastName }}</div>
           <div matListItemLine>{{ s.studentNumber }} &bull; {{ getDisplayClassName(s) }} &bull; {{ s.email }}</div>
         </mat-list-item>
       </mat-list>
 
-      <div class="no-data" *ngIf="filteredStudents.length === 0">
+      <div class="no-data" *ngIf="filteredStudents().length === 0">
         <mat-icon>info</mat-icon>
         <p>No students found</p>
       </div>

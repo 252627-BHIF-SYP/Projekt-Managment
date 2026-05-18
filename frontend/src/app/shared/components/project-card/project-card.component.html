@@ -14,12 +14,12 @@
     <div class="project-meta">
       <div class="meta-item" *ngIf="getPrimarySupervisorNames()">
         <mat-icon>person</mat-icon>
-        <span class="meta-label">Betreuer:</span>
+        <span class="meta-label">Supervisor:</span>
         <span>{{ getPrimarySupervisorNames() }}</span>
       </div>
       <div class="meta-item" *ngIf="getSecondarySupervisorNames()">
         <mat-icon>group</mat-icon>
-        <span class="meta-label">Nebenbetreuer:</span>
+        <span class="meta-label">Additional Supervisors:</span>
         <span>{{ getSecondarySupervisorNames() }}</span>
       </div>
       <div class="meta-item" *ngIf="getStudentNames()">

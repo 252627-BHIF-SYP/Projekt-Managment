@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -24,16 +24,11 @@ import { Observable } from 'rxjs';
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss'
 })
-export class AdminDashboardComponent implements OnInit {
-  stats$: Observable<AdminStats>;
-  trendData$: Observable<TrendData>;
+export class AdminDashboardComponent {
+  private readonly adminService = inject(AdminService);
 
-  constructor(private adminService: AdminService) {
-    this.stats$ = this.adminService.getAdminStats();
-    this.trendData$ = this.adminService.getTrendData();
-  }
-
-  ngOnInit(): void {}
+  stats$: Observable<AdminStats> = this.adminService.getAdminStats();
+  trendData$: Observable<TrendData> = this.adminService.getTrendData();
 
   generateLinePath(data: { year: string; value: number }[], width: number, height: number, padding: number): string {
     if (!data || data.length === 0) return '';

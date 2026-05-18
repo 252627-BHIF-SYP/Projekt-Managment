@@ -47,9 +47,9 @@
               <mat-icon matPrefix>lock</mat-icon>
             </mat-form-field>
 
-            <div class="error-message" *ngIf="errorMessage">
+            <div class="error-message" *ngIf="errorMessage()">
               <mat-icon>error</mat-icon>
-              {{ errorMessage }}
+              {{ errorMessage() }}
             </div>
 
             <button 
@@ -57,9 +57,9 @@
               color="accent" 
               type="submit"
               class="full-width"
-              [disabled]="loading || !loginForm.valid">
-              <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-              <span *ngIf="!loading">Sign In (Mock)</span>
+              [disabled]="loading() || !loginForm.valid">
+              <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
+              <span *ngIf="!loading()">Sign In (Mock)</span>
             </button>
           </form>
 

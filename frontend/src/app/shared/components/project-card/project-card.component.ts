@@ -42,7 +42,7 @@ export class ProjectCardComponent {
       .map(supervisor => supervisor.supervisorName || supervisor.supervisorId)
       .filter(Boolean);
 
-    return supervisors.length > 0 ? supervisors.join(', ') : (this.project.createdByName || '');
+    return supervisors.join(', ');
   }
 
   getSecondarySupervisorNames(): string {

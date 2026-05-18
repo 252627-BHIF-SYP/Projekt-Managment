@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -26,30 +26,25 @@ import { Observable } from 'rxjs';
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
-  currentUser$: Observable<User | null>;
-  projects$: Observable<Project[]>;
-  projects: Project[] = [];
+  private readonly authService = inject(AuthService);
+  private readonly projectService = inject(ProjectService);
 
-  constructor(
-    private authService: AuthService,
-    private projectService: ProjectService
-  ) {
-    this.currentUser$ = this.authService.currentUser$;
-    this.projects$ = this.projectService.getProjects();
-  }
+  currentUser$: Observable<User | null> = this.authService.currentUser$;
+  projects$: Observable<Project[]> = this.projectService.getProjects();
+  projects = signal<Project[]>([]);
 
   ngOnInit(): void {
     this.projects$.subscribe(projects => {
-      this.projects = projects;
+      this.projects.set(projects);
     });
   }
 
   getInProgressCount(): number {
-    return this.projects.filter(p => p.status === ProjectStatus.ON_GOING).length;
+    return this.projects().filter(p => p.status === ProjectStatus.ON_GOING).length;
   }
 
   getCompletedCount(): number {
-    return this.projects.filter(p => p.status === ProjectStatus.COMPLETED).length;
+    return this.projects().filter(p => p.status === ProjectStatus.COMPLETED).length;
   }
 
   canCreateProject(): boolean {

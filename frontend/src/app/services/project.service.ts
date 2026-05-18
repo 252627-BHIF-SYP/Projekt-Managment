@@ -58,17 +58,6 @@ export class ProjectService {
     );
   }
 
-  updateProject(id: string, payload: CreateProjectPayload): Observable<Project> {
-    return this.apiService.put<ProjectDTO>(`/Project/${id}`, payload).pipe(
-      map(dto => this.mapProjectDto(dto)),
-      tap(() => this.getProjects().subscribe())
-    );
-  }
-
-  deleteProject(id: string): Observable<void> {
-    return this.apiService.delete<void>(`/Project/${id}`);
-  }
-
   getProjectTypes(): Observable<string[]> {
     return this.apiService.get<string[]>('/Project/Types');
   }
@@ -146,8 +135,6 @@ export class ProjectService {
       students: dto.students?.map(s => this.mapProjectStudentDto(s)) || [],
       supervisors: dto.supervisors?.map(s => this.mapProjectSupervisorDto(s)) || [],
       projectType: dto.projectType,
-      createdById: dto.supervisors?.[0]?.professorId || '',
-      createdByName: dto.supervisors?.[0] ? `${dto.supervisors[0].firstName} ${dto.supervisors[0].lastName}` : '',
       maxStudents: dto.students?.length || 0,
       minStudents: 0,
       tags: dto.technology ? dto.technology.split(/[,;]/).map(t => t.trim()).filter(Boolean) : [],

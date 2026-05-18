@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, OnChanges, OnInit, signal, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -35,21 +35,22 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrl: './student-picker.component.scss'
 })
 export class StudentPickerComponent implements OnChanges, OnInit {
+  private readonly studentService = inject(StudentService);
+  private readonly authService = inject(AuthService);
+
   @Input() schoolYearId?: string;
   @Input() maxStudents?: number;
   @Input() showStatus = true;
   @Input() selectedStudentIds: string[] = [];
   @Output() studentsSelected = new EventEmitter<StudentProfile[]>();
 
-  students: StudentProfile[] = [];
-  filteredStudents: StudentProfile[] = [];
+  students = signal<StudentProfile[]>([]);
+  filteredStudents = signal<StudentProfile[]>([]);
   selectedStudents: StudentProfile[] = [];
-  classes: Class[] = [];
+  classes = signal<Class[]>([]);
   selectedClassId?: string;
   searchTerm = '';
   private initialSelectionApplied = false;
-
-  constructor(private studentService: StudentService, private authService: AuthService) {}
 
   ngOnInit(): void {
     this.loadStudents();
@@ -73,13 +74,13 @@ export class StudentPickerComponent implements OnChanges, OnInit {
 
     if (!canViewAll && this.schoolYearId) {
       this.studentService.getStudentsBySchoolYear(this.schoolYearId).subscribe(students => {
-        this.students = students;
+        this.students.set(students);
         this.applyFilter();
         this.applyInitialSelection();
       });
     } else {
       this.studentService.getStudents().subscribe(students => {
-        this.students = students;
+        this.students.set(students);
         this.applyFilter();
         this.applyInitialSelection();
       });
@@ -91,11 +92,11 @@ export class StudentPickerComponent implements OnChanges, OnInit {
 
     if (!canViewAll && this.schoolYearId) {
       this.studentService.getClassesBySchoolYear(this.schoolYearId).subscribe(classes => {
-        this.classes = classes;
+        this.classes.set(classes);
       });
     } else {
       this.studentService.getClasses().subscribe(classes => {
-        this.classes = classes;
+        this.classes.set(classes);
       });
     }
   }
@@ -107,7 +108,7 @@ export class StudentPickerComponent implements OnChanges, OnInit {
   applyFilter(): void {
     const term = this.searchTerm.trim().toLowerCase();
 
-    this.filteredStudents = this.students.filter(student => {
+    const filtered = this.students().filter(student => {
       if (this.selectedClassId && student.classId !== this.selectedClassId) {
         return false;
       }
@@ -117,6 +118,8 @@ export class StudentPickerComponent implements OnChanges, OnInit {
       const haystack = `${student.firstName} ${student.lastName} ${student.email} ${student.studentNumber}`.toLowerCase();
       return haystack.includes(term);
     });
+
+    this.filteredStudents.set(filtered);
   }
 
   onSelectionChange(): void {
@@ -124,12 +127,12 @@ export class StudentPickerComponent implements OnChanges, OnInit {
   }
 
   private applyInitialSelection(): void {
-    if (this.initialSelectionApplied || this.students.length === 0 || this.selectedStudentIds.length === 0) {
+    if (this.initialSelectionApplied || this.students().length === 0 || this.selectedStudentIds.length === 0) {
       return;
     }
 
     const selectedIds = new Set(this.selectedStudentIds.map(id => String(id)));
-    this.selectedStudents = this.students.filter(student =>
+    this.selectedStudents = this.students().filter(student =>
       selectedIds.has(student.id) || selectedIds.has(student.studentNumber));
     this.initialSelectionApplied = true;
     this.onSelectionChange();

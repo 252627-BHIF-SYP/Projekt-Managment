@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -25,22 +25,22 @@ import { UserService } from '../../services/user.service';
   styleUrl: './professors.component.scss'
 })
 export class ProfessorsComponent implements OnInit {
-  professors: User[] = [];
-  filteredProfessors: User[] = [];
-  searchTerm = '';
+  private readonly userService = inject(UserService);
 
-  constructor(private userService: UserService) {}
+  professors = signal<User[]>([]);
+  filteredProfessors = signal<User[]>([]);
+  searchTerm = '';
 
   ngOnInit(): void {
     this.userService.getSupervisors().subscribe(professors => {
-      this.professors = professors;
+      this.professors.set(professors);
       this.applyFilter();
     });
   }
 
   applyFilter(): void {
     const term = this.searchTerm.trim().toLowerCase();
-    this.filteredProfessors = this.professors.filter(professor => {
+    const filtered = this.professors().filter(professor => {
       if (!term) {
         return true;
       }
@@ -48,5 +48,7 @@ export class ProfessorsComponent implements OnInit {
       const haystack = `${professor.firstName} ${professor.lastName} ${professor.username} ${professor.email}`.toLowerCase();
       return haystack.includes(term);
     });
+
+    this.filteredProfessors.set(filtered);
   }
 }

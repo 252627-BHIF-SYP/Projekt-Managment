@@ -13,15 +13,15 @@
         </mat-form-field>
       </div>
 
-      <mat-list *ngIf="filteredProfessors.length > 0">
-        <mat-list-item *ngFor="let professor of filteredProfessors">
+      <mat-list *ngIf="filteredProfessors().length > 0">
+        <mat-list-item *ngFor="let professor of filteredProfessors()">
           <mat-icon matListItemIcon>school</mat-icon>
           <div matListItemTitle>{{ professor.firstName }} {{ professor.lastName }}</div>
           <div matListItemLine>{{ professor.username }} &bull; {{ professor.email }}</div>
         </mat-list-item>
       </mat-list>
 
-      <div class="no-data" *ngIf="filteredProfessors.length === 0">
+      <div class="no-data" *ngIf="filteredProfessors().length === 0">
         <mat-icon>info</mat-icon>
         <p>No professors found</p>
       </div>

@@ -47,54 +47,56 @@
                     Choose CSV File
                   </button>
 
-                  <span class="file-name" *ngIf="selectedFile">{{ selectedFile.name }}</span>
+                  <span class="file-name" *ngIf="selectedFile() as file">{{ file.name }}</span>
                 </div>
 
-                <div class="validation-result" *ngIf="validation && currentImportType === ImportType.STUDENTS">
-                  <div class="validation-header" [class.valid]="validation.isValid" [class.invalid]="!validation.isValid">
-                    <mat-icon>{{ validation.isValid ? 'check_circle' : 'error' }}</mat-icon>
-                    <span>{{ validation.isValid ? 'File is valid' : 'Validation errors found' }}</span>
+                <div class="validation-result" *ngIf="validation() as currentValidation">
+                  <ng-container *ngIf="currentImportType() === ImportType.STUDENTS">
+                  <div class="validation-header" [class.valid]="currentValidation.isValid" [class.invalid]="!currentValidation.isValid">
+                    <mat-icon>{{ currentValidation.isValid ? 'check_circle' : 'error' }}</mat-icon>
+                    <span>{{ currentValidation.isValid ? 'File is valid' : 'Validation errors found' }}</span>
                   </div>
 
-                  <div class="errors" *ngIf="validation.errors && validation.errors.length > 0">
+                  <div class="errors" *ngIf="currentValidation.errors && currentValidation.errors.length > 0">
                     <h4>Errors:</h4>
                     <ul>
-                      <li *ngFor="let error of validation.errors">
+                      <li *ngFor="let error of currentValidation.errors">
                         Row {{ error.row }}: {{ error.message }}
                       </li>
                     </ul>
                   </div>
 
-                  <div class="preview" *ngIf="validation.preview">
+                  <div class="preview" *ngIf="currentValidation.preview">
                     <h4>Preview (first 10 rows):</h4>
                     <table class="preview-table">
                       <thead>
                         <tr>
-                          <th *ngFor="let header of validation.preview.headers">{{ header }}</th>
+                          <th *ngFor="let header of currentValidation.preview.headers">{{ header }}</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <tr *ngFor="let row of validation.preview.rows">
+                        <tr *ngFor="let row of currentValidation.preview.rows">
                           <td *ngFor="let cell of row">{{ cell }}</td>
                         </tr>
                       </tbody>
                     </table>
-                    <p class="total-rows">Total rows: {{ validation.preview.totalRows }}</p>
+                    <p class="total-rows">Total rows: {{ currentValidation.preview.totalRows }}</p>
                   </div>
+                  </ng-container>
                 </div>
 
-                <mat-progress-bar mode="indeterminate" *ngIf="importing"></mat-progress-bar>
+                <mat-progress-bar mode="indeterminate" *ngIf="importing()"></mat-progress-bar>
               </mat-card-content>
 
               <mat-card-actions>
                 <button 
                   mat-raised-button 
                   color="primary"
-                  [disabled]="!validation || !validation.isValid || importing || currentImportType !== ImportType.STUDENTS"
+                  [disabled]="!validation() || !validation()?.isValid || importing() || currentImportType() !== ImportType.STUDENTS"
                   (click)="performImport(ImportType.STUDENTS)">
-                  {{ importing ? 'Importing...' : 'Import Data' }}
+                  {{ importing() ? 'Importing...' : 'Import Data' }}
                 </button>
-                <button mat-button (click)="reset()" [disabled]="importing">
+                <button mat-button (click)="reset()" [disabled]="importing()">
                   Reset
                 </button>
               </mat-card-actions>
@@ -143,54 +145,56 @@
                     Choose CSV File
                   </button>
 
-                  <span class="file-name" *ngIf="selectedFile">{{ selectedFile.name }}</span>
+                  <span class="file-name" *ngIf="selectedFile() as file">{{ file.name }}</span>
                 </div>
 
-                <div class="validation-result" *ngIf="validation && currentImportType === ImportType.TEACHERS">
-                  <div class="validation-header" [class.valid]="validation.isValid" [class.invalid]="!validation.isValid">
-                    <mat-icon>{{ validation.isValid ? 'check_circle' : 'error' }}</mat-icon>
-                    <span>{{ validation.isValid ? 'File is valid' : 'Validation errors found' }}</span>
+                <div class="validation-result" *ngIf="validation() as currentValidation">
+                  <ng-container *ngIf="currentImportType() === ImportType.TEACHERS">
+                  <div class="validation-header" [class.valid]="currentValidation.isValid" [class.invalid]="!currentValidation.isValid">
+                    <mat-icon>{{ currentValidation.isValid ? 'check_circle' : 'error' }}</mat-icon>
+                    <span>{{ currentValidation.isValid ? 'File is valid' : 'Validation errors found' }}</span>
                   </div>
 
-                  <div class="errors" *ngIf="validation.errors && validation.errors.length > 0">
+                  <div class="errors" *ngIf="currentValidation.errors && currentValidation.errors.length > 0">
                     <h4>Errors:</h4>
                     <ul>
-                      <li *ngFor="let error of validation.errors">
+                      <li *ngFor="let error of currentValidation.errors">
                         Row {{ error.row }}: {{ error.message }}
                       </li>
                     </ul>
                   </div>
 
-                  <div class="preview" *ngIf="validation.preview">
+                  <div class="preview" *ngIf="currentValidation.preview">
                     <h4>Preview (first 10 rows):</h4>
                     <table class="preview-table">
                       <thead>
                         <tr>
-                          <th *ngFor="let header of validation.preview.headers">{{ header }}</th>
+                          <th *ngFor="let header of currentValidation.preview.headers">{{ header }}</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <tr *ngFor="let row of validation.preview.rows">
+                        <tr *ngFor="let row of currentValidation.preview.rows">
                           <td *ngFor="let cell of row">{{ cell }}</td>
                         </tr>
                       </tbody>
                     </table>
-                    <p class="total-rows">Total rows: {{ validation.preview.totalRows }}</p>
+                    <p class="total-rows">Total rows: {{ currentValidation.preview.totalRows }}</p>
                   </div>
+                  </ng-container>
                 </div>
 
-                <mat-progress-bar mode="indeterminate" *ngIf="importing"></mat-progress-bar>
+                <mat-progress-bar mode="indeterminate" *ngIf="importing()"></mat-progress-bar>
               </mat-card-content>
 
               <mat-card-actions>
                 <button 
                   mat-raised-button 
                   color="primary"
-                  [disabled]="!validation || !validation.isValid || importing || currentImportType !== ImportType.TEACHERS"
+                  [disabled]="!validation() || !validation()?.isValid || importing() || currentImportType() !== ImportType.TEACHERS"
                   (click)="performImport(ImportType.TEACHERS)">
-                  {{ importing ? 'Importing...' : 'Import Data' }}
+                  {{ importing() ? 'Importing...' : 'Import Data' }}
                 </button>
-                <button mat-button (click)="reset()" [disabled]="importing">
+                <button mat-button (click)="reset()" [disabled]="importing()">
                   Reset
                 </button>
               </mat-card-actions>
@@ -207,7 +211,7 @@
                 <mat-card-title>Import History</mat-card-title>
               </mat-card-header>
               <mat-card-content>
-                <table mat-table [dataSource]="importLogs" class="full-width">
+                <table mat-table [dataSource]="importLogs()" class="full-width">
                   <ng-container matColumnDef="fileName">
                     <th mat-header-cell *matHeaderCellDef>File Name</th>
                     <td mat-cell *matCellDef="let log">{{ log.fileName }}</td>
@@ -243,7 +247,7 @@
                   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
                 </table>
 
-                <div class="no-data" *ngIf="importLogs.length === 0">
+                <div class="no-data" *ngIf="importLogs().length === 0">
                   <mat-icon>history</mat-icon>
                   <p>No import history</p>
                 </div>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -31,13 +31,16 @@ import { LoginCredentials } from '../../core/models';
   styleUrl: './login.component.scss'
 })
 export class LoginComponent implements OnInit {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
   credentials: LoginCredentials = {
     username: '',
     password: ''
   };
 
-  loading = false;
-  errorMessage = '';
+  loading = signal(false);
+  errorMessage = signal('');
 
   demoAccounts = [
     { role: 'Admin', username: 'admin' },
@@ -45,11 +48,6 @@ export class LoginComponent implements OnInit {
     { role: 'Professor', username: 'professor' },
     { role: 'Student', username: 'student1' }
   ];
-
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
 
   ngOnInit(): void {
     // If returning from Keycloak and already authenticated, move to projects
@@ -61,7 +59,7 @@ export class LoginComponent implements OnInit {
           }
         },
         error: () => {
-          this.loading = false;
+          this.loading.set(false);
         }
       });
 
@@ -74,16 +72,16 @@ export class LoginComponent implements OnInit {
   }
 
   login(): void {
-    this.loading = true;
-    this.errorMessage = '';
+    this.loading.set(true);
+    this.errorMessage.set('');
 
     this.authService.login(this.credentials).subscribe({
       next: () => {
         this.router.navigate(['/projects']);
       },
       error: (error) => {
-        this.errorMessage = error.message || 'Login failed. Please try again.';
-        this.loading = false;
+        this.errorMessage.set(error.message || 'Login failed. Please try again.');
+        this.loading.set(false);
       }
     });
   }
@@ -92,16 +90,16 @@ export class LoginComponent implements OnInit {
    * Login with Keycloak
    */
   loginWithKeycloak(): void {
-    this.loading = true;
-    this.errorMessage = '';
+    this.loading.set(true);
+    this.errorMessage.set('');
 
     this.authService.loginWithKeycloak().subscribe({
       next: () => {
-        this.loading = false;
+        this.loading.set(false);
       },
       error: (error) => {
-        this.errorMessage = error?.message || 'Keycloak login failed. Please try again.';
-        this.loading = false;
+        this.errorMessage.set(error?.message || 'Keycloak login failed. Please try again.');
+        this.loading.set(false);
       }
     });
   }

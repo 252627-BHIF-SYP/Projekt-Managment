@@ -31,9 +31,9 @@
 
       <div class="actions">
         <button mat-button type="button" (click)="cancel()">Cancel</button>
-        <button mat-raised-button color="primary" type="button" (click)="save()" [disabled]="saving">
+        <button mat-raised-button color="primary" type="button" (click)="save()" [disabled]="saving()">
           <mat-icon>person_add</mat-icon>
-          {{ saving ? 'Saving...' : 'Create Professor' }}
+          {{ saving() ? 'Saving...' : 'Create Professor' }}
         </button>
       </div>
     </mat-card-content>

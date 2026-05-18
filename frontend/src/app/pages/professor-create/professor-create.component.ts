@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -28,18 +28,16 @@ import { UserService } from '../../services/user.service';
   styleUrl: './professor-create.component.scss'
 })
 export class ProfessorCreateComponent {
-  saving = false;
+  private readonly userService = inject(UserService);
+  private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
+
+  saving = signal(false);
   professor = {
     id: '',
     firstName: '',
     lastName: ''
   };
-
-  constructor(
-    private userService: UserService,
-    private router: Router,
-    private snackBar: MatSnackBar
-  ) {}
 
   save(): void {
     if (!this.professor.id || !this.professor.firstName || !this.professor.lastName) {
@@ -53,7 +51,7 @@ export class ProfessorCreateComponent {
       personType: 'Professor'
     };
 
-    this.saving = true;
+    this.saving.set(true);
     this.userService.createProfessor(payload).subscribe({
       next: () => {
         this.snackBar.open('Professor created.', 'Close', { duration: 3000 });
@@ -61,7 +59,7 @@ export class ProfessorCreateComponent {
       },
       error: error => {
         console.error('Error creating professor:', error);
-        this.saving = false;
+        this.saving.set(false);
         this.snackBar.open('Professor could not be created.', 'Close', { duration: 5000 });
       }
     });
