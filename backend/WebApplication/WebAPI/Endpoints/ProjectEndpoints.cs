@@ -7,7 +7,7 @@ namespace WebAPI.Endpoints;
 
 public static class ProjectEndpoints
 {
-    public static RouteGroupBuilder MapProjectEndpoints(this IEndpointRouteBuilder app, bool useAuth)
+    public static void MapProjectEndpoints(this IEndpointRouteBuilder app, bool useAuth)
     {
         var group = app.MapGroup("/api/Project")
             .WithTags("Projects");
@@ -31,7 +31,7 @@ public static class ProjectEndpoints
 
         group.MapPost("Add", CreateProject)
             .WithName(nameof(CreateProject))
-            .AddEndpointFilter<FluentValidationFilter<UpsertProjectDto>>()
+            .AddEndpointFilter<FluentValidationFilter<CreateProjectDto>>()
             .Produces<ProjectDto>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status409Conflict);
@@ -47,8 +47,6 @@ public static class ProjectEndpoints
 
         group.MapGet("Statuses", () => TypedResults.Ok(Enum.GetNames<ProjectStatus>()))
             .WithName("GetProjectStatuses");
-
-        return group;
     }
 
     private static async Task<IResult> GetProjects(
@@ -82,31 +80,53 @@ public static class ProjectEndpoints
         return TypedResults.Ok(project);
     }
 
-    private static async Task<IResult> CreateProject(IProjectService service, UpsertProjectDto dto)
+    private static async Task<IResult> CreateProject(IProjectService service, CreateProjectDto dto)
     {
         var result = await service.CreateProjectAsync(dto);
-        return result.Status switch
+
+        if (result.Status == ServiceResultStatus.Success && result.Value != null)
         {
-            ServiceResultStatus.Success when result.Value != null => TypedResults.Created($"/api/Project/{result.Value.ProjectId}", result.Value),
-            ServiceResultStatus.ValidationError => TypedResults.Problem(
+            return TypedResults.Created($"/api/Project/{result.Value.ProjectId}", result.Value);
+        }
+
+        if (result.Status == ServiceResultStatus.ValidationError)
+        {
+            return TypedResults.Problem(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "Validation Error",
-                detail: result.Message),
-            ServiceResultStatus.Conflict => TypedResults.Problem(
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.Conflict)
+        {
+            return TypedResults.Problem(
                 statusCode: StatusCodes.Status409Conflict,
                 title: "Conflict",
-                detail: result.Message),
-            ServiceResultStatus.Forbidden => TypedResults.Problem(
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.Forbidden)
+        {
+            return TypedResults.Problem(
                 statusCode: StatusCodes.Status403Forbidden,
                 title: "Forbidden",
-                detail: result.Message),
-            ServiceResultStatus.DatabaseError => TypedResults.Problem(
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.DatabaseError)
+        {
+            return TypedResults.Problem(
                 statusCode: StatusCodes.Status500InternalServerError,
                 title: "Database Error",
-                detail: result.Message),
-            ServiceResultStatus.NotFound => TypedResults.NotFound(),
-            _ => TypedResults.Problem(detail: result.Message)
-        };
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.NotFound)
+        {
+            return TypedResults.NotFound();
+        }
+
+        return TypedResults.Problem(detail: result.Message);
     }
 
 }

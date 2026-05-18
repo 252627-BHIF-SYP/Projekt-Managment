@@ -101,56 +101,100 @@ public static class PersonEndpoints
     {
         var dto = request.ToPersonCreateDto(PersonType.Student);
         var result = await service.CreateStudentAsync(dto);
-        return result.Status switch
+
+        if (result.Status == ServiceResultStatus.Success && result.Value != null)
         {
-            ServiceResultStatus.Success when result.Value != null => TypedResults.Created($"/api/Student/{result.Value.Id}", result.Value),
-            ServiceResultStatus.ValidationError => TypedResults.Problem(
+            return TypedResults.Created($"/api/Student/{result.Value.Id}", result.Value);
+        }
+
+        if (result.Status == ServiceResultStatus.ValidationError)
+        {
+            return TypedResults.Problem(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "Validation Error",
-                detail: result.Message),
-            ServiceResultStatus.Conflict => TypedResults.Problem(
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.Conflict)
+        {
+            return TypedResults.Problem(
                 statusCode: StatusCodes.Status409Conflict,
                 title: "Conflict",
-                detail: result.Message),
-            ServiceResultStatus.Forbidden => TypedResults.Problem(
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.Forbidden)
+        {
+            return TypedResults.Problem(
                 statusCode: StatusCodes.Status403Forbidden,
                 title: "Forbidden",
-                detail: result.Message),
-            ServiceResultStatus.DatabaseError => TypedResults.Problem(
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.DatabaseError)
+        {
+            return TypedResults.Problem(
                 statusCode: StatusCodes.Status500InternalServerError,
                 title: "Database Error",
-                detail: result.Message),
-            ServiceResultStatus.NotFound => TypedResults.NotFound(),
-            _ => TypedResults.Problem(detail: result.Message)
-        };
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.NotFound)
+        {
+            return TypedResults.NotFound();
+        }
+
+        return TypedResults.Problem(detail: result.Message);
     }
 
     private static async Task<IResult> CreateProfessor(IPersonService service, PersonCreateRequest request)
     {
         var dto = request.ToPersonCreateDto(PersonType.Professor);
         var result = await service.CreateProfessorAsync(dto);
-        return result.Status switch
+
+        if (result.Status == ServiceResultStatus.Success && result.Value != null)
         {
-            ServiceResultStatus.Success when result.Value != null => TypedResults.Created($"/api/Professor/{result.Value.Id}", result.Value),
-            ServiceResultStatus.ValidationError => TypedResults.Problem(
+            return TypedResults.Created($"/api/Professor/{result.Value.Id}", result.Value);
+        }
+
+        if (result.Status == ServiceResultStatus.ValidationError)
+        {
+            return TypedResults.Problem(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "Validation Error",
-                detail: result.Message),
-            ServiceResultStatus.Conflict => TypedResults.Problem(
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.Conflict)
+        {
+            return TypedResults.Problem(
                 statusCode: StatusCodes.Status409Conflict,
                 title: "Conflict",
-                detail: result.Message),
-            ServiceResultStatus.Forbidden => TypedResults.Problem(
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.Forbidden)
+        {
+            return TypedResults.Problem(
                 statusCode: StatusCodes.Status403Forbidden,
                 title: "Forbidden",
-                detail: result.Message),
-            ServiceResultStatus.DatabaseError => TypedResults.Problem(
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.DatabaseError)
+        {
+            return TypedResults.Problem(
                 statusCode: StatusCodes.Status500InternalServerError,
                 title: "Database Error",
-                detail: result.Message),
-            ServiceResultStatus.NotFound => TypedResults.NotFound(),
-            _ => TypedResults.Problem(detail: result.Message)
-        };
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.NotFound)
+        {
+            return TypedResults.NotFound();
+        }
+
+        return TypedResults.Problem(detail: result.Message);
     }
 
     private static async Task<IResult> ImportProfessors(IImportService service, IFormFile file)

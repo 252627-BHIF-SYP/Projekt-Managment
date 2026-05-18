@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -7,12 +7,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ImportService } from '../../services/import.service';
-import { SchoolYearService } from '../../services/schoolyear.service';
-import { ImportType, ImportLog, ImportValidation, SchoolYear } from '../../core/models';
+import { ImportType, ImportValidation } from '../../core/models';
 
 /**
  * Import page for importing students, teachers, and projects
@@ -29,50 +27,22 @@ import { ImportType, ImportLog, ImportValidation, SchoolYear } from '../../core/
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatTableModule,
     MatProgressBarModule,
     MatSnackBarModule
   ],
   templateUrl: './import.component.html',
   styleUrl: './import.component.scss'
 })
-export class ImportComponent implements OnInit {
+export class ImportComponent {
   private readonly importService = inject(ImportService);
-  private readonly schoolYearService = inject(SchoolYearService);
   private readonly snackBar = inject(MatSnackBar);
 
   ImportType = ImportType;
   
-  schoolYears = signal<SchoolYear[]>([]);
-  importLogs = signal<ImportLog[]>([]);
   selectedFile = signal<File | undefined>(undefined);
-  selectedSchoolYearId?: string;
   validation = signal<ImportValidation | undefined>(undefined);
   importing = signal(false);
   currentImportType = signal<ImportType | undefined>(undefined);
-
-  displayedColumns = ['fileName', 'type', 'status', 'records', 'date'];
-
-  ngOnInit(): void {
-    this.loadSchoolYears();
-    this.loadImportHistory();
-  }
-
-  loadSchoolYears(): void {
-    this.schoolYearService.getSchoolYears().subscribe(years => {
-      this.schoolYears.set(years);
-      const active = years.find(y => y.isActive);
-      if (active) {
-        this.selectedSchoolYearId = active.id;
-      }
-    });
-  }
-
-  loadImportHistory(): void {
-    this.importService.getImportLogs().subscribe(logs => {
-      this.importLogs.set(logs);
-    });
-  }
 
   downloadTemplate(type: ImportType): void {
     this.importService.downloadTemplate(type);
@@ -116,15 +86,14 @@ export class ImportComponent implements OnInit {
 
     this.importing.set(true);
 
-    this.importService.importCsv(file, type, this.selectedSchoolYearId).subscribe({
-      next: (log) => {
+    this.importService.importCsv(file, type).subscribe({
+      next: (result) => {
         this.snackBar.open(
-          `Import completed! ${log.successfulRecords}/${log.totalRecords} records imported successfully.`,
+          `Import completed! ${result.importedCount}/${result.totalRows} records imported successfully.`,
           'Close',
           { duration: 5000 }
         );
         this.reset();
-        this.loadImportHistory();
       },
       error: (error) => {
         console.error('Import error:', error);

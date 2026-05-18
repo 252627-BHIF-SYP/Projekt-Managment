@@ -216,14 +216,24 @@ public class ImportService(ApplicationDbContext context) : IImportService
             : new ImportRowResult(row.RowNumber, ImportRowStatus.Skipped, row.Id, "Professor already exists.");
     }
 
-    private static StudentImportRow ToStudentImportRow(ParsedCsvRow row) => new(
-        row.RowNumber,
-        Normalize(Pick(row.Values, "if_name", "ifname", "if", "studentid", "student_id", "username")),
-        Normalize(Pick(row.Values, "first_name", "firstname", "first name", "vorname")),
-        Normalize(Pick(row.Values, "last_name", "lastname", "last name", "nachname")),
-        Normalize(Pick(row.Values, "schoolyear", "school_year", "school year", "year", "jahr")),
-        Normalize(Pick(row.Values, "branch", "abteilung")),
-        Normalize(Pick(row.Values, "class", "klasse", "classname", "class_name")));
+    private static StudentImportRow ToStudentImportRow(ParsedCsvRow row)
+    {
+        var id = Pick(row.Values, "if_name", "ifname", "if", "studentid", "student_id", "username");
+        var firstName = Pick(row.Values, "first_name", "firstname", "first name", "vorname");
+        var lastName = Pick(row.Values, "last_name", "lastname", "last name", "nachname");
+        var schoolYear = Pick(row.Values, "schoolyear", "school_year", "school year", "year", "jahr");
+        var branch = Pick(row.Values, "branch", "abteilung");
+        var className = Pick(row.Values, "class", "klasse", "classname", "class_name");
+
+        return new StudentImportRow(
+            row.RowNumber,
+            Normalize(id),
+            Normalize(firstName),
+            Normalize(lastName),
+            Normalize(schoolYear),
+            Normalize(branch),
+            Normalize(className));
+    }
 
     private static ProfessorImportRow ToProfessorImportRow(ParsedCsvRow row)
     {

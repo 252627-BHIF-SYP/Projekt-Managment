@@ -1,11 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay, map, switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   CsvPreview,
-  ImportLog,
   ImportResultDTO,
-  ImportStatus,
   ImportType,
   ImportValidation
 } from '../core/models';
@@ -16,23 +14,6 @@ import { ApiService } from '../core/services/api.service';
 })
 export class ImportService {
   private readonly apiService = inject(ApiService);
-  private importLogs: ImportLog[] = [];
-
-  getImportLogs(): Observable<ImportLog[]> {
-    return of(this.importLogs).pipe(delay(100));
-  }
-
-  getImportLogsByType(type: ImportType): Observable<ImportLog[]> {
-    return of(this.importLogs.filter(log => log.type === type)).pipe(delay(100));
-  }
-
-  getImportLogById(id: string): Observable<ImportLog> {
-    const log = this.importLogs.find(l => l.id === id);
-    if (!log) {
-      throw new Error('Import log not found');
-    }
-    return of(log).pipe(delay(100));
-  }
 
   validateCsv(file: File, type: ImportType): Observable<ImportValidation> {
     return this.parseCsvFile(file).pipe(
@@ -80,43 +61,12 @@ export class ImportService {
     );
   }
 
-  importCsv(file: File, type: ImportType, schoolYearId?: string): Observable<ImportLog> {
+  importCsv(file: File, type: ImportType): Observable<ImportResultDTO> {
     const endpoint = type === ImportType.STUDENTS ? '/Student/Import' : '/Professor/Import';
+    const formData = new FormData();
+    formData.append('file', file);
 
-    return this.parseCsvFile(file).pipe(
-      switchMap(preview => {
-        const formData = new FormData();
-        formData.append('file', file);
-        const startedAt = new Date();
-
-        return this.apiService.upload<ImportResultDTO>(endpoint, formData).pipe(
-          map(result => {
-            const log: ImportLog = {
-              id: String(Date.now()),
-              type,
-              fileName: file.name,
-              schoolYearId,
-              importedById: 'current-user',
-              importedByName: 'Current User',
-              status: result.failedCount > 0 ? ImportStatus.PARTIALLY_COMPLETED : ImportStatus.COMPLETED,
-              totalRecords: result.totalRows || preview.totalRows,
-              successfulRecords: result.importedCount,
-              failedRecords: result.failedCount,
-              errors: result.rows
-                .filter(row => row.status === 'Failed')
-                .map(row => ({ row: row.rowNumber, message: row.reason || 'Import failed' })),
-              startedAt,
-              completedAt: new Date(),
-              createdAt: startedAt,
-              updatedAt: new Date()
-            };
-
-            this.importLogs = [log, ...this.importLogs];
-            return log;
-          })
-        );
-      })
-    );
+    return this.apiService.upload<ImportResultDTO>(endpoint, formData);
   }
 
   private parseCsvFile(file: File): Observable<CsvPreview> {

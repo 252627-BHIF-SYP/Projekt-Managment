@@ -41,7 +41,7 @@ public record ProjectDto(
     IReadOnlyList<ProjectStudentDto> Students,
     IReadOnlyList<ProjectSupervisorDto> Supervisors);
 
-public record UpsertProjectDto(
+public record CreateProjectDto(
     string Title,
     string Description,
     string? GithubUrl,
@@ -65,7 +65,7 @@ public interface IProjectService
 {
     Task<IReadOnlyList<ProjectDto>> GetProjectsAsync(ProjectFilterDto filter);
     Task<ProjectDto?> GetProjectByIdAsync(int id);
-    Task<ServiceResult<ProjectDto>> CreateProjectAsync(UpsertProjectDto dto);
+    Task<ServiceResult<ProjectDto>> CreateProjectAsync(CreateProjectDto dto);
     Task<int> CountProjectsAsync();
     Task<IReadOnlyList<ProjectCountPerYearDto>> GetProjectCountPerYearAsync();
 }

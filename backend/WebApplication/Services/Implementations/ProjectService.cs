@@ -76,9 +76,9 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
         return project == null ? null : ToDto(project);
     }
 
-    public async Task<ServiceResult<ProjectDto>> CreateProjectAsync(UpsertProjectDto dto)
+    public async Task<ServiceResult<ProjectDto>> CreateProjectAsync(CreateProjectDto dto)
     {
-        var validation = await ValidateUpsertDtoAsync(dto);
+        var validation = await ValidateCreateProjectAsync(dto);
         if (!validation.IsSuccess)
         {
             return ServiceResult<ProjectDto>.ValidationError(validation.Message ?? "Invalid project data.");
@@ -164,7 +164,7 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
             .Include(p => p.ProjectSupervisors)
             .ThenInclude(s => s.Professor);
 
-    private async Task<ServiceResult> ValidateUpsertDtoAsync(UpsertProjectDto dto)
+    private async Task<ServiceResult> ValidateCreateProjectAsync(CreateProjectDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Title))
         {
@@ -214,21 +214,15 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
         return ServiceResult.Success();
     }
 
-    private static ProjectDto ToDto(Project project) => new(
-        project.Id,
-        project.Title,
-        project.Description,
-        project.GithubUrl,
-        project.LogoUrl,
-        project.Status,
-        project.Technology,
-        project.ProjectType,
-        project.SchoolYearProjects
+    private static ProjectDto ToDto(Project project)
+    {
+        var schoolYears = project.SchoolYearProjects
             .Where(s => s.SchoolYear != null)
             .OrderBy(s => s.SchoolYear!.Year)
             .Select(s => new SchoolYearDto(s.SchoolYearId, s.SchoolYear!.Year))
-            .ToList(),
-        project.ProjectStudents
+            .ToList();
+
+        var students = project.ProjectStudents
             .Where(s => s.StudentClassHistory?.Student != null && s.StudentClassHistory.StudentClass != null && s.StudentClassHistory.SchoolYear != null)
             .OrderBy(s => s.StudentClassHistory!.Student!.LastName)
             .ThenBy(s => s.StudentClassHistory!.Student!.FirstName)
@@ -243,8 +237,9 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
                 s.StudentClassHistory.SchoolYearId,
                 s.StudentClassHistory.SchoolYear!.Year,
                 s.Role))
-            .ToList(),
-        project.ProjectSupervisors
+            .ToList();
+
+        var supervisors = project.ProjectSupervisors
             .Where(s => s.Professor != null)
             .OrderBy(s => s.Professor!.LastName)
             .ThenBy(s => s.Professor!.FirstName)
@@ -254,7 +249,21 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
                 s.Professor!.FirstName,
                 s.Professor.LastName,
                 s.Role))
-            .ToList());
+            .ToList();
+
+        return new ProjectDto(
+            project.Id,
+            project.Title,
+            project.Description,
+            project.GithubUrl,
+            project.LogoUrl,
+            project.Status,
+            project.Technology,
+            project.ProjectType,
+            schoolYears,
+            students,
+            supervisors);
+    }
 
     private static string? NullIfWhiteSpace(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();

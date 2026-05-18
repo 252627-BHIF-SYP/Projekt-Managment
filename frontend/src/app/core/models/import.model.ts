@@ -7,38 +7,6 @@ export enum ImportType {
 }
 
 /**
- * Import status
- */
-export enum ImportStatus {
-  PENDING = 'PENDING',
-  PROCESSING = 'PROCESSING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
-  PARTIALLY_COMPLETED = 'PARTIALLY_COMPLETED'
-}
-
-/**
- * Import log interface
- */
-export interface ImportLog {
-  id: string;
-  type: ImportType;
-  fileName: string;
-  schoolYearId?: string;
-  importedById: string;
-  importedByName?: string;
-  status: ImportStatus;
-  totalRecords: number;
-  successfulRecords: number;
-  failedRecords: number;
-  errors?: ImportError[];
-  startedAt: Date;
-  completedAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-/**
  * Import error details
  */
 export interface ImportError {

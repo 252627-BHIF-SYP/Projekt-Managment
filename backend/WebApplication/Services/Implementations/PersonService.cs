@@ -177,11 +177,9 @@ public class PersonService(ApplicationDbContext context) : IPersonService
             .Include(s => s.StudentClassHistories)
             .ThenInclude(h => h.SchoolYear);
 
-    private static StudentDto ToDto(Student student) => new(
-        student.Id,
-        student.FirstName,
-        student.LastName,
-        student.StudentClassHistories
+    private static StudentDto ToDto(Student student)
+    {
+        var histories = student.StudentClassHistories
             .Where(h => h.StudentClass != null && h.SchoolYear != null)
             .OrderByDescending(h => h.SchoolYear!.Year)
             .Select(h => new StudentClassHistoryDto(
@@ -191,7 +189,14 @@ public class PersonService(ApplicationDbContext context) : IPersonService
                 h.StudentClass.Branch,
                 h.SchoolYearId,
                 h.SchoolYear!.Year))
-            .ToList());
+            .ToList();
+
+        return new StudentDto(
+            student.Id,
+            student.FirstName,
+            student.LastName,
+            histories);
+    }
 
     private static bool IsUniqueConstraintViolation(DbUpdateException ex) =>
         ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };

@@ -3,9 +3,9 @@ using Services.Interfaces;
 
 namespace WebAPI.Validators;
 
-public class UpsertProjectDtoValidator : AbstractValidator<UpsertProjectDto>
+public class CreateProjectDtoValidator : AbstractValidator<CreateProjectDto>
 {
-    public UpsertProjectDtoValidator()
+    public CreateProjectDtoValidator()
     {
         RuleFor(p => p.Title)
             .NotEmpty()
