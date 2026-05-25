@@ -139,7 +139,7 @@ export class ProjectService {
     };
   }
 
-  private mapProjectDto(dto: ProjectDTO): Project {
+  mapProjectDto(dto: ProjectDTO): Project {
     const schoolYearIds = dto.schoolYears?.map(year => String(year.schoolYearId)) || [];
     const firstSchoolYear = dto.schoolYears?.[0];
     const firstStudent = dto.students?.[0];

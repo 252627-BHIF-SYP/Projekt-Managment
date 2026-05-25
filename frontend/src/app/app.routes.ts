@@ -11,6 +11,7 @@ import { ImportComponent } from './pages/import/import.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { StudentsComponent } from './pages/students/students.component';
 import { StudentCreateComponent } from './pages/student-create/student-create.component';
+import { StudentProfileComponent } from './pages/student-profile/student-profile.component';
 import { ProfessorsComponent } from './pages/professors/professors.component';
 import { ProfessorCreateComponent } from './pages/professor-create/professor-create.component';
 
@@ -58,6 +59,12 @@ export const routes: Routes = [
         component: StudentCreateComponent,
         canActivate: [roleGuard],
         data: { roles: [Role.AV, Role.SYS_ADMIN] }
+      },
+      {
+        path: 'students/:id/profile',
+        component: StudentProfileComponent,
+        canActivate: [roleGuard],
+        data: { roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] }
       },
       {
         path: 'professors',
