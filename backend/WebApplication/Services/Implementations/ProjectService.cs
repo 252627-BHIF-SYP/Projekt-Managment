@@ -14,51 +14,50 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
     public async Task<IReadOnlyList<ProjectDto>> GetProjectsAsync(ProjectFilterDto filter)
     {
         var query = ProjectGraph().AsNoTracking();
+        query = ApplyProjectFilter(query, filter);
 
-        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        var projects = await query
+            .OrderBy(p => p.Title)
+            .ToListAsync();
+
+        return projects.Select(ToDto).ToList();
+    }
+
+    public async Task<IReadOnlyList<ProjectDto>> GetAssignedProjectsAsync(ProjectFilterDto filter, ProjectActorDto actor)
+    {
+        if (!actor.IsAuthenticated || string.IsNullOrWhiteSpace(actor.Username))
         {
-            var search = filter.SearchTerm.Trim().ToLower();
+            return [];
+        }
+
+        if (!actor.IsProfessor && !actor.IsStudent)
+        {
+            return [];
+        }
+
+        var username = actor.Username.Trim();
+        var query = ProjectGraph().AsNoTracking();
+
+        if (actor.IsProfessor && actor.IsStudent)
+        {
             query = query.Where(p =>
-                p.Title.ToLower().Contains(search) ||
-                p.Description.ToLower().Contains(search) ||
-                (p.Technology != null && p.Technology.ToLower().Contains(search)) ||
+                p.ProjectSupervisors.Any(s => s.ProfessorId.ToLower() == username.ToLower()) ||
                 p.ProjectStudents.Any(s =>
                     s.StudentClassHistory != null &&
-                    s.StudentClassHistory.Student != null &&
-                    (s.StudentClassHistory.Student.FirstName.ToLower().Contains(search) ||
-                     s.StudentClassHistory.Student.LastName.ToLower().Contains(search))) ||
-                p.ProjectSupervisors.Any(s =>
-                    s.Professor != null &&
-                    (s.Professor.FirstName.ToLower().Contains(search) ||
-                     s.Professor.LastName.ToLower().Contains(search))));
+                    s.StudentClassHistory.StudentId.ToLower() == username.ToLower()));
         }
-
-        if (filter.SchoolYearId.HasValue)
+        else if (actor.IsProfessor)
         {
-            query = query.Where(p => p.SchoolYearProjects.Any(y => y.SchoolYearId == filter.SchoolYearId.Value));
+            query = query.Where(p => p.ProjectSupervisors.Any(s => s.ProfessorId.ToLower() == username.ToLower()));
         }
-
-        if (filter.ClassId.HasValue)
+        else
         {
             query = query.Where(p => p.ProjectStudents.Any(s =>
                 s.StudentClassHistory != null &&
-                s.StudentClassHistory.ClassId == filter.ClassId.Value));
+                s.StudentClassHistory.StudentId.ToLower() == username.ToLower()));
         }
 
-        if (!string.IsNullOrWhiteSpace(filter.SupervisorId))
-        {
-            query = query.Where(p => p.ProjectSupervisors.Any(s => s.ProfessorId == filter.SupervisorId));
-        }
-
-        if (filter.ProjectType.HasValue)
-        {
-            query = query.Where(p => p.ProjectType == filter.ProjectType.Value);
-        }
-
-        if (filter.Status.HasValue)
-        {
-            query = query.Where(p => p.Status == filter.Status.Value);
-        }
+        query = ApplyProjectFilter(query, filter);
 
         var projects = await query
             .OrderBy(p => p.Title)
@@ -270,6 +269,56 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
             .ThenInclude(h => h!.SchoolYear)
             .Include(p => p.ProjectSupervisors)
             .ThenInclude(s => s.Professor);
+
+    private static IQueryable<Project> ApplyProjectFilter(IQueryable<Project> query, ProjectFilterDto filter)
+    {
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            var search = filter.SearchTerm.Trim().ToLower();
+            query = query.Where(p =>
+                p.Title.ToLower().Contains(search) ||
+                p.Description.ToLower().Contains(search) ||
+                (p.Technology != null && p.Technology.ToLower().Contains(search)) ||
+                p.ProjectStudents.Any(s =>
+                    s.StudentClassHistory != null &&
+                    s.StudentClassHistory.Student != null &&
+                    (s.StudentClassHistory.Student.FirstName.ToLower().Contains(search) ||
+                     s.StudentClassHistory.Student.LastName.ToLower().Contains(search))) ||
+                p.ProjectSupervisors.Any(s =>
+                    s.Professor != null &&
+                    (s.Professor.FirstName.ToLower().Contains(search) ||
+                     s.Professor.LastName.ToLower().Contains(search))));
+        }
+
+        if (filter.SchoolYearId.HasValue)
+        {
+            query = query.Where(p => p.SchoolYearProjects.Any(y => y.SchoolYearId == filter.SchoolYearId.Value));
+        }
+
+        if (filter.ClassId.HasValue)
+        {
+            query = query.Where(p => p.ProjectStudents.Any(s =>
+                s.StudentClassHistory != null &&
+                s.StudentClassHistory.ClassId == filter.ClassId.Value));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.SupervisorId))
+        {
+            query = query.Where(p => p.ProjectSupervisors.Any(s => s.ProfessorId == filter.SupervisorId));
+        }
+
+        if (filter.ProjectType.HasValue)
+        {
+            query = query.Where(p => p.ProjectType == filter.ProjectType.Value);
+        }
+
+        if (filter.Status.HasValue)
+        {
+            query = query.Where(p => p.Status == filter.Status.Value);
+        }
+
+        return query;
+    }
 
     private async Task<ServiceResult> ValidateProjectDataAsync(
         string title,

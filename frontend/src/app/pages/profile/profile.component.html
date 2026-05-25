@@ -37,4 +37,75 @@
       </div>
     </mat-card-content>
   </mat-card>
+
+  <section class="profile-projects">
+    <div class="section-header">
+      <h2>My Projects</h2>
+    </div>
+
+    <div class="project-filters">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search</mat-label>
+        <input
+          matInput
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="loadProjects()"
+          placeholder="Search projects">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>School Year</mat-label>
+        <mat-select [(ngModel)]="schoolYearId" (ngModelChange)="loadProjects()">
+          <mat-option value="">All</mat-option>
+          <mat-option *ngFor="let year of schoolYears()" [value]="year.id">
+            {{ year.year }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select [(ngModel)]="status" (ngModelChange)="loadProjects()">
+          <mat-option value="">All</mat-option>
+          <mat-option *ngFor="let item of projectStatuses" [value]="item">
+            {{ item }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Project Type</mat-label>
+        <mat-select [(ngModel)]="projectType" (ngModelChange)="loadProjects()">
+          <mat-option value="">All</mat-option>
+          <mat-option *ngFor="let item of projectTypes" [value]="item">
+            {{ item }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-raised-button (click)="clearProjectFilters()">
+        <mat-icon>clear</mat-icon>
+        Clear
+      </button>
+    </div>
+
+    <div *ngIf="loadingProjects()" class="loading-container">
+      <mat-spinner></mat-spinner>
+    </div>
+
+    <div class="project-grid" *ngIf="!loadingProjects() && projects().length > 0">
+      <app-project-card
+        *ngFor="let project of projects()"
+        [project]="project"
+        (cardClick)="viewProject($event)">
+      </app-project-card>
+    </div>
+
+    <div class="no-projects" *ngIf="!loadingProjects() && projects().length === 0">
+      <mat-icon>folder_open</mat-icon>
+      <h3>No projects found</h3>
+      <p>No assigned projects match your profile or filters.</p>
+    </div>
+  </section>
 </div>

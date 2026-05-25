@@ -83,6 +83,7 @@ public record ProjectFilterDto(
 public interface IProjectService
 {
     Task<IReadOnlyList<ProjectDto>> GetProjectsAsync(ProjectFilterDto filter);
+    Task<IReadOnlyList<ProjectDto>> GetAssignedProjectsAsync(ProjectFilterDto filter, ProjectActorDto actor);
     Task<ProjectDto?> GetProjectByIdAsync(int id);
     Task<ServiceResult<ProjectDto>> CreateProjectAsync(CreateProjectDto dto);
     Task<ServiceResult<ProjectDto>> UpdateProjectAsync(int id, UpdateProjectDto dto, ProjectActorDto actor);

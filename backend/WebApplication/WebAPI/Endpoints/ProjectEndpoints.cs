@@ -25,6 +25,10 @@ public static class ProjectEndpoints
         group.MapGet("", GetProjects)
             .Produces<IEnumerable<ProjectDto>>();
 
+        group.MapGet("My", GetMyProjects)
+            .WithName(nameof(GetMyProjects))
+            .Produces<IEnumerable<ProjectDto>>();
+
         group.MapGet("{id:int}", GetProjectById)
             .WithName(nameof(GetProjectById))
             .Produces<ProjectDto>()
@@ -86,6 +90,27 @@ public static class ProjectEndpoints
             supervisorId,
             projectType,
             status));
+
+        return TypedResults.Ok(projects);
+    }
+
+    private static async Task<IResult> GetMyProjects(
+        IProjectService service,
+        ClaimsPrincipal user,
+        string? searchTerm,
+        int? schoolYearId,
+        ProjectType? projectType,
+        ProjectStatus? status)
+    {
+        var projects = await service.GetAssignedProjectsAsync(
+            new ProjectFilterDto(
+                searchTerm,
+                schoolYearId,
+                null,
+                null,
+                projectType,
+                status),
+            CreateActor(user));
 
         return TypedResults.Ok(projects);
     }
