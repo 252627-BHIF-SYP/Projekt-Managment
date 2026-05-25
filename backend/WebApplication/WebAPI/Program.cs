@@ -9,6 +9,7 @@ using Persistence;
 using Services.Implementations;
 using Services.Interfaces;
 using WebAPI.Endpoints;
+using WebAPI.SeedData;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -102,6 +103,8 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await db.Database.EnsureCreatedAsync();
 }
+
+await DemoDataSeeder.SeedAsync(app.Services, app.Environment, app.Configuration);
 
 if (app.Environment.IsDevelopment())
 {
