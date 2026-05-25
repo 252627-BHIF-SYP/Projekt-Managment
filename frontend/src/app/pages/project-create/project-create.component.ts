@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -46,6 +46,7 @@ export class ProjectCreateComponent implements OnInit {
   private readonly projectService = inject(ProjectService);
   private readonly schoolYearService = inject(SchoolYearService);
   private readonly userService = inject(UserService);
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
 
@@ -62,6 +63,8 @@ export class ProjectCreateComponent implements OnInit {
   primarySupervisorId = '';
   additionalSupervisors: string[] = [];
   selectedStudentIds: string[] = [];
+  projectId?: string;
+  isEditMode = signal(false);
   saving = signal(false);
   ProjectStatus = ProjectStatus;
   projectStatuses: ProjectStatus[] = [
@@ -80,13 +83,33 @@ export class ProjectCreateComponent implements OnInit {
   technologiesText = '';
 
   ngOnInit(): void {
-    const preselected = this.schoolYearService.getSelectedSchoolYear();
-    if (preselected) {
-      this.project.schoolYearId = preselected.id;
-      this.project.schoolYearIds = [preselected.id];
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.projectId = id;
+      this.isEditMode.set(true);
+      this.loadProject(id);
+    } else {
+      const preselected = this.schoolYearService.getSelectedSchoolYear();
+      if (preselected) {
+        this.project.schoolYearId = preselected.id;
+        this.project.schoolYearIds = [preselected.id];
+      }
     }
 
     this.loadData();
+  }
+
+  loadProject(id: string): void {
+    this.projectService.getProjectById(id).subscribe({
+      next: project => this.fillForm(project),
+      error: error => {
+        console.error('Error loading project:', error);
+        this.snackBar.open('Project could not be loaded.', 'Close', {
+          duration: 5000
+        });
+        this.router.navigate(['/projects']);
+      }
+    });
   }
 
   loadData(): void {
@@ -121,6 +144,10 @@ export class ProjectCreateComponent implements OnInit {
 
   onStudentsSelected(students: StudentProfile[]): void {
     this.selectedStudents.set(students);
+    const nextStudentIds = students.map(student => student.studentNumber || student.id);
+    if (!this.hasSameIds(this.selectedStudentIds, nextStudentIds)) {
+      this.selectedStudentIds = nextStudentIds;
+    }
   }
 
   onSchoolYearsChange(ids: string[]): void {
@@ -133,16 +160,16 @@ export class ProjectCreateComponent implements OnInit {
   }
 
   getSupervisorName(id: string): string {
-    const supervisor = this.supervisors().find(s => s.id === id);
+    const supervisor = this.supervisors().find(s => this.compareIds(s.id, id));
     return supervisor ? `${supervisor.firstName} ${supervisor.lastName}` : '';
   }
 
   get additionalSupervisorOptions(): User[] {
-    return this.supervisors().filter(supervisor => supervisor.id !== this.primarySupervisorId);
+    return this.supervisors().filter(supervisor => !this.compareIds(supervisor.id, this.primarySupervisorId));
   }
 
   get selectedAdditionalSupervisorIds(): string[] {
-    return [...new Set(this.additionalSupervisors.filter(id => !!id && id !== this.primarySupervisorId))];
+    return [...new Set(this.additionalSupervisors.filter(id => !!id && !this.compareIds(id, this.primarySupervisorId)))];
   }
 
   getAdditionalSupervisorNames(): string {
@@ -155,8 +182,29 @@ export class ProjectCreateComponent implements OnInit {
     this.additionalSupervisors = this.selectedAdditionalSupervisorIds;
   }
 
-  onAdditionalSupervisorsChange(ids: string[]): void {
-    this.additionalSupervisors = [...new Set((ids || []).filter(id => !!id && id !== this.primarySupervisorId))];
+  toggleAdditionalSupervisor(id: string): void {
+    const selected = this.isAdditionalSupervisorSelected(id);
+
+    if (selected) {
+      this.additionalSupervisors = this.additionalSupervisors
+        .filter(supervisorId => !this.compareIds(supervisorId, id));
+      return;
+    }
+
+    if (!this.compareIds(id, this.primarySupervisorId)) {
+      this.additionalSupervisors = [...this.additionalSupervisors, id];
+    }
+  }
+
+  isAdditionalSupervisorSelected(id: string): boolean {
+    return this.selectedAdditionalSupervisorIds.some(supervisorId => this.compareIds(supervisorId, id));
+  }
+
+  compareIds(first?: string, second?: string): boolean {
+    const firstId = this.normalizeId(first);
+    const secondId = this.normalizeId(second);
+
+    return firstId.length > 0 && firstId === secondId;
   }
 
   saveProject(): void {
@@ -201,11 +249,17 @@ export class ProjectCreateComponent implements OnInit {
       supervisors
     };
 
-    console.debug(`[ProjectCreate] Final payload:`, payload);
+    const request = this.isEditMode() && this.projectId
+      ? this.projectService.updateProject(this.projectId, payload)
+      : this.projectService.createProject(payload);
 
-    this.projectService.createProject(payload).subscribe({
+    request.subscribe({
       next: (savedProject) => {
-        this.snackBar.open('Project created successfully!', 'Close', {
+        const message = this.isEditMode()
+          ? 'Project updated successfully!'
+          : 'Project created successfully!';
+
+        this.snackBar.open(message, 'Close', {
           duration: 3000
         });
         this.router.navigate(['/projects', savedProject.id]);
@@ -221,7 +275,52 @@ export class ProjectCreateComponent implements OnInit {
   }
 
   goBack(): void {
+    if (this.isEditMode() && this.projectId) {
+      this.router.navigate(['/projects', this.projectId]);
+      return;
+    }
+
     this.router.navigate(['/projects']);
+  }
+
+  private fillForm(project: Project): void {
+    this.project = {
+      title: project.title,
+      description: project.description,
+      githubUrl: project.githubUrl || '',
+      logoUrl: project.logoUrl || '',
+      schoolYearId: project.schoolYearId,
+      schoolYearIds: project.schoolYearIds || [],
+      status: project.status,
+      projectType: project.projectType || 'Others',
+      technologies: project.technologies || []
+    };
+
+    this.technologiesText = (project.technologies || []).join(', ');
+    this.selectedStudentIds = (project.students || []).map(student => student.studentId);
+
+    const supervisors = project.supervisors || [];
+    const primarySupervisor = supervisors.find(supervisor => supervisor.isPrimary) || supervisors[0];
+
+    this.primarySupervisorId = primarySupervisor?.supervisorId || '';
+    this.additionalSupervisors = supervisors
+      .filter(supervisor => !this.compareIds(supervisor.supervisorId, this.primarySupervisorId))
+      .map(supervisor => supervisor.supervisorId);
+  }
+
+  private normalizeId(id?: string): string {
+    return (id || '').trim().toLowerCase();
+  }
+
+  private hasSameIds(first: string[], second: string[]): boolean {
+    if (first.length !== second.length) {
+      return false;
+    }
+
+    const firstIds = first.map(id => this.normalizeId(id)).sort();
+    const secondIds = second.map(id => this.normalizeId(id)).sort();
+
+    return firstIds.every((id, index) => id === secondIds[index]);
   }
 }
 

@@ -78,7 +78,13 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
 
     public async Task<ServiceResult<ProjectDto>> CreateProjectAsync(CreateProjectDto dto)
     {
-        var validation = await ValidateCreateProjectAsync(dto);
+        var validation = await ValidateProjectDataAsync(
+            dto.Title,
+            dto.Description,
+            dto.SchoolYearIds,
+            dto.Students,
+            dto.Supervisors);
+
         if (!validation.IsSuccess)
         {
             return ServiceResult<ProjectDto>.ValidationError(validation.Message ?? "Invalid project data.");
@@ -136,6 +142,107 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
         }
     }
 
+    public async Task<ServiceResult<ProjectDto>> UpdateProjectAsync(int id, UpdateProjectDto dto, ProjectActorDto actor)
+    {
+        var project = await ProjectGraph()
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (project == null)
+        {
+            return ServiceResult<ProjectDto>.NotFound("Project was not found.");
+        }
+
+        if (!CanEditProject(project, actor))
+        {
+            return ServiceResult<ProjectDto>.Forbidden("You are not allowed to edit this project.");
+        }
+
+        var validation = await ValidateProjectDataAsync(
+            dto.Title,
+            dto.Description,
+            dto.SchoolYearIds,
+            dto.Students,
+            dto.Supervisors);
+
+        if (!validation.IsSuccess)
+        {
+            return ServiceResult<ProjectDto>.ValidationError(validation.Message ?? "Invalid project data.");
+        }
+
+        project.Title = dto.Title.Trim();
+        project.Description = dto.Description.Trim();
+        project.GithubUrl = NullIfWhiteSpace(dto.GithubUrl);
+        project.LogoUrl = NullIfWhiteSpace(dto.LogoUrl);
+        project.Status = dto.Status;
+        project.Technology = NullIfWhiteSpace(dto.Technology);
+        project.ProjectType = dto.ProjectType;
+
+        ReplaceSchoolYears(project, dto.SchoolYearIds);
+        ReplaceStudents(project, dto.Students);
+        ReplaceSupervisors(project, dto.Supervisors);
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            var updated = await GetProjectByIdAsync(project.Id);
+            return ServiceResult<ProjectDto>.Success(updated!);
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            return ServiceResult<ProjectDto>.Conflict("A project relation was added more than once.");
+        }
+        catch (DbUpdateException ex)
+        {
+            return ServiceResult<ProjectDto>.DatabaseError(ex.InnerException?.Message ?? ex.Message);
+        }
+    }
+
+    public async Task<ServiceResult> DeleteProjectAsync(int id, ProjectActorDto actor)
+    {
+        var project = await ProjectGraph()
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (project == null)
+        {
+            return ServiceResult.NotFound("Project was not found.");
+        }
+
+        if (!CanDeleteProject(project, actor))
+        {
+            return ServiceResult.Forbidden("You are not allowed to delete this project.");
+        }
+
+        _context.Projects.Remove(project);
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return ServiceResult.Success();
+        }
+        catch (DbUpdateException ex)
+        {
+            return ServiceResult.DatabaseError(ex.InnerException?.Message ?? ex.Message);
+        }
+    }
+
+    public async Task<ServiceResult<ProjectPermissionDto>> GetProjectPermissionsAsync(int id, ProjectActorDto actor)
+    {
+        var project = await ProjectGraph()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (project == null)
+        {
+            return ServiceResult<ProjectPermissionDto>.NotFound("Project was not found.");
+        }
+
+        var permissions = new ProjectPermissionDto(
+            CanEditProject(project, actor),
+            CanDeleteProject(project, actor));
+
+        return ServiceResult<ProjectPermissionDto>.Success(permissions);
+    }
+
     public Task<int> CountProjectsAsync() => _context.Projects.CountAsync();
 
     public async Task<IReadOnlyList<ProjectCountPerYearDto>> GetProjectCountPerYearAsync()
@@ -164,32 +271,37 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
             .Include(p => p.ProjectSupervisors)
             .ThenInclude(s => s.Professor);
 
-    private async Task<ServiceResult> ValidateCreateProjectAsync(CreateProjectDto dto)
+    private async Task<ServiceResult> ValidateProjectDataAsync(
+        string title,
+        string description,
+        IReadOnlyList<int> schoolYearIds,
+        IReadOnlyList<ProjectStudentWriteDto> students,
+        IReadOnlyList<ProjectSupervisorWriteDto> supervisors)
     {
-        if (string.IsNullOrWhiteSpace(dto.Title))
+        if (string.IsNullOrWhiteSpace(title))
         {
             return ServiceResult.ValidationError("Project title is required.");
         }
 
-        if (string.IsNullOrWhiteSpace(dto.Description))
+        if (string.IsNullOrWhiteSpace(description))
         {
             return ServiceResult.ValidationError("Project description is required.");
         }
 
-        var schoolYearIds = dto.SchoolYearIds.Distinct().ToList();
-        if (schoolYearIds.Count == 0)
+        var selectedSchoolYearIds = schoolYearIds.Distinct().ToList();
+        if (selectedSchoolYearIds.Count == 0)
         {
             return ServiceResult.ValidationError("At least one school year is required.");
         }
 
         var existingSchoolYearCount = await _context.SchoolYears
-            .CountAsync(s => schoolYearIds.Contains(s.Id));
-        if (existingSchoolYearCount != schoolYearIds.Count)
+            .CountAsync(s => selectedSchoolYearIds.Contains(s.Id));
+        if (existingSchoolYearCount != selectedSchoolYearIds.Count)
         {
             return ServiceResult.ValidationError("At least one selected school year does not exist.");
         }
 
-        var historyIds = dto.Students.Select(s => s.HistoryId).Distinct().ToList();
+        var historyIds = students.Select(s => s.HistoryId).Distinct().ToList();
         if (historyIds.Count > 0)
         {
             var existingHistoryCount = await _context.StudentClassHistories
@@ -200,7 +312,12 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
             }
         }
 
-        var professorIds = dto.Supervisors.Select(s => s.ProfessorId).Where(id => !string.IsNullOrWhiteSpace(id)).Distinct().ToList();
+        var professorIds = supervisors
+            .Select(s => s.ProfessorId)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct()
+            .ToList();
+
         if (professorIds.Count > 0)
         {
             var existingProfessorCount = await _context.Professors
@@ -213,6 +330,133 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
 
         return ServiceResult.Success();
     }
+
+    private void ReplaceSchoolYears(Project project, IReadOnlyList<int> schoolYearIds)
+    {
+        var selectedIds = schoolYearIds.Distinct().ToList();
+        var removedSchoolYears = project.SchoolYearProjects
+            .Where(s => !selectedIds.Contains(s.SchoolYearId))
+            .ToList();
+
+        _context.SchoolYearProjects.RemoveRange(removedSchoolYears);
+
+        foreach (var schoolYearId in selectedIds)
+        {
+            if (project.SchoolYearProjects.Any(s => s.SchoolYearId == schoolYearId))
+            {
+                continue;
+            }
+
+            project.SchoolYearProjects.Add(new SchoolYearProject
+            {
+                ProjectId = project.Id,
+                SchoolYearId = schoolYearId
+            });
+        }
+    }
+
+    private void ReplaceStudents(Project project, IReadOnlyList<ProjectStudentWriteDto> students)
+    {
+        var selectedStudents = students
+            .DistinctBy(s => s.HistoryId)
+            .ToList();
+
+        var selectedHistoryIds = selectedStudents
+            .Select(s => s.HistoryId)
+            .ToList();
+
+        var removedStudents = project.ProjectStudents
+            .Where(s => !selectedHistoryIds.Contains(s.HistoryId))
+            .ToList();
+
+        _context.ProjectStudents.RemoveRange(removedStudents);
+
+        foreach (var student in selectedStudents)
+        {
+            var existingStudent = project.ProjectStudents
+                .FirstOrDefault(s => s.HistoryId == student.HistoryId);
+
+            if (existingStudent != null)
+            {
+                existingStudent.Role = string.IsNullOrWhiteSpace(student.Role) ? "Student" : student.Role.Trim();
+                continue;
+            }
+
+            project.ProjectStudents.Add(new ProjectStudent
+            {
+                ProjectId = project.Id,
+                HistoryId = student.HistoryId,
+                Role = string.IsNullOrWhiteSpace(student.Role) ? "Student" : student.Role.Trim()
+            });
+        }
+    }
+
+    private void ReplaceSupervisors(Project project, IReadOnlyList<ProjectSupervisorWriteDto> supervisors)
+    {
+        var selectedSupervisors = supervisors
+            .DistinctBy(s => s.ProfessorId)
+            .ToList();
+
+        var selectedProfessorIds = selectedSupervisors
+            .Select(s => s.ProfessorId)
+            .ToList();
+
+        var removedSupervisors = project.ProjectSupervisors
+            .Where(s => !selectedProfessorIds.Contains(s.ProfessorId))
+            .ToList();
+
+        _context.ProjectSupervisors.RemoveRange(removedSupervisors);
+
+        foreach (var supervisor in selectedSupervisors)
+        {
+            var existingSupervisor = project.ProjectSupervisors
+                .FirstOrDefault(s => s.ProfessorId == supervisor.ProfessorId);
+
+            if (existingSupervisor != null)
+            {
+                existingSupervisor.Role = string.IsNullOrWhiteSpace(supervisor.Role) ? "Supervisor" : supervisor.Role.Trim();
+                continue;
+            }
+
+            project.ProjectSupervisors.Add(new ProjectSupervisor
+            {
+                ProjectId = project.Id,
+                ProfessorId = supervisor.ProfessorId,
+                Role = string.IsNullOrWhiteSpace(supervisor.Role) ? "Supervisor" : supervisor.Role.Trim()
+            });
+        }
+    }
+
+    private static bool CanEditProject(Project project, ProjectActorDto actor)
+    {
+        if (!actor.IsAuthenticated || actor.IsAdmin)
+        {
+            return true;
+        }
+
+        return (actor.IsProfessor && IsAssignedProfessor(project, actor.Username)) ||
+               (actor.IsStudent && IsAssignedStudent(project, actor.Username));
+    }
+
+    private static bool CanDeleteProject(Project project, ProjectActorDto actor)
+    {
+        if (!actor.IsAuthenticated || actor.IsAdmin)
+        {
+            return true;
+        }
+
+        return actor.IsProfessor && IsAssignedProfessor(project, actor.Username);
+    }
+
+    private static bool IsAssignedProfessor(Project project, string? username) =>
+        !string.IsNullOrWhiteSpace(username) &&
+        project.ProjectSupervisors.Any(s => string.Equals(s.ProfessorId, username, StringComparison.OrdinalIgnoreCase));
+
+    private static bool IsAssignedStudent(Project project, string? username) =>
+        !string.IsNullOrWhiteSpace(username) &&
+        project.ProjectStudents.Any(s =>
+            s.StudentClassHistory != null &&
+            string.Equals(s.StudentClassHistory.StudentId, username, StringComparison.OrdinalIgnoreCase));
 
     private static ProjectDto ToDto(Project project)
     {

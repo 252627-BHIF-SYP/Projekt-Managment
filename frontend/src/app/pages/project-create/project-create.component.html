@@ -3,7 +3,7 @@
         <button mat-icon-button (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
-        <h1>Create New Project</h1>
+        <h1>{{ isEditMode() ? 'Edit Project' : 'Create New Project' }}</h1>
       </div>
 
       <mat-stepper linear #stepper>
@@ -123,11 +123,15 @@
                   <h3>Primary Supervisor <span class="required">*</span></h3>
                   <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Select Primary Supervisor</mat-label>
-                    <mat-select [(ngModel)]="primarySupervisorId" (ngModelChange)="onPrimarySupervisorChange()" required>
+                    <mat-select
+                      [(ngModel)]="primarySupervisorId"
+                      [compareWith]="compareIds"
+                      (ngModelChange)="onPrimarySupervisorChange()"
+                      required>
                       <mat-option
                         *ngFor="let supervisor of supervisors()"
                         [value]="supervisor.id"
-                        [disabled]="additionalSupervisors.includes(supervisor.id)">
+                        [disabled]="isAdditionalSupervisorSelected(supervisor.id)">
                         {{ supervisor.firstName }} {{ supervisor.lastName }} ({{ supervisor.email }})
                       </mat-option>
                     </mat-select>
@@ -142,13 +146,12 @@
                     </div>
                   </div>
 
-                  <mat-selection-list
-                    class="supervisor-picker-list"
-                    [(ngModel)]="additionalSupervisors"
-                    (ngModelChange)="onAdditionalSupervisorsChange($event)">
+                  <mat-selection-list class="supervisor-picker-list">
                     <mat-list-option
                       *ngFor="let supervisor of additionalSupervisorOptions"
-                      [value]="supervisor.id">
+                      [value]="supervisor.id"
+                      [selected]="isAdditionalSupervisorSelected(supervisor.id)"
+                      (click)="toggleAdditionalSupervisor(supervisor.id)">
                       <div class="supervisor-item">
                         <div class="supervisor-name">{{ supervisor.firstName }} {{ supervisor.lastName }}</div>
                         <div class="supervisor-meta">{{ supervisor.username }} &bull; {{ supervisor.email }}</div>
@@ -159,11 +162,6 @@
                   <div class="no-supervisors" *ngIf="additionalSupervisorOptions.length === 0">
                     <mat-icon>info</mat-icon>
                     <p>No additional supervisors available</p>
-                  </div>
-                  <div class="selected-supervisors" *ngIf="selectedAdditionalSupervisorIds.length > 0">
-                    <span *ngFor="let supervisorId of selectedAdditionalSupervisorIds">
-                      {{ getSupervisorName(supervisorId) }}
-                    </span>
                   </div>
                 </div>
 
@@ -236,7 +234,7 @@
                     color="primary" 
                     (click)="saveProject()"
                     [disabled]="saving()">
-                    {{ saving() ? 'Saving...' : 'Create Project' }}
+                    {{ saving() ? 'Saving...' : (isEditMode() ? 'Save Changes' : 'Create Project') }}
                   </button>
                 </div>
               </mat-card-content>

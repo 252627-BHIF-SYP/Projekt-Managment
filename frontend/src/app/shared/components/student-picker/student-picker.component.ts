@@ -64,6 +64,7 @@ export class StudentPickerComponent implements OnChanges, OnInit {
     }
 
     if (changes['schoolYearId'] && !changes['schoolYearId'].firstChange) {
+      this.initialSelectionApplied = false;
       this.loadStudents();
       this.loadClasses();
     }
@@ -126,20 +127,30 @@ export class StudentPickerComponent implements OnChanges, OnInit {
     this.studentsSelected.emit(this.selectedStudents);
   }
 
+  compareStudents(first?: StudentProfile, second?: StudentProfile): boolean {
+    if (!first || !second) {
+      return first === second;
+    }
+
+    return this.sameStudentId(first.id, second.id) ||
+      this.sameStudentId(first.studentNumber, second.studentNumber);
+  }
+
   private applyInitialSelection(): void {
     if (this.initialSelectionApplied || this.students().length === 0 || this.selectedStudentIds.length === 0) {
       return;
     }
 
-    const selectedIds = new Set(this.selectedStudentIds.map(id => String(id)));
+    const selectedIds = new Set(this.selectedStudentIds.map(id => this.normalizeId(id)));
     this.selectedStudents = this.students().filter(student =>
-      selectedIds.has(student.id) || selectedIds.has(student.studentNumber));
+      selectedIds.has(this.normalizeId(student.id)) ||
+      selectedIds.has(this.normalizeId(student.studentNumber)));
     this.initialSelectionApplied = true;
     this.onSelectionChange();
   }
 
   toggleStudent(student: StudentProfile): void {
-    const index = this.selectedStudents.findIndex(s => s.id === student.id);
+    const index = this.selectedStudents.findIndex(s => this.compareStudents(s, student));
     if (index >= 0) {
       this.selectedStudents.splice(index, 1);
     } else {
@@ -148,11 +159,26 @@ export class StudentPickerComponent implements OnChanges, OnInit {
     this.onSelectionChange();
   }
 
+  isStudentSelected(student: StudentProfile): boolean {
+    return this.selectedStudents.some(s => this.compareStudents(s, student));
+  }
+
   isStudentDisabled(student: StudentProfile): boolean {
     if (!this.maxStudents) return false;
     
-    const isSelected = this.selectedStudents.some(s => s.id === student.id);
+    const isSelected = this.isStudentSelected(student);
     return !isSelected && this.selectedStudents.length >= this.maxStudents;
+  }
+
+  private sameStudentId(first?: string, second?: string): boolean {
+    const firstId = this.normalizeId(first);
+    const secondId = this.normalizeId(second);
+
+    return firstId.length > 0 && firstId === secondId;
+  }
+
+  private normalizeId(id?: string): string {
+    return (id || '').trim().toLowerCase();
   }
 }
 

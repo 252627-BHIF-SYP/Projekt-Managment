@@ -77,6 +77,13 @@ export interface CreateProjectPayload {
   supervisors: ProjectSupervisorWriteDTO[];
 }
 
+export type UpdateProjectPayload = CreateProjectPayload;
+
+export interface ProjectPermission {
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
 export interface ProjectSchoolYearDTO {
   schoolYearId: number;
   year: string;
