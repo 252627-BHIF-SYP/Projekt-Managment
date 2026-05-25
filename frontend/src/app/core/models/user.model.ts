@@ -1,3 +1,5 @@
+import { Project, ProjectDTO } from './project.model';
+
 /**
  * User roles in the system
  */
@@ -50,6 +52,15 @@ export interface ProfessorDTO {
   id: string;
   firstName: string;
   lastName: string;
+}
+
+export interface ProfessorProfileDetailDTO extends ProfessorDTO {
+  username: string;
+  projects: ProjectDTO[];
+}
+
+export interface ProfessorProfileDetail extends User {
+  projects: Project[];
 }
 
 export interface PersonCreatePayload {

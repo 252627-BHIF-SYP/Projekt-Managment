@@ -85,6 +85,23 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
         return projects.Select(ToDto).ToList();
     }
 
+    public async Task<IReadOnlyList<ProjectDto>> GetProfessorProjectsAsync(string professorId, ProjectFilterDto filter)
+    {
+        var normalizedProfessorId = professorId.Trim().ToLower();
+
+        var query = ProjectGraph()
+            .AsNoTracking()
+            .Where(p => p.ProjectSupervisors.Any(s => s.ProfessorId.ToLower() == normalizedProfessorId));
+
+        query = ApplyProjectFilter(query, filter);
+
+        var projects = await query
+            .OrderBy(p => p.Title)
+            .ToListAsync();
+
+        return projects.Select(ToDto).ToList();
+    }
+
     public async Task<ProjectDto?> GetProjectByIdAsync(int id)
     {
         var project = await ProjectGraph()

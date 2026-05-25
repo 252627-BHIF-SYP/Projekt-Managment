@@ -59,6 +59,12 @@ public static class PersonEndpoints
             .WithName("GetProfessors")
             .Produces<IEnumerable<ProfessorDto>>();
 
+        professors.MapGet("{id}/Profile", GetProfessorProfile)
+            .WithName(nameof(GetProfessorProfile))
+            .Produces<ProfessorProfileDto>()
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
+
         professors.MapGet("{id}", GetProfessorById)
             .WithName("GetProfessorById")
             .Produces<ProfessorDto>()
@@ -276,6 +282,50 @@ public static class PersonEndpoints
         return TypedResults.Ok(profile);
     }
 
+    private static async Task<IResult> GetProfessorProfile(
+        IPersonService personService,
+        IProjectService projectService,
+        ClaimsPrincipal user,
+        string id,
+        string? searchTerm,
+        int? schoolYearId,
+        ProjectType? projectType,
+        ProjectStatus? status)
+    {
+        if (user.Identity?.IsAuthenticated == true && !CanViewProfessorProfiles(user))
+        {
+            return TypedResults.Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "Forbidden",
+                detail: "You are not allowed to view professor profiles.");
+        }
+
+        var professor = await personService.GetProfessorByIdAsync(id);
+        if (professor == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        var projects = await projectService.GetProfessorProjectsAsync(
+            id,
+            new ProjectFilterDto(
+                searchTerm,
+                schoolYearId,
+                null,
+                null,
+                projectType,
+                status));
+
+        var profile = new ProfessorProfileDto(
+            professor.Id,
+            professor.Id,
+            professor.FirstName,
+            professor.LastName,
+            projects);
+
+        return TypedResults.Ok(profile);
+    }
+
     private static async Task<IResult> GetStudentHistoryId(IPersonService service, string id, int? schoolYearId)
     {
         var historyId = await service.GetStudentHistoryIdAsync(id, schoolYearId);
@@ -299,6 +349,10 @@ public static class PersonEndpoints
     }
 
     private static bool CanViewStudentProfiles(ClaimsPrincipal user) =>
+        AuthRoles.CanAdministrate(user) ||
+        AuthRoles.HasAnyRole(user, AuthRoles.Professor);
+
+    private static bool CanViewProfessorProfiles(ClaimsPrincipal user) =>
         AuthRoles.CanAdministrate(user) ||
         AuthRoles.HasAnyRole(user, AuthRoles.Professor);
 }
