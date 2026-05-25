@@ -75,20 +75,6 @@
         }
       }
 
-      .selected-supervisors {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-
-        span {
-          padding: 4px 10px;
-          border-radius: 16px;
-          background: #f0f2f5;
-          font-size: 13px;
-          color: rgba(0, 0, 0, 0.72);
-        }
-      }
-
       .no-supervisors {
         display: flex;
         align-items: center;
@@ -142,4 +128,3 @@
         font-style: italic;
       }
     }
-  

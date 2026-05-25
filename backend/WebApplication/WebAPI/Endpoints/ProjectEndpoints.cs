@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Persistence.Entities;
 using Services.Interfaces;
 using Services.Results;
@@ -35,6 +36,26 @@ public static class ProjectEndpoints
             .Produces<ProjectDto>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status409Conflict);
+
+        group.MapPut("{id:int}", UpdateProject)
+            .WithName(nameof(UpdateProject))
+            .AddEndpointFilter<FluentValidationFilter<UpdateProjectDto>>()
+            .Produces<ProjectDto>()
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict);
+
+        group.MapDelete("{id:int}", DeleteProject)
+            .WithName(nameof(DeleteProject))
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("{id:int}/Permissions", GetProjectPermissions)
+            .WithName(nameof(GetProjectPermissions))
+            .Produces<ProjectPermissionDto>()
+            .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("Count", async (IProjectService service) => TypedResults.Ok(await service.CountProjectsAsync()))
             .WithName("GetProjectCount");
@@ -129,4 +150,126 @@ public static class ProjectEndpoints
         return TypedResults.Problem(detail: result.Message);
     }
 
+    private static async Task<IResult> UpdateProject(
+        IProjectService service,
+        ClaimsPrincipal user,
+        int id,
+        UpdateProjectDto dto)
+    {
+        var result = await service.UpdateProjectAsync(id, dto, CreateActor(user));
+
+        if (result.Status == ServiceResultStatus.Success && result.Value != null)
+        {
+            return TypedResults.Ok(result.Value);
+        }
+
+        if (result.Status == ServiceResultStatus.ValidationError)
+        {
+            return TypedResults.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Validation Error",
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.Forbidden)
+        {
+            return TypedResults.Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "Forbidden",
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.NotFound)
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (result.Status == ServiceResultStatus.Conflict)
+        {
+            return TypedResults.Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                title: "Conflict",
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.DatabaseError)
+        {
+            return TypedResults.Problem(
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Database Error",
+                detail: result.Message);
+        }
+
+        return TypedResults.Problem(detail: result.Message);
+    }
+
+    private static async Task<IResult> DeleteProject(
+        IProjectService service,
+        ClaimsPrincipal user,
+        int id)
+    {
+        var result = await service.DeleteProjectAsync(id, CreateActor(user));
+
+        if (result.Status == ServiceResultStatus.Success)
+        {
+            return TypedResults.NoContent();
+        }
+
+        if (result.Status == ServiceResultStatus.Forbidden)
+        {
+            return TypedResults.Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "Forbidden",
+                detail: result.Message);
+        }
+
+        if (result.Status == ServiceResultStatus.NotFound)
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (result.Status == ServiceResultStatus.DatabaseError)
+        {
+            return TypedResults.Problem(
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Database Error",
+                detail: result.Message);
+        }
+
+        return TypedResults.Problem(detail: result.Message);
+    }
+
+    private static async Task<IResult> GetProjectPermissions(
+        IProjectService service,
+        ClaimsPrincipal user,
+        int id)
+    {
+        var result = await service.GetProjectPermissionsAsync(id, CreateActor(user));
+
+        if (result.Status == ServiceResultStatus.Success && result.Value != null)
+        {
+            return TypedResults.Ok(result.Value);
+        }
+
+        if (result.Status == ServiceResultStatus.NotFound)
+        {
+            return TypedResults.NotFound();
+        }
+
+        return TypedResults.Problem(detail: result.Message);
+    }
+
+    private static ProjectActorDto CreateActor(ClaimsPrincipal user)
+    {
+        var username = user.Identity?.Name ??
+                       user.FindFirst("preferred_username")?.Value ??
+                       user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        return new ProjectActorDto(
+            username,
+            AuthRoles.CanAdministrate(user),
+            AuthRoles.HasAnyRole(user, AuthRoles.Professor),
+            AuthRoles.HasAnyRole(user, AuthRoles.Student),
+            user.Identity?.IsAuthenticated == true);
+    }
 }

@@ -6,11 +6,13 @@ import {
   Project,
   ProjectDTO,
   ProjectFilter,
+  ProjectPermission,
   ProjectStatus,
   ProjectStudent,
   ProjectStudentDTO,
   ProjectSupervisor,
-  ProjectSupervisorDTO
+  ProjectSupervisorDTO,
+  UpdateProjectPayload
 } from '../core/models';
 import { ApiService } from '../core/services/api.service';
 
@@ -56,6 +58,21 @@ export class ProjectService {
       map(dto => this.mapProjectDto(dto)),
       tap(() => this.getProjects().subscribe())
     );
+  }
+
+  updateProject(id: string, payload: UpdateProjectPayload): Observable<Project> {
+    return this.apiService.put<ProjectDTO>(`/Project/${id}`, payload).pipe(
+      map(dto => this.mapProjectDto(dto)),
+      tap(() => this.getProjects().subscribe())
+    );
+  }
+
+  deleteProject(id: string): Observable<void> {
+    return this.apiService.delete<void>(`/Project/${id}`);
+  }
+
+  getProjectPermissions(id: string): Observable<ProjectPermission> {
+    return this.apiService.get<ProjectPermission>(`/Project/${id}/Permissions`);
   }
 
   getProjectTypes(): Observable<string[]> {

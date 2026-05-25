@@ -39,10 +39,12 @@
       </div>
 
       <!-- Student List -->
-      <mat-selection-list [(ngModel)]="selectedStudents" (ngModelChange)="onSelectionChange()">
+      <mat-selection-list>
         <mat-list-option 
           *ngFor="let student of filteredStudents()" 
           [value]="student"
+          [selected]="isStudentSelected(student)"
+          (click)="!isStudentDisabled(student) && toggleStudent(student)"
           [disabled]="isStudentDisabled(student)">
           <div class="student-item">
             <div class="student-info">

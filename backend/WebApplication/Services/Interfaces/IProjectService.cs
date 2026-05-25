@@ -53,6 +53,25 @@ public record CreateProjectDto(
     IReadOnlyList<ProjectStudentWriteDto> Students,
     IReadOnlyList<ProjectSupervisorWriteDto> Supervisors);
 
+public record UpdateProjectDto(
+    string Title,
+    string Description,
+    string? GithubUrl,
+    string? LogoUrl,
+    ProjectStatus Status,
+    string? Technology,
+    ProjectType ProjectType,
+    IReadOnlyList<int> SchoolYearIds,
+    IReadOnlyList<ProjectStudentWriteDto> Students,
+    IReadOnlyList<ProjectSupervisorWriteDto> Supervisors);
+
+public record ProjectActorDto(
+    string? Username,
+    bool IsAdmin,
+    bool IsProfessor,
+    bool IsStudent,
+    bool IsAuthenticated);
+
 public record ProjectFilterDto(
     string? SearchTerm,
     int? SchoolYearId,
@@ -66,8 +85,13 @@ public interface IProjectService
     Task<IReadOnlyList<ProjectDto>> GetProjectsAsync(ProjectFilterDto filter);
     Task<ProjectDto?> GetProjectByIdAsync(int id);
     Task<ServiceResult<ProjectDto>> CreateProjectAsync(CreateProjectDto dto);
+    Task<ServiceResult<ProjectDto>> UpdateProjectAsync(int id, UpdateProjectDto dto, ProjectActorDto actor);
+    Task<ServiceResult> DeleteProjectAsync(int id, ProjectActorDto actor);
+    Task<ServiceResult<ProjectPermissionDto>> GetProjectPermissionsAsync(int id, ProjectActorDto actor);
     Task<int> CountProjectsAsync();
     Task<IReadOnlyList<ProjectCountPerYearDto>> GetProjectCountPerYearAsync();
 }
 
 public record ProjectCountPerYearDto(int SchoolYearId, string Year, int ProjectCount);
+
+public record ProjectPermissionDto(bool CanEdit, bool CanDelete);

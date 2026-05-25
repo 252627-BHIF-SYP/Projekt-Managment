@@ -78,6 +78,12 @@ export const routes: Routes = [
         data: { roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN, Role.STUDENT] }
       },
       {
+        path: 'projects/:id/edit',
+        component: ProjectCreateComponent,
+        canActivate: [roleGuard],
+        data: { roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN, Role.STUDENT] }
+      },
+      {
         path: 'projects/:id',
         component: ProjectDetailComponent
       },
