@@ -6,6 +6,14 @@
   margin-bottom: 24px;
 }
 
+.page-header button {
+  flex-shrink: 0;
+}
+
+.page-header button mat-icon {
+  margin-right: 6px;
+}
+
 .filter-controls {
   display: contents;
 }
@@ -31,6 +39,12 @@ mat-form-field {
 }
 
 @media (max-width: 900px) {
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
   .filter-row {
     grid-template-columns: 1fr;
   }

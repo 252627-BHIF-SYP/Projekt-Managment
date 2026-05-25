@@ -1,6 +1,15 @@
 <div class="page-container">
   <div class="page-header">
     <h1>Students</h1>
+    <button
+      *ngIf="canCreateStudent()"
+      mat-raised-button
+      color="primary"
+      type="button"
+      (click)="openCreateStudentDialog()">
+      <mat-icon>person_add</mat-icon>
+      <span>Schüler anlegen</span>
+    </button>
   </div>
 
   <mat-card>
