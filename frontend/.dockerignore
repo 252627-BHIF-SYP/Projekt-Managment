@@ -1,3 +1,8 @@
+.git
+.github
+.idea
+.env
+
 node_modules/
 dist/
 .angular/

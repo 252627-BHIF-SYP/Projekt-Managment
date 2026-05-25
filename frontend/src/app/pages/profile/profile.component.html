@@ -1,113 +1,40 @@
-    <div class="page-container">
-      <div class="page-header">
-        <h1>My Profile</h1>
+<div class="page-container">
+  <div class="page-header">
+    <h1>My Profile</h1>
+  </div>
+
+  <mat-card class="profile-card" *ngIf="currentUser() as user">
+    <mat-card-header>
+      <div mat-card-avatar class="profile-avatar">
+        <mat-icon>account_circle</mat-icon>
       </div>
+      <mat-card-title>{{ user.firstName }} {{ user.lastName }}</mat-card-title>
+      <mat-card-subtitle>{{ user.email }}</mat-card-subtitle>
+    </mat-card-header>
 
-      <div class="profile-content">
-        <!-- User Information Card -->
-        <mat-card class="profile-card" *ngIf="editableUser as user">
-          <mat-card-header>
-            <div mat-card-avatar class="profile-avatar">
-              <mat-icon>account_circle</mat-icon>
-            </div>
-            <mat-card-title>{{ user.firstName }} {{ user.lastName }}</mat-card-title>
-            <mat-card-subtitle>{{ user.email }}</mat-card-subtitle>
-          </mat-card-header>
-
-          <mat-card-content>
-            <div class="info-section">
-              <h3>Account Information</h3>
-              
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>First Name</mat-label>
-                <input matInput [(ngModel)]="user.firstName" [disabled]="!editing()">
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Last Name</mat-label>
-                <input matInput [(ngModel)]="user.lastName" [disabled]="!editing()">
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Email</mat-label>
-                <input matInput [(ngModel)]="user.email" type="email" [disabled]="!editing()">
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Username</mat-label>
-                <input matInput [value]="user.username" disabled>
-              </mat-form-field>
-
-              <div class="roles-section">
-                <label>Roles:</label>
-                <mat-chip-set>
-                  <mat-chip *ngFor="let role of user.roles">{{ role }}</mat-chip>
-                </mat-chip-set>
-              </div>
-            </div>
-
-            <!-- Student-specific information -->
-            <div class="info-section" *ngIf="isStudent() && editableStudent as student">
-              <h3>Student Information</h3>
-
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Student Number</mat-label>
-                <input matInput [value]="student.studentNumber" disabled>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Class</mat-label>
-                <input matInput [value]="student.className" disabled>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>GitHub</mat-label>
-                <input matInput [(ngModel)]="student.github" [disabled]="!editing()" type="url">
-                <mat-icon matPrefix>code</mat-icon>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>LinkedIn</mat-label>
-                <input matInput [(ngModel)]="student.linkedin" [disabled]="!editing()" type="url">
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Bio</mat-label>
-                <textarea 
-                  matInput 
-                  [(ngModel)]="student.bio" 
-                  [disabled]="!editing()"
-                  rows="4">
-                </textarea>
-              </mat-form-field>
-
-              <div class="skills-section">
-                <label>Skills:</label>
-                <mat-chip-set *ngIf="!editing()">
-                  <mat-chip *ngFor="let skill of student.skills">{{ skill }}</mat-chip>
-                </mat-chip-set>
-                <mat-form-field appearance="outline" class="full-width" *ngIf="editing()">
-                  <mat-label>Skills (comma-separated)</mat-label>
-                  <input matInput [value]="student.skills?.join(', ')" (change)="updateSkills($event)">
-                </mat-form-field>
-              </div>
-            </div>
-          </mat-card-content>
-
-          <mat-card-actions>
-            <button mat-raised-button color="primary" *ngIf="!editing()" (click)="startEditing()">
-              <mat-icon>edit</mat-icon>
-              Edit Profile
-            </button>
-            <button mat-raised-button color="primary" *ngIf="editing()" (click)="saveProfile()" [disabled]="saving()">
-              <mat-icon>save</mat-icon>
-              {{ saving() ? 'Saving...' : 'Save Changes' }}
-            </button>
-            <button mat-button *ngIf="editing()" (click)="cancelEditing()">
-              Cancel
-            </button>
-          </mat-card-actions>
-        </mat-card>
+    <mat-card-content>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="label">Username</span>
+          <span class="value">{{ user.username }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">First Name</span>
+          <span class="value">{{ user.firstName }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Last Name</span>
+          <span class="value">{{ user.lastName }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Email</span>
+          <span class="value">{{ user.email }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Roles</span>
+          <span class="value">{{ user.roles.join(', ') }}</span>
+        </div>
       </div>
-    </div>
-  
+    </mat-card-content>
+  </mat-card>
+</div>

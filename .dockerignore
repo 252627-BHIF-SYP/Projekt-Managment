@@ -1,0 +1,14 @@
+.git
+.github
+.idea
+
+**/bin
+**/obj
+**/node_modules
+
+frontend/dist
+frontend/.angular
+
+.env
+*.user
+*.suo

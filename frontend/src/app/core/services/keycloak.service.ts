@@ -37,6 +37,11 @@ export class KeycloakAuthService {
       return from([null]);
     }
 
+    const fromToken = this.getUserFromToken();
+    if (fromToken) {
+      return from([fromToken]);
+    }
+
     return this.getUserProfile().pipe(
       map(profile => {
         if (!profile) {
@@ -59,6 +64,28 @@ export class KeycloakAuthService {
         } as User;
       })
     );
+  }
+
+  getUserFromToken(): User | null {
+    if (!this.isLoggedIn()) {
+      return null;
+    }
+    const token = this.keycloak.getKeycloakInstance().tokenParsed;
+    if (!token) {
+      return null;
+    }
+    const roles = this.extractRoles(token);
+    return {
+      id: token['sub'] || '',
+      username: token['preferred_username'] || '',
+      email: token['email'] || '',
+      firstName: token['given_name'] || '',
+      lastName: token['family_name'] || '',
+      roles,
+      profileImageUrl: undefined,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
   }
 
   getToken(): string {
