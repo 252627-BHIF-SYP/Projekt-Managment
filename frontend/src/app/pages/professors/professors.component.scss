@@ -10,6 +10,17 @@
   min-width: 0;
 }
 
+.professor-list-item {
+  cursor: pointer;
+  border-radius: 4px;
+
+  &:hover,
+  &:focus {
+    background: #f4f6ff;
+    outline: none;
+  }
+}
+
 .no-data {
   display: flex;
   flex-direction: column;

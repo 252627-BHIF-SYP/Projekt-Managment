@@ -29,6 +29,13 @@ public record StudentProfileDto(
 
 public record ProfessorDto(string Id, string FirstName, string LastName);
 
+public record ProfessorProfileDto(
+    string Id,
+    string Username,
+    string FirstName,
+    string LastName,
+    IReadOnlyList<ProjectDto> Projects);
+
 public record PersonCreateDto(
     string Id,
     string FirstName,

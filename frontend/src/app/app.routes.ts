@@ -14,6 +14,7 @@ import { StudentCreateComponent } from './pages/student-create/student-create.co
 import { StudentProfileComponent } from './pages/student-profile/student-profile.component';
 import { ProfessorsComponent } from './pages/professors/professors.component';
 import { ProfessorCreateComponent } from './pages/professor-create/professor-create.component';
+import { ProfessorProfileComponent } from './pages/professor-profile/professor-profile.component';
 
 /**
  * Application routes
@@ -77,6 +78,12 @@ export const routes: Routes = [
         component: ProfessorCreateComponent,
         canActivate: [roleGuard],
         data: { roles: [Role.AV, Role.SYS_ADMIN] }
+      },
+      {
+        path: 'professors/:id/profile',
+        component: ProfessorProfileComponent,
+        canActivate: [roleGuard],
+        data: { roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] }
       },
       {
         path: 'projects/create',

@@ -1,0 +1,114 @@
+<div class="page-container">
+  <div class="page-header">
+    <button mat-icon-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Professor Profile</h1>
+  </div>
+
+  <div *ngIf="loading()" class="loading-container">
+    <mat-spinner></mat-spinner>
+  </div>
+
+  <div class="no-data" *ngIf="!loading() && notFound()">
+    <mat-icon>info</mat-icon>
+    <h3>Professor not found</h3>
+    <p>The selected professor profile could not be loaded.</p>
+  </div>
+
+  <ng-container *ngIf="!loading() && professor() as item">
+    <mat-card class="profile-card">
+      <mat-card-header>
+        <div mat-card-avatar class="profile-avatar">
+          <mat-icon>school</mat-icon>
+        </div>
+        <mat-card-title>{{ item.firstName }} {{ item.lastName }}</mat-card-title>
+        <mat-card-subtitle>{{ item.username }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">IF name / Username</span>
+            <span class="value">{{ item.username }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">First Name</span>
+            <span class="value">{{ item.firstName }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Last Name</span>
+            <span class="value">{{ item.lastName }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <section class="profile-projects">
+      <div class="section-header">
+        <h2>Supervised Projects</h2>
+      </div>
+
+      <div class="project-filters">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search</mat-label>
+          <input
+            matInput
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="loadProfessorProfile()"
+            placeholder="Search projects">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>School Year</mat-label>
+          <mat-select [(ngModel)]="schoolYearId" (ngModelChange)="loadProfessorProfile()">
+            <mat-option value="">All</mat-option>
+            <mat-option *ngFor="let year of schoolYears()" [value]="year.id">
+              {{ year.year }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Status</mat-label>
+          <mat-select [(ngModel)]="status" (ngModelChange)="loadProfessorProfile()">
+            <mat-option value="">All</mat-option>
+            <mat-option *ngFor="let projectStatus of projectStatuses" [value]="projectStatus">
+              {{ projectStatus }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Project Type</mat-label>
+          <mat-select [(ngModel)]="projectType" (ngModelChange)="loadProfessorProfile()">
+            <mat-option value="">All</mat-option>
+            <mat-option *ngFor="let type of projectTypes" [value]="type">
+              {{ type }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-raised-button (click)="clearProjectFilters()">
+          <mat-icon>clear</mat-icon>
+          Clear
+        </button>
+      </div>
+
+      <div class="project-grid" *ngIf="item.projects.length > 0">
+        <app-project-card
+          *ngFor="let project of item.projects"
+          [project]="project"
+          (cardClick)="viewProject($event)">
+        </app-project-card>
+      </div>
+
+      <div class="no-data" *ngIf="item.projects.length === 0">
+        <mat-icon>folder_open</mat-icon>
+        <h3>No projects found</h3>
+        <p>No supervised projects match this professor or the selected filters.</p>
+      </div>
+    </section>
+  </ng-container>
+</div>

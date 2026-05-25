@@ -1,14 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { User, Role, ProfessorDTO, PersonCreatePayload } from '../core/models';
+import { User, Role, ProfessorDTO, PersonCreatePayload, ProfessorProfileDetail, ProfessorProfileDetailDTO, ProjectFilter } from '../core/models';
 import { ApiService } from '../core/services/api.service';
+import { ProjectService } from './project.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
   private readonly apiService = inject(ApiService);
+  private readonly projectService = inject(ProjectService);
 
   private mapProfessorDtoToUser(dto: ProfessorDTO): User {
     return {
@@ -48,6 +50,24 @@ export class UserService {
   getUserById(id: string): Observable<User> {
     return this.apiService.get<ProfessorDTO>(`/Professor/${id}`).pipe(
       map(dto => this.mapProfessorDtoToUser(dto))
+    );
+  }
+
+  getProfessorProfile(id: string, filter: ProjectFilter = {}): Observable<ProfessorProfileDetail> {
+    return this.apiService.get<ProfessorProfileDetailDTO>(`/Professor/${id}/Profile`, {
+      searchTerm: filter.searchTerm,
+      schoolYearId: filter.schoolYearId,
+      projectType: filter.projectType,
+      status: filter.status
+    }).pipe(
+      map(dto => {
+        const professor = this.mapProfessorDtoToUser(dto);
+        return {
+          ...professor,
+          username: dto.username || dto.id,
+          projects: (dto.projects || []).map(project => this.projectService.mapProjectDto(project))
+        };
+      })
     );
   }
 

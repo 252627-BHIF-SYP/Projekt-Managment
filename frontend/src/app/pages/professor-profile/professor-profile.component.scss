@@ -1,0 +1,146 @@
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-card,
+.profile-projects {
+  max-width: 1200px;
+  margin: 0 auto 24px;
+}
+
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef1ff;
+  border-radius: 50%;
+
+  mat-icon {
+    color: #4354b8;
+  }
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .label {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .value {
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.87);
+  }
+}
+
+.section-header {
+  margin-bottom: 16px;
+
+  h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 400;
+  }
+}
+
+.project-filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: start;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+  mat-form-field {
+    min-width: 0;
+    font-size: 14px;
+  }
+
+  button {
+    height: 56px;
+    min-width: auto;
+    padding: 0 14px;
+  }
+
+  button mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 24px;
+}
+
+.loading-container,
+.no-data {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.loading-container,
+.no-data {
+  flex-direction: column;
+  min-height: 240px;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 12px;
+  }
+
+  h3 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    font-weight: 400;
+  }
+
+  p {
+    margin: 0;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .project-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .project-filters button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .info-grid,
+  .project-filters,
+  .project-grid {
+    grid-template-columns: 1fr;
+  }
+}

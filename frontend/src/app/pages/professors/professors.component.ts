@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
+import { Router } from '@angular/router';
 import { User } from '../../core/models';
 import { UserService } from '../../services/user.service';
 
@@ -26,6 +27,7 @@ import { UserService } from '../../services/user.service';
 })
 export class ProfessorsComponent implements OnInit {
   private readonly userService = inject(UserService);
+  private readonly router = inject(Router);
 
   professors = signal<User[]>([]);
   filteredProfessors = signal<User[]>([]);
@@ -50,5 +52,9 @@ export class ProfessorsComponent implements OnInit {
     });
 
     this.filteredProfessors.set(filtered);
+  }
+
+  openProfessorProfile(professor: User): void {
+    this.router.navigate(['/professors', professor.id, 'profile']);
   }
 }

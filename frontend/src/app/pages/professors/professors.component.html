@@ -14,7 +14,13 @@
       </div>
 
       <mat-list *ngIf="filteredProfessors().length > 0">
-        <mat-list-item *ngFor="let professor of filteredProfessors()">
+        <mat-list-item
+          class="professor-list-item"
+          *ngFor="let professor of filteredProfessors()"
+          tabindex="0"
+          (click)="openProfessorProfile(professor)"
+          (keydown.enter)="openProfessorProfile(professor)"
+          (keydown.space)="openProfessorProfile(professor)">
           <mat-icon matListItemIcon>school</mat-icon>
           <div matListItemTitle>{{ professor.firstName }} {{ professor.lastName }}</div>
           <div matListItemLine>{{ professor.username }} &bull; {{ professor.email }}</div>
