@@ -8,6 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
+import { Router } from '@angular/router';
 import { StudentClassHistoryDTO, StudentProfile, Class, SchoolYear } from '../../core/models';
 import { StudentService } from '../../services/student.service';
 import { SchoolYearService } from '../../services/schoolyear.service';
@@ -33,6 +34,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 export class StudentsComponent implements OnInit {
   private readonly studentService = inject(StudentService);
   private readonly schoolYearService = inject(SchoolYearService);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   students = signal<StudentProfile[]>([]);
@@ -117,6 +119,10 @@ export class StudentsComponent implements OnInit {
 
   getDisplayClassName(student: StudentProfile): string {
     return this.getVisibleHistory(student, this.getEffectiveSchoolYearIds())?.className || student.className || '';
+  }
+
+  openStudentProfile(student: StudentProfile): void {
+    this.router.navigate(['/students', student.id, 'profile']);
   }
 
   private getVisibleHistory(student: StudentProfile, schoolYearIds?: string[]): StudentClassHistoryDTO | undefined {

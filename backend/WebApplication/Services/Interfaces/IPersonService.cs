@@ -19,6 +19,14 @@ public record StudentDto(
     string LastName,
     IReadOnlyList<StudentClassHistoryDto> Histories);
 
+public record StudentProfileDto(
+    string Id,
+    string Username,
+    string FirstName,
+    string LastName,
+    IReadOnlyList<StudentClassHistoryDto> Histories,
+    IReadOnlyList<ProjectDto> Projects);
+
 public record ProfessorDto(string Id, string FirstName, string LastName);
 
 public record PersonCreateDto(

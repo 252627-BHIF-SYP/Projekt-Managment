@@ -4,18 +4,23 @@ import { map } from 'rxjs/operators';
 import {
   Class,
   PersonCreatePayload,
+  ProjectFilter,
   StudentClassDTO,
   StudentDTO,
   StudentProfile,
+  StudentProfileDetail,
+  StudentProfileDetailDTO,
   StudentStatus
 } from '../core/models';
 import { ApiService } from '../core/services/api.service';
+import { ProjectService } from './project.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StudentService {
   private readonly apiService = inject(ApiService);
+  private readonly projectService = inject(ProjectService);
 
   private mapStudentDto(dto: StudentDTO): StudentProfile {
     const currentHistory = dto.histories?.[0];
@@ -80,6 +85,24 @@ export class StudentService {
   getStudentById(id: string): Observable<StudentProfile> {
     return this.apiService.get<StudentDTO>(`/Student/${id}`).pipe(
       map(dto => this.mapStudentDto(dto))
+    );
+  }
+
+  getStudentProfile(id: string, filter: ProjectFilter = {}): Observable<StudentProfileDetail> {
+    return this.apiService.get<StudentProfileDetailDTO>(`/Student/${id}/Profile`, {
+      searchTerm: filter.searchTerm,
+      schoolYearId: filter.schoolYearId,
+      projectType: filter.projectType,
+      status: filter.status
+    }).pipe(
+      map(dto => {
+        const student = this.mapStudentDto(dto);
+        return {
+          ...student,
+          username: dto.username || dto.id,
+          projects: (dto.projects || []).map(project => this.projectService.mapProjectDto(project))
+        };
+      })
     );
   }
 

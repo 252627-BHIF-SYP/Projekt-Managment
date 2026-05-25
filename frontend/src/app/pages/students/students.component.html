@@ -35,7 +35,13 @@
       </div>
 
       <mat-list *ngIf="filteredStudents().length > 0">
-        <mat-list-item *ngFor="let s of filteredStudents()">
+        <mat-list-item
+          class="student-list-item"
+          *ngFor="let s of filteredStudents()"
+          tabindex="0"
+          (click)="openStudentProfile(s)"
+          (keydown.enter)="openStudentProfile(s)"
+          (keydown.space)="openStudentProfile(s)">
           <div matListItemTitle>{{ s.firstName }} {{ s.lastName }}</div>
           <div matListItemLine>{{ s.studentNumber }} &bull; {{ getDisplayClassName(s) }} &bull; {{ s.email }}</div>
         </mat-list-item>

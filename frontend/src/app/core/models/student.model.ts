@@ -1,4 +1,5 @@
 import { Role } from './user.model';
+import { Project, ProjectDTO } from './project.model';
 
 /**
  * Backend API DTO from StudentController
@@ -11,6 +12,11 @@ export interface StudentDTO {
   firstName: string;
   lastName: string;
   histories?: StudentClassHistoryDTO[];
+}
+
+export interface StudentProfileDetailDTO extends StudentDTO {
+  username: string;
+  projects: ProjectDTO[];
 }
 
 export interface StudentClassHistoryDTO {
@@ -46,6 +52,11 @@ export interface StudentProfile {
   histories?: StudentClassHistoryDTO[];
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface StudentProfileDetail extends StudentProfile {
+  username: string;
+  projects: Project[];
 }
 
 /**

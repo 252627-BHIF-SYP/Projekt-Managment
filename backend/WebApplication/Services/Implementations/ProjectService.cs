@@ -35,27 +35,46 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
             return [];
         }
 
-        var username = actor.Username.Trim();
+        var username = actor.Username.Trim().ToLower();
         var query = ProjectGraph().AsNoTracking();
 
         if (actor.IsProfessor && actor.IsStudent)
         {
             query = query.Where(p =>
-                p.ProjectSupervisors.Any(s => s.ProfessorId.ToLower() == username.ToLower()) ||
+                p.ProjectSupervisors.Any(s => s.ProfessorId.ToLower() == username) ||
                 p.ProjectStudents.Any(s =>
                     s.StudentClassHistory != null &&
-                    s.StudentClassHistory.StudentId.ToLower() == username.ToLower()));
+                    s.StudentClassHistory.StudentId.ToLower() == username));
         }
         else if (actor.IsProfessor)
         {
-            query = query.Where(p => p.ProjectSupervisors.Any(s => s.ProfessorId.ToLower() == username.ToLower()));
+            query = query.Where(p => p.ProjectSupervisors.Any(s => s.ProfessorId.ToLower() == username));
         }
         else
         {
             query = query.Where(p => p.ProjectStudents.Any(s =>
                 s.StudentClassHistory != null &&
-                s.StudentClassHistory.StudentId.ToLower() == username.ToLower()));
+                s.StudentClassHistory.StudentId.ToLower() == username));
         }
+
+        query = ApplyProjectFilter(query, filter);
+
+        var projects = await query
+            .OrderBy(p => p.Title)
+            .ToListAsync();
+
+        return projects.Select(ToDto).ToList();
+    }
+
+    public async Task<IReadOnlyList<ProjectDto>> GetStudentProjectsAsync(string studentId, ProjectFilterDto filter)
+    {
+        var normalizedStudentId = studentId.Trim().ToLower();
+
+        var query = ProjectGraph()
+            .AsNoTracking()
+            .Where(p => p.ProjectStudents.Any(s =>
+                s.StudentClassHistory != null &&
+                s.StudentClassHistory.StudentId.ToLower() == normalizedStudentId));
 
         query = ApplyProjectFilter(query, filter);
 
