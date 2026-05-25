@@ -192,11 +192,16 @@
       </mat-card>
     </div>
 
+    <!-- CSV Import -->
+    <section id="csv-import" class="csv-import-section">
+      <app-import></app-import>
+    </section>
+
     <!-- Quick Actions -->
     <div class="admin-actions">
       <h3>Administrator Aktionen</h3>
       <div class="actions-grid">
-        <button mat-raised-button color="primary" routerLink="/import" class="action-button">
+        <button mat-raised-button color="primary" class="action-button" (click)="scrollToImportSection()">
           <mat-icon>upload_file</mat-icon>
           <span>Daten Importieren</span>
         </button>
@@ -221,35 +226,6 @@
           <span>Einstellungen</span>
         </button>
       </div>
-    </div>
-    
-    <!-- Klassen Dashboard -->
-    <div class="classes-dashboard" *ngIf="classDashboard$ | async as years">
-      <mat-card class="section-card">
-        <mat-card-header>
-          <mat-card-title>Klassenübersicht nach Schuljahr</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="years-list">
-            <div *ngFor="let y of years" class="year-block">
-              <h3>{{ y.year }}</h3>
-              <div class="classes-list">
-                <div *ngFor="let c of y.classes" class="class-card">
-                  <div class="class-header">
-                    <div class="class-name">{{ c.name }}</div>
-                    <div class="class-branch">{{ c.branch }}</div>
-                    <div class="class-count">{{ c.students.length }} Schüler</div>
-                  </div>
-                  <div class="students-list">
-                    <div *ngFor="let s of c.students" class="student-line">{{ s.lastName }}, {{ s.firstName }}</div>
-                    <div *ngIf="c.students.length === 0" class="empty">keine Schüler</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
     </div>
   </div>
 </div>

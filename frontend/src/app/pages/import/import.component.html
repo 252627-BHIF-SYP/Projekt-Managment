@@ -1,207 +1,266 @@
-    <div class="page-container">
-      <div class="page-header">
-        <h1>Import Data</h1>
+<div class="page-container">
+  <div class="page-header">
+    <h1>CSV-Import</h1>
+    <p class="header-subtitle">Schüler und Professoren zentral im Admin-Dashboard importieren</p>
+  </div>
+
+  <mat-tab-group>
+    <!-- Import Students Tab -->
+    <mat-tab label="Schüler importieren">
+      <div class="tab-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Schüler importieren</mat-card-title>
+            <mat-card-subtitle>CSV-Datei hochladen und Schüler importieren</mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div class="import-instructions">
+              <mat-icon>info</mat-icon>
+              <div>
+                <p><strong>Anleitung:</strong></p>
+                <ul>
+                  <li>Template herunterladen und mit den Schülerdaten befüllen</li>
+                  <li>Alle Pflichtfelder ausfüllen</li>
+                  <li>Datei als CSV speichern</li>
+                  <li>CSV-Datei auswählen und nach der Vorschau importieren</li>
+                </ul>
+              </div>
+            </div>
+
+            <button mat-raised-button (click)="downloadTemplate(ImportType.STUDENTS)">
+              <mat-icon>download</mat-icon>
+              CSV-Template herunterladen
+            </button>
+
+            <div class="file-upload">
+              <input
+                type="file"
+                accept=".csv"
+                (change)="handleFileInput($event, ImportType.STUDENTS)"
+                #fileInputStudents
+                style="display: none;">
+
+              <button mat-raised-button color="accent" (click)="fileInputStudents.click()">
+                <mat-icon>upload_file</mat-icon>
+                CSV-Datei auswählen
+              </button>
+
+              <span class="file-name" *ngIf="selectedFile() as file">
+                <ng-container *ngIf="currentImportType() === ImportType.STUDENTS">
+                  {{ file.name }}
+                </ng-container>
+              </span>
+            </div>
+
+            <div class="validation-result" *ngIf="validation() as currentValidation">
+              <ng-container *ngIf="currentImportType() === ImportType.STUDENTS">
+                <div class="validation-header" [class.valid]="currentValidation.isValid" [class.invalid]="!currentValidation.isValid">
+                  <mat-icon>{{ currentValidation.isValid ? 'check_circle' : 'error' }}</mat-icon>
+                  <span>{{ currentValidation.isValid ? 'Datei ist gültig' : 'Validierungsfehler gefunden' }}</span>
+                </div>
+
+                <div class="errors" *ngIf="currentValidation.errors && currentValidation.errors.length > 0">
+                  <h4>Fehler:</h4>
+                  <ul>
+                    <li *ngFor="let error of currentValidation.errors">
+                      Zeile {{ error.row }}: {{ error.message }}
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="preview" *ngIf="currentValidation.preview">
+                  <h4>Vorschau der ersten 10 Zeilen:</h4>
+                  <table class="preview-table">
+                    <thead>
+                      <tr>
+                        <th *ngFor="let header of currentValidation.preview.headers">{{ header }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let row of currentValidation.preview.rows">
+                        <td *ngFor="let cell of row">{{ cell }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <p class="total-rows">Zeilen gesamt: {{ currentValidation.preview.totalRows }}</p>
+                </div>
+              </ng-container>
+            </div>
+
+            <div class="import-result" *ngIf="importResult() as result">
+              <ng-container *ngIf="importResultType() === ImportType.STUDENTS">
+                <div class="result-header">
+                  <mat-icon>task_alt</mat-icon>
+                  <span>Import-Ergebnis</span>
+                </div>
+
+                <div class="result-summary">
+                  <div><strong>Gesamt:</strong> {{ result.totalRows }}</div>
+                  <div><strong>Importiert:</strong> {{ result.importedCount }}</div>
+                  <div><strong>Übersprungen:</strong> {{ result.skippedCount }}</div>
+                  <div><strong>Fehlgeschlagen:</strong> {{ result.failedCount }}</div>
+                </div>
+
+                <div class="result-rows" *ngIf="result.rows && result.rows.length > 0">
+                  <h4>Details:</h4>
+                  <ul>
+                    <li *ngFor="let row of result.rows">
+                      Zeile {{ row.rowNumber }}: {{ row.status }}
+                      <span *ngIf="row.identifier">({{ row.identifier }})</span>
+                      <span *ngIf="row.reason">- {{ row.reason }}</span>
+                    </li>
+                  </ul>
+                </div>
+              </ng-container>
+            </div>
+
+            <mat-progress-bar mode="indeterminate" *ngIf="importing()"></mat-progress-bar>
+          </mat-card-content>
+
+          <mat-card-actions>
+            <button
+              mat-raised-button
+              color="primary"
+              [disabled]="!validation() || !validation()?.isValid || importing() || currentImportType() !== ImportType.STUDENTS"
+              (click)="performImport(ImportType.STUDENTS)">
+              {{ importing() ? 'Import läuft...' : 'Daten importieren' }}
+            </button>
+            <button mat-button (click)="reset()" [disabled]="importing()">
+              Zurücksetzen
+            </button>
+          </mat-card-actions>
+        </mat-card>
       </div>
+    </mat-tab>
 
-      <mat-tab-group>
-        <!-- Import Students Tab -->
-        <mat-tab label="Import Students">
-          <div class="tab-content">
-            <mat-card>
-              <mat-card-header>
-                <mat-card-title>Import Students</mat-card-title>
-                <mat-card-subtitle>Upload a CSV file to import students</mat-card-subtitle>
-              </mat-card-header>
+    <!-- Import Professors Tab -->
+    <mat-tab label="Professoren importieren">
+      <div class="tab-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Professoren importieren</mat-card-title>
+            <mat-card-subtitle>CSV-Datei hochladen und Professoren importieren</mat-card-subtitle>
+          </mat-card-header>
 
-              <mat-card-content>
-                <div class="import-instructions">
-                  <mat-icon>info</mat-icon>
-                  <div>
-                    <p><strong>Instructions:</strong></p>
-                    <ul>
-                      <li>Download the template file and fill in your data</li>
-                      <li>Ensure all required fields are filled</li>
-                      <li>Save as CSV format</li>
-                      <li>Upload the file below</li>
-                    </ul>
-                  </div>
+          <mat-card-content>
+            <div class="import-instructions">
+              <mat-icon>info</mat-icon>
+              <div>
+                <p><strong>Anleitung:</strong></p>
+                <ul>
+                  <li>Template herunterladen und mit den Professorendaten befüllen</li>
+                  <li>Alle Pflichtfelder ausfüllen</li>
+                  <li>Datei als CSV speichern</li>
+                  <li>CSV-Datei auswählen und nach der Vorschau importieren</li>
+                </ul>
+              </div>
+            </div>
+
+            <button mat-raised-button (click)="downloadTemplate(ImportType.TEACHERS)">
+              <mat-icon>download</mat-icon>
+              CSV-Template herunterladen
+            </button>
+
+            <div class="file-upload">
+              <input
+                type="file"
+                accept=".csv"
+                (change)="handleFileInput($event, ImportType.TEACHERS)"
+                #fileInputTeachers
+                style="display: none;">
+
+              <button mat-raised-button color="accent" (click)="fileInputTeachers.click()">
+                <mat-icon>upload_file</mat-icon>
+                CSV-Datei auswählen
+              </button>
+
+              <span class="file-name" *ngIf="selectedFile() as file">
+                <ng-container *ngIf="currentImportType() === ImportType.TEACHERS">
+                  {{ file.name }}
+                </ng-container>
+              </span>
+            </div>
+
+            <div class="validation-result" *ngIf="validation() as currentValidation">
+              <ng-container *ngIf="currentImportType() === ImportType.TEACHERS">
+                <div class="validation-header" [class.valid]="currentValidation.isValid" [class.invalid]="!currentValidation.isValid">
+                  <mat-icon>{{ currentValidation.isValid ? 'check_circle' : 'error' }}</mat-icon>
+                  <span>{{ currentValidation.isValid ? 'Datei ist gültig' : 'Validierungsfehler gefunden' }}</span>
                 </div>
 
-                <button mat-raised-button (click)="downloadTemplate(ImportType.STUDENTS)">
-                  <mat-icon>download</mat-icon>
-                  Download Template
-                </button>
-
-                
-
-                <div class="file-upload">
-                  <input 
-                    type="file" 
-                    accept=".csv"
-                    (change)="handleFileInput($event, ImportType.STUDENTS)"
-                    #fileInputStudents
-                    style="display: none;">
-                  
-                  <button mat-raised-button color="accent" (click)="fileInputStudents.click()">
-                    <mat-icon>upload_file</mat-icon>
-                    Choose CSV File
-                  </button>
-
-                  <span class="file-name" *ngIf="selectedFile() as file">{{ file.name }}</span>
+                <div class="errors" *ngIf="currentValidation.errors && currentValidation.errors.length > 0">
+                  <h4>Fehler:</h4>
+                  <ul>
+                    <li *ngFor="let error of currentValidation.errors">
+                      Zeile {{ error.row }}: {{ error.message }}
+                    </li>
+                  </ul>
                 </div>
 
-                <div class="validation-result" *ngIf="validation() as currentValidation">
-                  <ng-container *ngIf="currentImportType() === ImportType.STUDENTS">
-                  <div class="validation-header" [class.valid]="currentValidation.isValid" [class.invalid]="!currentValidation.isValid">
-                    <mat-icon>{{ currentValidation.isValid ? 'check_circle' : 'error' }}</mat-icon>
-                    <span>{{ currentValidation.isValid ? 'File is valid' : 'Validation errors found' }}</span>
-                  </div>
+                <div class="preview" *ngIf="currentValidation.preview">
+                  <h4>Vorschau der ersten 10 Zeilen:</h4>
+                  <table class="preview-table">
+                    <thead>
+                      <tr>
+                        <th *ngFor="let header of currentValidation.preview.headers">{{ header }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let row of currentValidation.preview.rows">
+                        <td *ngFor="let cell of row">{{ cell }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <p class="total-rows">Zeilen gesamt: {{ currentValidation.preview.totalRows }}</p>
+                </div>
+              </ng-container>
+            </div>
 
-                  <div class="errors" *ngIf="currentValidation.errors && currentValidation.errors.length > 0">
-                    <h4>Errors:</h4>
-                    <ul>
-                      <li *ngFor="let error of currentValidation.errors">
-                        Row {{ error.row }}: {{ error.message }}
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div class="preview" *ngIf="currentValidation.preview">
-                    <h4>Preview (first 10 rows):</h4>
-                    <table class="preview-table">
-                      <thead>
-                        <tr>
-                          <th *ngFor="let header of currentValidation.preview.headers">{{ header }}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr *ngFor="let row of currentValidation.preview.rows">
-                          <td *ngFor="let cell of row">{{ cell }}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                    <p class="total-rows">Total rows: {{ currentValidation.preview.totalRows }}</p>
-                  </div>
-                  </ng-container>
+            <div class="import-result" *ngIf="importResult() as result">
+              <ng-container *ngIf="importResultType() === ImportType.TEACHERS">
+                <div class="result-header">
+                  <mat-icon>task_alt</mat-icon>
+                  <span>Import-Ergebnis</span>
                 </div>
 
-                <mat-progress-bar mode="indeterminate" *ngIf="importing()"></mat-progress-bar>
-              </mat-card-content>
-
-              <mat-card-actions>
-                <button 
-                  mat-raised-button 
-                  color="primary"
-                  [disabled]="!validation() || !validation()?.isValid || importing() || currentImportType() !== ImportType.STUDENTS"
-                  (click)="performImport(ImportType.STUDENTS)">
-                  {{ importing() ? 'Importing...' : 'Import Data' }}
-                </button>
-                <button mat-button (click)="reset()" [disabled]="importing()">
-                  Reset
-                </button>
-              </mat-card-actions>
-            </mat-card>
-          </div>
-        </mat-tab>
-
-        <!-- Import Professors Tab -->
-        <mat-tab label="Import Professors">
-          <div class="tab-content">
-            <mat-card>
-              <mat-card-header>
-                <mat-card-title>Import Professors</mat-card-title>
-                <mat-card-subtitle>Upload a CSV file to import professors</mat-card-subtitle>
-              </mat-card-header>
-
-              <mat-card-content>
-                <div class="import-instructions">
-                  <mat-icon>info</mat-icon>
-                  <div>
-                    <p><strong>Instructions:</strong></p>
-                    <ul>
-                      <li>Download the template file and fill in your data</li>
-                      <li>Ensure all required fields are filled</li>
-                      <li>Save as CSV format</li>
-                      <li>Upload the file below</li>
-                    </ul>
-                  </div>
+                <div class="result-summary">
+                  <div><strong>Gesamt:</strong> {{ result.totalRows }}</div>
+                  <div><strong>Importiert:</strong> {{ result.importedCount }}</div>
+                  <div><strong>Übersprungen:</strong> {{ result.skippedCount }}</div>
+                  <div><strong>Fehlgeschlagen:</strong> {{ result.failedCount }}</div>
                 </div>
 
-                <button mat-raised-button (click)="downloadTemplate(ImportType.TEACHERS)">
-                  <mat-icon>download</mat-icon>
-                  Download Template
-                </button>
-
-                <div class="file-upload">
-                  <input 
-                    type="file" 
-                    accept=".csv"
-                    (change)="handleFileInput($event, ImportType.TEACHERS)"
-                    #fileInputTeachers
-                    style="display: none;">
-                  
-                  <button mat-raised-button color="accent" (click)="fileInputTeachers.click()">
-                    <mat-icon>upload_file</mat-icon>
-                    Choose CSV File
-                  </button>
-
-                  <span class="file-name" *ngIf="selectedFile() as file">{{ file.name }}</span>
+                <div class="result-rows" *ngIf="result.rows && result.rows.length > 0">
+                  <h4>Details:</h4>
+                  <ul>
+                    <li *ngFor="let row of result.rows">
+                      Zeile {{ row.rowNumber }}: {{ row.status }}
+                      <span *ngIf="row.identifier">({{ row.identifier }})</span>
+                      <span *ngIf="row.reason">- {{ row.reason }}</span>
+                    </li>
+                  </ul>
                 </div>
+              </ng-container>
+            </div>
 
-                <div class="validation-result" *ngIf="validation() as currentValidation">
-                  <ng-container *ngIf="currentImportType() === ImportType.TEACHERS">
-                  <div class="validation-header" [class.valid]="currentValidation.isValid" [class.invalid]="!currentValidation.isValid">
-                    <mat-icon>{{ currentValidation.isValid ? 'check_circle' : 'error' }}</mat-icon>
-                    <span>{{ currentValidation.isValid ? 'File is valid' : 'Validation errors found' }}</span>
-                  </div>
+            <mat-progress-bar mode="indeterminate" *ngIf="importing()"></mat-progress-bar>
+          </mat-card-content>
 
-                  <div class="errors" *ngIf="currentValidation.errors && currentValidation.errors.length > 0">
-                    <h4>Errors:</h4>
-                    <ul>
-                      <li *ngFor="let error of currentValidation.errors">
-                        Row {{ error.row }}: {{ error.message }}
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div class="preview" *ngIf="currentValidation.preview">
-                    <h4>Preview (first 10 rows):</h4>
-                    <table class="preview-table">
-                      <thead>
-                        <tr>
-                          <th *ngFor="let header of currentValidation.preview.headers">{{ header }}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr *ngFor="let row of currentValidation.preview.rows">
-                          <td *ngFor="let cell of row">{{ cell }}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                    <p class="total-rows">Total rows: {{ currentValidation.preview.totalRows }}</p>
-                  </div>
-                  </ng-container>
-                </div>
-
-                <mat-progress-bar mode="indeterminate" *ngIf="importing()"></mat-progress-bar>
-              </mat-card-content>
-
-              <mat-card-actions>
-                <button 
-                  mat-raised-button 
-                  color="primary"
-                  [disabled]="!validation() || !validation()?.isValid || importing() || currentImportType() !== ImportType.TEACHERS"
-                  (click)="performImport(ImportType.TEACHERS)">
-                  {{ importing() ? 'Importing...' : 'Import Data' }}
-                </button>
-                <button mat-button (click)="reset()" [disabled]="importing()">
-                  Reset
-                </button>
-              </mat-card-actions>
-            </mat-card>
-          </div>
-        </mat-tab>
-
-      </mat-tab-group>
-    </div>
-  
+          <mat-card-actions>
+            <button
+              mat-raised-button
+              color="primary"
+              [disabled]="!validation() || !validation()?.isValid || importing() || currentImportType() !== ImportType.TEACHERS"
+              (click)="performImport(ImportType.TEACHERS)">
+              {{ importing() ? 'Import läuft...' : 'Daten importieren' }}
+            </button>
+            <button mat-button (click)="reset()" [disabled]="importing()">
+              Zurücksetzen
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
