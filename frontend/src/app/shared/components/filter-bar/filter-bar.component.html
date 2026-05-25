@@ -13,9 +13,10 @@
     <mat-form-field appearance="outline" *ngIf="schoolYears && schoolYears.length > 0">
       <mat-label>School Year</mat-label>
       <mat-select
-        [(ngModel)]="filter.schoolYearId"
+        multiple
+        [(ngModel)]="filter.schoolYearIds"
         (ngModelChange)="onFilterChange()">
-        <mat-option [value]="undefined">All</mat-option>
+        <mat-option [value]="allValue">All</mat-option>
         <mat-option *ngFor="let year of schoolYears" [value]="year.id">
           {{ year.year }}
         </mat-option>
@@ -25,23 +26,23 @@
     <mat-form-field appearance="outline">
       <mat-label>Status</mat-label>
       <mat-select
-        [(ngModel)]="filter.status"
+        multiple
+        [(ngModel)]="filter.statuses"
         (ngModelChange)="onFilterChange()">
-        <mat-option [value]="undefined">All</mat-option>
-        <mat-option [value]="ProjectStatus.NEW">New</mat-option>
-        <mat-option [value]="ProjectStatus.PENDING">Pending</mat-option>
-        <mat-option [value]="ProjectStatus.ON_GOING">On Going</mat-option>
-        <mat-option [value]="ProjectStatus.COMPLETED">Completed</mat-option>
-        <mat-option [value]="ProjectStatus.ARCHIVED">Archived</mat-option>
+        <mat-option [value]="allValue">All</mat-option>
+        <mat-option *ngFor="let status of statuses" [value]="status">
+          {{ status }}
+        </mat-option>
       </mat-select>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Project Type</mat-label>
       <mat-select
-        [(ngModel)]="filter.projectType"
+        multiple
+        [(ngModel)]="filter.projectTypes"
         (ngModelChange)="onFilterChange()">
-        <mat-option [value]="undefined">All</mat-option>
+        <mat-option [value]="allValue">All</mat-option>
         <mat-option *ngFor="let type of projectTypes" [value]="type">{{ type }}</mat-option>
       </mat-select>
     </mat-form-field>
