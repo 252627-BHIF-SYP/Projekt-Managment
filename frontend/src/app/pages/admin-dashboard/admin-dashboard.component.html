@@ -222,5 +222,34 @@
         </button>
       </div>
     </div>
+    
+    <!-- Klassen Dashboard -->
+    <div class="classes-dashboard" *ngIf="classDashboard$ | async as years">
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-card-title>Klassenübersicht nach Schuljahr</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="years-list">
+            <div *ngFor="let y of years" class="year-block">
+              <h3>{{ y.year }}</h3>
+              <div class="classes-list">
+                <div *ngFor="let c of y.classes" class="class-card">
+                  <div class="class-header">
+                    <div class="class-name">{{ c.name }}</div>
+                    <div class="class-branch">{{ c.branch }}</div>
+                    <div class="class-count">{{ c.students.length }} Schüler</div>
+                  </div>
+                  <div class="students-list">
+                    <div *ngFor="let s of c.students" class="student-line">{{ s.lastName }}, {{ s.firstName }}</div>
+                    <div *ngIf="c.students.length === 0" class="empty">keine Schüler</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
   </div>
 </div>

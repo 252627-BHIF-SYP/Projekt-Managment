@@ -199,6 +199,54 @@
   }
 }
 
+.classes-dashboard {
+  margin-top: 20px;
+
+  .years-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .year-block {
+    margin-bottom: 8px;
+
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+    }
+
+    .classes-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .class-card {
+      padding: 12px;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+
+      .class-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 8px;
+
+        .class-name { font-weight: 600; }
+        .class-branch { color: rgba(0,0,0,0.6); font-size: 12px; }
+        .class-count { font-size: 12px; color: rgba(0,0,0,0.7); }
+      }
+
+      .students-list { font-size: 13px; color: rgba(0,0,0,0.8); }
+      .student-line { padding: 2px 0; }
+      .empty { color: rgba(0,0,0,0.5); font-style: italic; }
+    }
+  }
+}
+
 // Bar Chart Styles
 .diagram-container {
   display: grid;
