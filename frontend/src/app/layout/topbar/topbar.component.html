@@ -3,6 +3,17 @@
 
   <span class="spacer"></span>
 
+  <mat-form-field appearance="outline" class="global-year-select">
+    <mat-select
+      [ngModel]="selectedSchoolYearId"
+      (ngModelChange)="selectSchoolYear($event)"
+      [disabled]="schoolYears().length === 0">
+      <mat-option *ngFor="let year of schoolYears()" [value]="year.id">
+        {{ year.year }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
   <button mat-icon-button [matMenuTriggerFor]="userMenu">
     <mat-icon>account_circle</mat-icon>
   </button>

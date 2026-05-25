@@ -19,9 +19,7 @@ export class SchoolYearService {
     return this.apiService.get<SchoolYearDTO[]>('/SchoolYear/All').pipe(
       map(dtos => dtos.map(dto => this.mapSchoolYearDto(dto))),
       tap(years => {
-        if (years.length > 0 && !this.selectedSchoolYear()) {
-          this.selectedSchoolYear.set(years[0]);
-        }
+        this.ensureSelectedSchoolYear(years);
       })
     );
   }
@@ -34,10 +32,10 @@ export class SchoolYearService {
 
   getActiveSchoolYear(): Observable<SchoolYear | null> {
     return this.getSchoolYears().pipe(
-      map(years => years[0] || null),
+      map(years => this.findDefaultSchoolYear(years)),
       tap(year => {
         if (year) {
-          this.selectedSchoolYear.set(year);
+          this.selectSchoolYear(year);
         }
       })
     );
@@ -75,5 +73,45 @@ export class SchoolYearService {
       createdAt: new Date(),
       updatedAt: new Date()
     };
+  }
+
+  private ensureSelectedSchoolYear(years: SchoolYear[]): void {
+    if (years.length === 0) {
+      this.selectedSchoolYear.set(null);
+      return;
+    }
+
+    const selected = this.selectedSchoolYear();
+    const stillAvailable = years.find(year => year.id === selected?.id);
+    if (stillAvailable) {
+      this.selectedSchoolYear.set(stillAvailable);
+      return;
+    }
+
+    const defaultYear = this.findDefaultSchoolYear(years);
+    this.selectedSchoolYear.set(defaultYear);
+  }
+
+  private findDefaultSchoolYear(years: SchoolYear[]): SchoolYear | null {
+    const currentSchoolStartYear = this.getCurrentSchoolStartYear();
+    const currentYear = years.find(year => this.getStartYear(year.year) === currentSchoolStartYear);
+    if (currentYear) {
+      return currentYear;
+    }
+
+    return [...years].sort((a, b) => this.getStartYear(b.year) - this.getStartYear(a.year))[0] || null;
+  }
+
+  private getCurrentSchoolStartYear(): number {
+    const now = new Date();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+
+    return month >= 8 ? year : year - 1;
+  }
+
+  private getStartYear(year: string): number {
+    const match = year.match(/\d{4}/);
+    return match ? Number(match[0]) : 0;
   }
 }

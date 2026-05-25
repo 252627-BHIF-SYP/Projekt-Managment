@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,6 +12,7 @@ import { SchoolYearService } from '../../services/schoolyear.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Project, ProjectFilter, SchoolYear, Role } from '../../core/models';
 import { firstValueFrom } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
  * Projects list page
@@ -36,13 +37,27 @@ export class ProjectListComponent implements OnInit {
   private readonly schoolYearService = inject(SchoolYearService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   projects = signal<Project[]>([]);
   filteredProjects = signal<Project[]>([]);
   schoolYears = signal<SchoolYear[]>([]);
   loading = signal(true);
+  selectedGlobalSchoolYearId = '';
+  private readonly allValue = 'ALL';
+  private currentFilter: ProjectFilter = {};
+  private dataLoaded = false;
 
   ngOnInit(): void {
+    this.schoolYearService.selectedSchoolYear$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(year => {
+        this.selectedGlobalSchoolYearId = year?.id || '';
+        if (this.dataLoaded) {
+          this.applyFilter();
+        }
+      });
+
     this.loadData();
   }
 
@@ -50,13 +65,11 @@ export class ProjectListComponent implements OnInit {
     this.loading.set(true);
 
     Promise.all([
-      firstValueFrom(this.projectService.getProjects()),
       firstValueFrom(this.schoolYearService.getSchoolYears())
-    ]).then(([projects, schoolYears]) => {
-      this.projects.set(projects);
-      this.filteredProjects.set(projects);
+    ]).then(([schoolYears]) => {
       this.schoolYears.set(schoolYears);
-      this.loading.set(false);
+      this.selectedGlobalSchoolYearId = this.schoolYearService.getSelectedSchoolYear()?.id || '';
+      this.loadProjects();
     }).catch(error => {
       console.error('Error loading data:', error);
       this.loading.set(false);
@@ -64,17 +77,99 @@ export class ProjectListComponent implements OnInit {
   }
 
   onFilterChange(filter: ProjectFilter): void {
+    this.currentFilter = filter;
+    this.applyFilter();
+  }
+
+  private loadProjects(): void {
     this.loading.set(true);
-    this.projectService.getProjectsFiltered(filter).subscribe({
+
+    this.projectService.getProjects().subscribe({
       next: (projects) => {
-        this.filteredProjects.set(projects);
+        this.projects.set(projects);
+        this.dataLoaded = true;
+        this.applyFilter();
         this.loading.set(false);
       },
       error: (error) => {
-        console.error('Error filtering projects:', error);
+        console.error('Error loading projects:', error);
         this.loading.set(false);
       }
     });
+  }
+
+  private applyFilter(): void {
+    const term = (this.currentFilter.searchTerm || '').toLowerCase().trim();
+    const schoolYearIds = this.getEffectiveSchoolYearIds(term);
+    const statuses = this.getSelectedValues(this.currentFilter.statuses);
+    const projectTypes = this.getSelectedValues(this.currentFilter.projectTypes);
+
+    const filtered = this.projects().filter(project => {
+      if (schoolYearIds && !this.matchesSchoolYear(project, schoolYearIds)) {
+        return false;
+      }
+
+      if (statuses && !statuses.includes(project.status)) {
+        return false;
+      }
+
+      if (projectTypes && (!project.projectType || !projectTypes.includes(project.projectType))) {
+        return false;
+      }
+
+      if (!term) {
+        return true;
+      }
+
+      return this.matchesSearch(project, term);
+    });
+
+    this.filteredProjects.set(filtered);
+  }
+
+  private getEffectiveSchoolYearIds(searchTerm: string): string[] | undefined {
+    const selectedYears = this.currentFilter.schoolYearIds || [];
+
+    if (selectedYears.includes(this.allValue)) {
+      return undefined;
+    }
+
+    if (selectedYears.length > 0) {
+      return selectedYears;
+    }
+
+    if (searchTerm) {
+      return undefined;
+    }
+
+    const selectedYear = this.schoolYearService.getSelectedSchoolYear();
+    return selectedYear ? [selectedYear.id] : undefined;
+  }
+
+  private getSelectedValues(values?: string[]): string[] | undefined {
+    if (!values || values.length === 0 || values.includes(this.allValue)) {
+      return undefined;
+    }
+
+    return values;
+  }
+
+  private matchesSchoolYear(project: Project, schoolYearIds: string[]): boolean {
+    const projectSchoolYearIds = project.schoolYearIds && project.schoolYearIds.length > 0
+      ? project.schoolYearIds
+      : [project.schoolYearId];
+
+    return projectSchoolYearIds.some(id => schoolYearIds.includes(id));
+  }
+
+  private matchesSearch(project: Project, term: string): boolean {
+    const supervisorNames = project.supervisors?.map(supervisor => supervisor.supervisorName).join(' ') || '';
+    const studentNames = project.students?.map(student => student.studentName).join(' ') || '';
+    const technologies = project.technologies?.join(' ') || '';
+    const schoolYears = project.schoolYear || '';
+    const haystack = `${project.title} ${project.description} ${project.projectType} ${project.status} ${technologies} ${schoolYears} ${supervisorNames} ${studentNames}`.toLowerCase();
+
+    return haystack.includes(term);
   }
 
   viewProject(project: Project): void {

@@ -15,16 +15,19 @@
         <div class="filter-controls">
           <mat-form-field appearance="outline">
             <mat-label>Class</mat-label>
-            <mat-select [(ngModel)]="selectedClassId" (ngModelChange)="applyFilter()">
-              <mat-option [value]="undefined">All Classes</mat-option>
+            <mat-select multiple [(ngModel)]="selectedClassIds" (ngModelChange)="applyFilter()">
+              <mat-option [value]="allValue">All</mat-option>
               <mat-option *ngFor="let c of availableClasses()" [value]="c.id">{{ c.name }}</mat-option>
             </mat-select>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>School Year</mat-label>
-            <mat-select [(ngModel)]="selectedSchoolYearId" (ngModelChange)="applyFilter()">
-              <mat-option [value]="undefined">All Years</mat-option>
+            <mat-select
+              multiple
+              [(ngModel)]="selectedSchoolYearIds"
+              (ngModelChange)="applyFilter()">
+              <mat-option [value]="allValue">All</mat-option>
               <mat-option *ngFor="let year of schoolYears()" [value]="year.id">{{ year.year }}</mat-option>
             </mat-select>
           </mat-form-field>

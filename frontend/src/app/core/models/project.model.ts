@@ -162,9 +162,12 @@ export interface ProjectSupervisor {
 export interface ProjectFilter {
   searchTerm?: string;
   schoolYearId?: string;
+  schoolYearIds?: string[];
   classId?: string;
   supervisorId?: string;
   status?: ProjectStatus;
+  statuses?: string[];
   projectType?: string;
+  projectTypes?: string[];
   tags?: string[];
 }

@@ -23,3 +23,45 @@
   font-size: 12px;
   opacity: 0.7;
 }
+
+.global-year-select {
+  width: 190px;
+  min-width: 190px;
+  flex: 0 0 190px;
+  margin-right: 12px;
+  font-size: 13px;
+}
+
+.global-year-select ::ng-deep .mat-mdc-text-field-wrapper {
+  height: 44px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.global-year-select ::ng-deep .mat-mdc-form-field-flex {
+  height: 44px;
+  align-items: center;
+}
+
+.global-year-select ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.global-year-select ::ng-deep .mat-mdc-select-value,
+.global-year-select ::ng-deep .mat-mdc-floating-label,
+.global-year-select ::ng-deep .mat-mdc-select-arrow {
+  color: white;
+}
+
+.global-year-select ::ng-deep .mdc-notched-outline__leading,
+.global-year-select ::ng-deep .mdc-notched-outline__notch,
+.global-year-select ::ng-deep .mdc-notched-outline__trailing {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+@media (max-width: 760px) {
+  .global-year-select {
+    width: 150px;
+    min-width: 150px;
+    flex-basis: 150px;
+  }
+}
