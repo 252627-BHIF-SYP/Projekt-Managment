@@ -1,6 +1,15 @@
 <div class="page-container">
   <div class="page-header">
     <h1>Students</h1>
+    <button
+      *ngIf="canCreateStudent()"
+      mat-raised-button
+      color="primary"
+      type="button"
+      (click)="openCreateStudentDialog()">
+      <mat-icon>person_add</mat-icon>
+      <span>Schüler anlegen</span>
+    </button>
   </div>
 
   <mat-card>
@@ -15,19 +24,16 @@
         <div class="filter-controls">
           <mat-form-field appearance="outline">
             <mat-label>Class</mat-label>
-            <mat-select multiple [(ngModel)]="selectedClassIds" (ngModelChange)="applyFilter()">
-              <mat-option [value]="allValue">All</mat-option>
+            <mat-select [(ngModel)]="selectedClassId" (ngModelChange)="applyFilter()">
+              <mat-option [value]="undefined">All Classes</mat-option>
               <mat-option *ngFor="let c of availableClasses()" [value]="c.id">{{ c.name }}</mat-option>
             </mat-select>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>School Year</mat-label>
-            <mat-select
-              multiple
-              [(ngModel)]="selectedSchoolYearIds"
-              (ngModelChange)="applyFilter()">
-              <mat-option [value]="allValue">All</mat-option>
+            <mat-select [(ngModel)]="selectedSchoolYearId" (ngModelChange)="applyFilter()">
+              <mat-option [value]="undefined">All Years</mat-option>
               <mat-option *ngFor="let year of schoolYears()" [value]="year.id">{{ year.year }}</mat-option>
             </mat-select>
           </mat-form-field>
@@ -35,13 +41,7 @@
       </div>
 
       <mat-list *ngIf="filteredStudents().length > 0">
-        <mat-list-item
-          class="student-list-item"
-          *ngFor="let s of filteredStudents()"
-          tabindex="0"
-          (click)="openStudentProfile(s)"
-          (keydown.enter)="openStudentProfile(s)"
-          (keydown.space)="openStudentProfile(s)">
+        <mat-list-item *ngFor="let s of filteredStudents()">
           <div matListItemTitle>{{ s.firstName }} {{ s.lastName }}</div>
           <div matListItemLine>{{ s.studentNumber }} &bull; {{ getDisplayClassName(s) }} &bull; {{ s.email }}</div>
         </mat-list-item>

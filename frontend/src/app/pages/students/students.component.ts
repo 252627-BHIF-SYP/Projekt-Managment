@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -8,11 +8,20 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
-import { Router } from '@angular/router';
-import { StudentClassHistoryDTO, StudentProfile, Class, SchoolYear } from '../../core/models';
+import { MatButtonModule } from '@angular/material/button';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import {
+  StudentClassHistoryDTO,
+  StudentProfile,
+  Class,
+  Role,
+  SchoolYear,
+  PersonCreatePayload
+} from '../../core/models';
 import { StudentService } from '../../services/student.service';
 import { SchoolYearService } from '../../services/schoolyear.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-students',
@@ -26,7 +35,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     MatSelectModule,
     MatOptionModule,
     MatListModule,
-    MatIconModule
+    MatIconModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatSnackBarModule
   ],
   templateUrl: './students.component.html',
   styleUrl: './students.component.scss'
@@ -34,82 +46,103 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 export class StudentsComponent implements OnInit {
   private readonly studentService = inject(StudentService);
   private readonly schoolYearService = inject(SchoolYearService);
-  private readonly router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly authService = inject(AuthService);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
 
   students = signal<StudentProfile[]>([]);
   filteredStudents = signal<StudentProfile[]>([]);
   classes = signal<Class[]>([]);
   schoolYears = signal<SchoolYear[]>([]);
-  selectedGlobalSchoolYearId = '';
-  selectedClassIds: string[] = [];
-  selectedSchoolYearIds: string[] = [];
+  selectedClassId?: string;
+  selectedSchoolYearId?: string;
   searchTerm = '';
-  readonly allValue = 'ALL';
-  private lastClassIds: string[] = [];
-  private lastSchoolYearIds: string[] = [];
 
-  ngOnInit(): void {
-    this.schoolYearService.selectedSchoolYear$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(year => {
-        this.selectedGlobalSchoolYearId = year?.id || '';
-        this.applyFilter();
-      });
-
-    this.loadData();
-  }
-
-  availableClasses(): Class[] {
-    const effectiveSchoolYearIds = this.getEffectiveSchoolYearIds();
+  availableClasses = computed<Class[]>(() => {
     const classIds = new Set(
       this.students()
         .filter(student => this.matchesSearch(student))
-        .filter(student => this.matchesSchoolYear(student, effectiveSchoolYearIds))
-        .map(student => String(this.getVisibleHistory(student, effectiveSchoolYearIds)?.classId ?? student.classId))
+        .map(student => String(this.getVisibleHistory(student)?.classId ?? student.classId))
         .filter(Boolean)
     );
 
     return this.classes().filter(studentClass => classIds.has(studentClass.id));
+  });
+
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  canCreateStudent(): boolean {
+    return this.authService.hasAnyRole([Role.SYS_ADMIN, Role.AV]);
+  }
+
+  openCreateStudentDialog(): void {
+    const dialogRef = this.dialog.open(StudentCreateDialogComponent, {
+      width: '720px',
+      maxWidth: 'calc(100vw - 32px)',
+      data: {
+        classes: this.classes(),
+        schoolYears: this.schoolYears()
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((created?: StudentProfile) => {
+      if (!created) {
+        return;
+      }
+
+      this.snackBar.open('Schüler wurde angelegt.', 'Schließen', { duration: 3000 });
+      this.loadData();
+    });
   }
 
   private loadData(): void {
-    this.studentService.getStudents().subscribe(students => {
-      this.students.set(students);
-      this.applyFilter();
-    });
+    const canViewAll = this.authService.hasAnyRole([Role.SYS_ADMIN, Role.AV, Role.PROFESSOR]);
+    const selectedYear = this.schoolYearService.getSelectedSchoolYear();
 
-    this.studentService.getClasses().subscribe(classes => {
-      this.classes.set(classes);
-    });
-
-    this.schoolYearService.getSchoolYears().subscribe(years => {
-      this.schoolYears.set(years);
-      this.selectedGlobalSchoolYearId = this.schoolYearService.getSelectedSchoolYear()?.id || '';
-      this.applyFilter();
-    });
+    if (canViewAll) {
+      this.studentService.getStudents().subscribe(students => {
+        this.students.set(students);
+        this.applyFilter();
+      });
+      this.studentService.getClasses().subscribe(classes => {
+        this.classes.set(classes);
+      });
+      this.schoolYearService.getSchoolYears().subscribe(years => {
+        this.schoolYears.set(years);
+      });
+    } else if (selectedYear) {
+      this.studentService.getStudentsBySchoolYear(selectedYear.id).subscribe(students => {
+        this.students.set(students);
+        this.applyFilter();
+      });
+      this.studentService.getClassesBySchoolYear(selectedYear.id).subscribe(classes => {
+        this.classes.set(classes);
+      });
+    } else {
+      this.studentService.getStudents().subscribe(students => {
+        this.students.set(students);
+        this.applyFilter();
+      });
+      this.studentService.getClasses().subscribe(classes => {
+        this.classes.set(classes);
+      });
+      this.schoolYearService.getSchoolYears().subscribe(years => {
+        this.schoolYears.set(years);
+      });
+    }
   }
 
   applyFilter(): void {
-    this.normalizeAllValues();
-
     const term = (this.searchTerm || '').toLowerCase().trim();
-    const effectiveSchoolYearIds = this.getEffectiveSchoolYearIds();
-    const selectedClassIds = this.getSelectedValues(this.selectedClassIds);
-    const availableClassIds = new Set(this.availableClasses().map(studentClass => studentClass.id));
-
-    if (selectedClassIds) {
-      this.selectedClassIds = selectedClassIds.filter(id => availableClassIds.has(id));
-      this.lastClassIds = [...this.selectedClassIds];
-    }
-
-    const classIds = this.getSelectedValues(this.selectedClassIds);
     const filtered = this.students().filter(s => {
-      const visibleHistory = this.getVisibleHistory(s, effectiveSchoolYearIds);
+      const visibleHistory = this.getVisibleHistory(s);
       const visibleClassId = String(visibleHistory?.classId ?? s.classId);
+      const visibleSchoolYearId = String(visibleHistory?.schoolYearId ?? s.schoolYearId);
 
-      if (classIds && !classIds.includes(visibleClassId)) return false;
-      if (!this.matchesSchoolYear(s, effectiveSchoolYearIds)) return false;
+      if (this.selectedClassId && visibleClassId !== this.selectedClassId) return false;
+      if (this.selectedSchoolYearId && visibleSchoolYearId !== this.selectedSchoolYearId) return false;
       if (!term) return true;
       return this.matchesSearch(s);
     });
@@ -118,20 +151,16 @@ export class StudentsComponent implements OnInit {
   }
 
   getDisplayClassName(student: StudentProfile): string {
-    return this.getVisibleHistory(student, this.getEffectiveSchoolYearIds())?.className || student.className || '';
+    return this.getVisibleHistory(student)?.className || student.className || '';
   }
 
-  openStudentProfile(student: StudentProfile): void {
-    this.router.navigate(['/students', student.id, 'profile']);
-  }
-
-  private getVisibleHistory(student: StudentProfile, schoolYearIds?: string[]): StudentClassHistoryDTO | undefined {
+  private getVisibleHistory(student: StudentProfile): StudentClassHistoryDTO | undefined {
     if (!student.histories || student.histories.length === 0) {
       return undefined;
     }
 
-    if (schoolYearIds && schoolYearIds.length > 0) {
-      const historyForYear = student.histories.find(history => schoolYearIds.includes(String(history.schoolYearId)));
+    if (this.selectedSchoolYearId) {
+      const historyForYear = student.histories.find(history => String(history.schoolYearId) === this.selectedSchoolYearId);
       if (historyForYear) {
         return historyForYear;
       }
@@ -147,34 +176,6 @@ export class StudentsComponent implements OnInit {
     return student.histories[0];
   }
 
-  private getEffectiveSchoolYearIds(): string[] | undefined {
-    const selectedYears = this.selectedSchoolYearIds || [];
-
-    if (selectedYears.includes(this.allValue)) {
-      return undefined;
-    }
-
-    if (selectedYears.length > 0) {
-      return selectedYears;
-    }
-
-    if ((this.searchTerm || '').trim()) {
-      return undefined;
-    }
-
-    const selectedYear = this.selectedGlobalSchoolYearId || this.schoolYearService.getSelectedSchoolYear()?.id;
-    return selectedYear ? [selectedYear] : undefined;
-  }
-
-  private matchesSchoolYear(student: StudentProfile, schoolYearIds?: string[]): boolean {
-    if (!schoolYearIds || schoolYearIds.length === 0) {
-      return true;
-    }
-
-    return schoolYearIds.includes(student.schoolYearId) ||
-      !!student.histories?.some(history => schoolYearIds.includes(String(history.schoolYearId)));
-  }
-
   private matchesSearch(student: StudentProfile): boolean {
     const term = (this.searchTerm || '').toLowerCase().trim();
     if (!term) {
@@ -184,33 +185,165 @@ export class StudentsComponent implements OnInit {
     const haystack = `${student.firstName} ${student.lastName} ${student.email} ${student.studentNumber}`.toLowerCase();
     return haystack.includes(term);
   }
+}
 
-  private getSelectedValues(values?: string[]): string[] | undefined {
-    if (!values || values.length === 0 || values.includes(this.allValue)) {
-      return undefined;
+interface StudentCreateDialogData {
+  classes: Class[];
+  schoolYears: SchoolYear[];
+}
+
+@Component({
+  selector: 'app-student-create-dialog',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatOptionModule,
+    MatSelectModule
+  ],
+  template: `
+    <h2 mat-dialog-title>Schüler anlegen</h2>
+
+    <mat-dialog-content>
+      <div class="dialog-grid">
+        <mat-form-field appearance="outline" class="wide">
+          <mat-label>IF-Name / Benutzername</mat-label>
+          <input matInput [(ngModel)]="student.id" required>
+          <mat-error *ngIf="submitted() && !student.id.trim()">IF-Name ist erforderlich.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Vorname</mat-label>
+          <input matInput [(ngModel)]="student.firstName" required>
+          <mat-error *ngIf="submitted() && !student.firstName.trim()">Vorname ist erforderlich.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Nachname</mat-label>
+          <input matInput [(ngModel)]="student.lastName" required>
+          <mat-error *ngIf="submitted() && !student.lastName.trim()">Nachname ist erforderlich.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Klasse</mat-label>
+          <mat-select [(ngModel)]="student.classId" required>
+            <mat-option *ngFor="let c of data.classes" [value]="c.id">{{ c.name }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="submitted() && !student.classId">Klasse ist erforderlich.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Schuljahr</mat-label>
+          <mat-select [(ngModel)]="student.schoolYearId" required>
+            <mat-option *ngFor="let year of data.schoolYears" [value]="year.id">{{ year.year }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="submitted() && !student.schoolYearId">Schuljahr ist erforderlich.</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="dialog-error" *ngIf="errorMessage()">
+        <mat-icon>error</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button mat-button type="button" [disabled]="saving()" mat-dialog-close>Abbrechen</button>
+      <button mat-raised-button color="primary" type="button" [disabled]="saving()" (click)="save()">
+        <mat-icon>person_add</mat-icon>
+        {{ saving() ? 'Speichern...' : 'Anlegen' }}
+      </button>
+    </mat-dialog-actions>
+  `,
+  styles: [`
+    .dialog-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      padding-top: 8px;
     }
 
-    return values;
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .dialog-error {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+      color: #b00020;
+    }
+
+    @media (max-width: 640px) {
+      .dialog-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  `]
+})
+export class StudentCreateDialogComponent {
+  private readonly studentService = inject(StudentService);
+  private readonly dialogRef = inject(MatDialogRef<StudentCreateDialogComponent>);
+  readonly data = inject<StudentCreateDialogData>(MAT_DIALOG_DATA);
+
+  saving = signal(false);
+  submitted = signal(false);
+  errorMessage = signal('');
+  student = {
+    id: '',
+    firstName: '',
+    lastName: '',
+    classId: undefined as string | undefined,
+    schoolYearId: undefined as string | undefined
+  };
+
+  save(): void {
+    this.submitted.set(true);
+    this.errorMessage.set('');
+
+    if (this.isInvalid()) {
+      return;
+    }
+
+    const payload: PersonCreatePayload = {
+      id: this.student.id.trim(),
+      firstName: this.student.firstName.trim(),
+      lastName: this.student.lastName.trim(),
+      personType: 'Student',
+      classId: Number(this.student.classId),
+      schoolYearId: Number(this.student.schoolYearId)
+    };
+
+    this.saving.set(true);
+    this.studentService.createStudent(payload).subscribe({
+      next: created => this.dialogRef.close(created),
+      error: error => {
+        this.saving.set(false);
+        this.errorMessage.set(this.toErrorMessage(error));
+      }
+    });
   }
 
-  private normalizeAllValues(): void {
-    this.selectedClassIds = this.normalizeSelection(this.selectedClassIds, this.lastClassIds);
-    this.selectedSchoolYearIds = this.normalizeSelection(this.selectedSchoolYearIds, this.lastSchoolYearIds);
-
-    this.lastClassIds = [...this.selectedClassIds];
-    this.lastSchoolYearIds = [...this.selectedSchoolYearIds];
+  private isInvalid(): boolean {
+    return !this.student.id.trim() ||
+      !this.student.firstName.trim() ||
+      !this.student.lastName.trim() ||
+      !this.student.classId ||
+      !this.student.schoolYearId;
   }
 
-  private normalizeSelection(selected: string[], previous: string[]): string[] {
-    if (!selected.includes(this.allValue)) {
-      return selected;
-    }
-
-    if (!previous.includes(this.allValue)) {
-      return [this.allValue];
-    }
-
-    return selected.filter(value => value !== this.allValue);
+  private toErrorMessage(error: unknown): string {
+    const apiError = error as { error?: { detail?: string; title?: string; message?: string } };
+    return apiError.error?.detail ||
+      apiError.error?.message ||
+      apiError.error?.title ||
+      'Schüler konnte nicht angelegt werden.';
   }
 }
 
