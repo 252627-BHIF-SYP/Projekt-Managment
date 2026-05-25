@@ -47,6 +47,17 @@ export class ProjectService {
     );
   }
 
+  getMyProjects(filter: ProjectFilter = {}): Observable<Project[]> {
+    return this.apiService.get<ProjectDTO[]>('/Project/My', {
+      searchTerm: filter.searchTerm,
+      schoolYearId: filter.schoolYearId,
+      projectType: filter.projectType,
+      status: filter.status
+    }).pipe(
+      map(dtos => dtos.map(dto => this.mapProjectDto(dto)))
+    );
+  }
+
   getProjectById(id: string): Observable<Project> {
     return this.apiService.get<ProjectDTO>(`/Project/${id}`).pipe(
       map(dto => this.mapProjectDto(dto))
