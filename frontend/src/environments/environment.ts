@@ -4,7 +4,7 @@
 export const environment = {
   production: true,
   apiUrl: '/api',
-  keycloakUrl: 'http://localhost:8081',
-  keycloakRealm: 'school-management',
-  keycloakClientId: 'school-management-frontend'
+  keycloakUrl: 'https://auth.htl-leonding.ac.at',
+  keycloakRealm: 'htlleonding',
+  keycloakClientId: 'htlleonding-service'
 };

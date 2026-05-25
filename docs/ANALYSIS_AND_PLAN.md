@@ -133,7 +133,6 @@ Docker/Infra:
 - `backend/WebApplication/WebAPI/Dockerfile`
 - `frontend/Dockerfile`
 - `frontend/nginx.conf`
-- `infra/keycloak/realm-import/school-management-realm.json`
 - neue Startdokumentation unter `docs/`
 
 ### Bestehende Teile, die erhalten bleiben sollen

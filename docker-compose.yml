@@ -16,19 +16,6 @@ services:
       timeout: 5s
       retries: 5
 
-  keycloak:
-    image: quay.io/keycloak/keycloak:25.0.6
-    container_name: school-project-keycloak
-    command: start-dev --import-realm --hostname-strict=false
-    environment:
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
-    ports:
-      - "8081:8080"
-    volumes:
-      - keycloak_data:/opt/keycloak/data
-      - ./infra/keycloak/realm-import:/opt/keycloak/data/import:ro
-
   backend:
     build:
       context: ./backend/WebApplication
@@ -39,16 +26,14 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-project_catalog_db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
       Cors__AllowedOrigins__0: http://localhost:4200
-      Authentication__Authority: http://keycloak:8080/realms/school-management
-      Authentication__Audience: school-management-frontend
+      Authentication__Authority: https://auth.htl-leonding.ac.at/realms/htlleonding
+      Authentication__Audience: htlleonding-service
       Authentication__RequireHttpsMetadata: "false"
     ports:
       - "5144:8080"
     depends_on:
       postgres:
         condition: service_healthy
-      keycloak:
-        condition: service_started
 
   frontend:
     build:
@@ -59,8 +44,6 @@ services:
       - "4200:80"
     depends_on:
       - backend
-      - keycloak
 
 volumes:
   postgres_data:
-  keycloak_data:
