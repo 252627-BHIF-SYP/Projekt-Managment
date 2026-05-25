@@ -1,6 +1,15 @@
 <div class="page-container">
   <div class="page-header">
     <h1>Professors</h1>
+    <button
+      *ngIf="canCreateProfessor()"
+      mat-raised-button
+      color="primary"
+      type="button"
+      (click)="openCreateProfessorDialog()">
+      <mat-icon>person_add</mat-icon>
+      <span>Professor anlegen</span>
+    </button>
   </div>
 
   <mat-card>
