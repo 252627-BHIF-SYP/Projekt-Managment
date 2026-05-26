@@ -10,10 +10,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ImportService } from '../../services/import.service';
-import { ImportType, ImportValidation } from '../../core/models';
+import { ImportResultDTO, ImportType, ImportValidation } from '../../core/models';
 
 /**
- * Import page for importing students, teachers, and projects
+ * Import page for importing students and professors from CSV files.
  */
 @Component({
   selector: 'app-import',
@@ -38,11 +38,13 @@ export class ImportComponent {
   private readonly snackBar = inject(MatSnackBar);
 
   ImportType = ImportType;
-  
+
   selectedFile = signal<File | undefined>(undefined);
   validation = signal<ImportValidation | undefined>(undefined);
   importing = signal(false);
   currentImportType = signal<ImportType | undefined>(undefined);
+  importResult = signal<ImportResultDTO | undefined>(undefined);
+  importResultType = signal<ImportType | undefined>(undefined);
 
   downloadTemplate(type: ImportType): void {
     this.importService.downloadTemplate(type);
@@ -54,6 +56,8 @@ export class ImportComponent {
       const file = input.files[0];
       this.selectedFile.set(file);
       this.currentImportType.set(type);
+      this.importResult.set(undefined);
+      this.importResultType.set(undefined);
       this.validateFile(file, type);
 
       // Allow selecting the same file again (browser otherwise may not fire change).
@@ -88,12 +92,18 @@ export class ImportComponent {
 
     this.importService.importCsv(file, type).subscribe({
       next: (result) => {
+        this.importResult.set(result);
+        this.importResultType.set(type);
+        this.selectedFile.set(undefined);
+        this.validation.set(undefined);
+        this.importing.set(false);
+        this.currentImportType.set(undefined);
+
         this.snackBar.open(
           `Import completed! ${result.importedCount}/${result.totalRows} records imported successfully.`,
           'Close',
           { duration: 5000 }
         );
-        this.reset();
       },
       error: (error) => {
         console.error('Import error:', error);
@@ -110,6 +120,7 @@ export class ImportComponent {
     this.validation.set(undefined);
     this.importing.set(false);
     this.currentImportType.set(undefined);
+    this.importResult.set(undefined);
+    this.importResultType.set(undefined);
   }
 }
-

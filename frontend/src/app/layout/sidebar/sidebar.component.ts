@@ -41,7 +41,6 @@ export class SidebarComponent {
     { label: 'Professors', icon: 'groups', route: '/professors', roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] },
     { label: 'Create Professor', icon: 'person_add', route: '/professors/create', roles: [Role.AV, Role.SYS_ADMIN] },
     { label: 'Admin Dashboard', icon: 'admin_panel_settings', route: '/admin-dashboard', roles: [Role.SYS_ADMIN, Role.AV] },
-    { label: 'Import', icon: 'upload_file', route: '/import', roles: [Role.SYS_ADMIN, Role.AV] },
     { label: 'Profile', icon: 'person', route: '/profile' }
   ];
 
