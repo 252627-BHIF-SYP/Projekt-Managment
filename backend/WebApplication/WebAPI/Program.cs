@@ -65,15 +65,14 @@ if (useAuth)
             };
             options.Events = new JwtBearerEvents
             {
-                OnTokenValidated = context =>
+                OnTokenValidated = async context =>
                 {
                     if (context.Principal?.Identity is ClaimsIdentity identity &&
                         context.SecurityToken is Microsoft.IdentityModel.JsonWebTokens.JsonWebToken token)
                     {
                         AddKeycloakRoles(identity, token);
+                        await AddDatabaseRolesAsync(context.HttpContext, identity);
                     }
-
-                    return Task.CompletedTask;
                 }
             };
         });
@@ -81,15 +80,10 @@ if (useAuth)
     builder.Services.AddAuthorization(options =>
     {
         options.AddPolicy("ProjectAccess", policy =>
-            policy.RequireRole(
-                AuthRoles.Admin,
-                AuthRoles.SysAdmin,
-                AuthRoles.Av,
-                AuthRoles.Professor,
-                AuthRoles.Student));
+            policy.RequireAuthenticatedUser());
 
         options.AddPolicy("AdminAccess", policy =>
-            policy.RequireRole(AuthRoles.Admin, AuthRoles.SysAdmin, AuthRoles.Av));
+            policy.RequireRole(AuthRoles.AdminRoles));
     });
 }
 
@@ -168,6 +162,74 @@ static void AddRolesFromElement(ClaimsIdentity identity, JsonElement element)
         {
             AddRolesFromElement(identity, property.Value);
         }
+    }
+}
+
+static async Task AddDatabaseRolesAsync(HttpContext httpContext, ClaimsIdentity identity)
+{
+    var userIds = GetPossibleUserIds(identity).ToList();
+    if (userIds.Count == 0)
+    {
+        return;
+    }
+
+    var db = httpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
+
+    var studentId = await db.Students
+        .Where(student => userIds.Contains(student.Id.ToLower()))
+        .Select(student => student.Id)
+        .FirstOrDefaultAsync();
+    if (studentId != null)
+    {
+        AddRoleIfMissing(identity, AuthRoles.Student);
+        AddClaimIfMissing(identity, "db_user_id", studentId);
+    }
+
+    var professorId = await db.Professors
+        .Where(professor => userIds.Contains(professor.Id.ToLower()))
+        .Select(professor => professor.Id)
+        .FirstOrDefaultAsync();
+    if (professorId != null)
+    {
+        AddRoleIfMissing(identity, AuthRoles.Professor);
+        AddClaimIfMissing(identity, "db_user_id", professorId);
+    }
+}
+
+static IEnumerable<string> GetPossibleUserIds(ClaimsIdentity identity)
+{
+    var values = new[]
+    {
+        identity.Name,
+        identity.FindFirst("preferred_username")?.Value,
+        identity.FindFirst("email")?.Value,
+        identity.FindFirst(ClaimTypes.NameIdentifier)?.Value
+    };
+
+    return values
+        .Where(value => !string.IsNullOrWhiteSpace(value))
+        .SelectMany(value =>
+        {
+            var trimmed = value!.Trim().ToLower();
+            var beforeAt = trimmed.Split('@')[0];
+            return new[] { trimmed, beforeAt };
+        })
+        .Distinct();
+}
+
+static void AddRoleIfMissing(ClaimsIdentity identity, string role)
+{
+    if (!identity.HasClaim(ClaimTypes.Role, role))
+    {
+        identity.AddClaim(new Claim(ClaimTypes.Role, role));
+    }
+}
+
+static void AddClaimIfMissing(ClaimsIdentity identity, string type, string value)
+{
+    if (!identity.HasClaim(type, value))
+    {
+        identity.AddClaim(new Claim(type, value));
     }
 }
 

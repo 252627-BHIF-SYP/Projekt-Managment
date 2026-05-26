@@ -3,6 +3,8 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { Role } from '../models';
+import { AuthService } from './auth.service';
 import { KeycloakAuthService } from './keycloak.service';
 
 /**
@@ -14,6 +16,7 @@ import { KeycloakAuthService } from './keycloak.service';
 })
 export class ApiService {
   private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
   private readonly keycloakAuthService = inject(KeycloakAuthService);
 
   private readonly baseUrl = environment.apiUrl;
@@ -74,6 +77,10 @@ export class ApiService {
   }
 
   private getHeaders(): Observable<HttpHeaders> {
+    if (!this.authService.isKeycloakEnabled()) {
+      return of(this.createMockHeaders());
+    }
+
     if (!this.keycloakAuthService.isLoggedIn()) {
       return of(new HttpHeaders());
     }
@@ -97,5 +104,26 @@ export class ApiService {
     return token
       ? new HttpHeaders().set('Authorization', `Bearer ${token}`)
       : new HttpHeaders();
+  }
+
+  private createMockHeaders(): HttpHeaders {
+    const user = this.authService.currentUserValue;
+    if (!user) {
+      return new HttpHeaders();
+    }
+
+    return new HttpHeaders()
+      .set('X-Mock-Username', user.username)
+      .set('X-Mock-Roles', user.roles.map(role => this.toBackendRole(role)).join(','));
+  }
+
+  private toBackendRole(role: Role): string {
+    switch (role) {
+      case Role.SYS_ADMIN: return 'sys-admin';
+      case Role.AV: return 'av';
+      case Role.PROFESSOR: return 'professor';
+      case Role.STUDENT: return 'student';
+      default: return '';
+    }
   }
 }

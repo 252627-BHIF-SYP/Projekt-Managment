@@ -3,6 +3,7 @@
  */
 export const environment = {
   production: true,
+  useKeycloak: true,
   apiUrl: '/api',
   keycloakUrl: 'https://auth.htl-leonding.ac.at',
   keycloakRealm: 'htlleonding',

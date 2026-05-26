@@ -514,9 +514,14 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
 
     private static bool CanEditProject(Project project, ProjectActorDto actor)
     {
-        if (!actor.IsAuthenticated || actor.IsAdmin)
+        if (actor.IsAdmin)
         {
             return true;
+        }
+
+        if (!actor.IsAuthenticated)
+        {
+            return false;
         }
 
         return (actor.IsProfessor && IsAssignedProfessor(project, actor.Username)) ||
@@ -525,9 +530,14 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
 
     private static bool CanDeleteProject(Project project, ProjectActorDto actor)
     {
-        if (!actor.IsAuthenticated || actor.IsAdmin)
+        if (actor.IsAdmin)
         {
             return true;
+        }
+
+        if (!actor.IsAuthenticated)
+        {
+            return false;
         }
 
         return actor.IsProfessor && IsAssignedProfessor(project, actor.Username);

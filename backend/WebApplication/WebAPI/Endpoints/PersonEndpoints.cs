@@ -350,11 +350,11 @@ public static class PersonEndpoints
 
     private static bool CanViewStudentProfiles(ClaimsPrincipal user) =>
         AuthRoles.CanAdministrate(user) ||
-        AuthRoles.HasAnyRole(user, AuthRoles.Professor);
+        AuthRoles.IsProfessor(user);
 
     private static bool CanViewProfessorProfiles(ClaimsPrincipal user) =>
         AuthRoles.CanAdministrate(user) ||
-        AuthRoles.HasAnyRole(user, AuthRoles.Professor);
+        AuthRoles.IsProfessor(user);
 }
 
 public record PersonCreateRequest(

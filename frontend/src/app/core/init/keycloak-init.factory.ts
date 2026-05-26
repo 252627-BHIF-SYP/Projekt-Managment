@@ -6,6 +6,10 @@ import { environment } from '../../../environments/environment';
  */
 export function initializeKeycloak(keycloak: KeycloakService): () => Promise<boolean> {
   return () => {
+    if (!environment.useKeycloak) {
+      return Promise.resolve(true);
+    }
+
     return keycloak.init({
       config: {
         url: environment.keycloakUrl,

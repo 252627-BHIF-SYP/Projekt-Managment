@@ -41,17 +41,23 @@ export class LoginComponent implements OnInit {
 
   loading = signal(false);
   errorMessage = signal('');
+  readonly useKeycloak = this.authService.isKeycloakEnabled();
 
   demoAccounts = [
     { role: 'Admin', username: 'admin' },
     { role: 'AV', username: 'av' },
-    { role: 'Professor', username: 'professor' },
-    { role: 'Student', username: 'student1' }
+    { role: 'Professor', username: 'bschroedt' },
+    { role: 'Student', username: 'IF210025' }
   ];
 
   ngOnInit(): void {
     // If returning from Keycloak and already authenticated, move to projects
     if (this.authService.isAuthenticated()) {
+      if (!this.authService.isKeycloakEnabled()) {
+        this.router.navigate(['/projects']);
+        return;
+      }
+
       this.authService.syncKeycloakUser().subscribe({
         next: user => {
           if (user) {

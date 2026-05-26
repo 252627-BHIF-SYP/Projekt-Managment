@@ -10,7 +10,7 @@ import { FilterBarComponent } from '../../shared/components/filter-bar/filter-ba
 import { ProjectService } from '../../services/project.service';
 import { SchoolYearService } from '../../services/schoolyear.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Project, ProjectFilter, SchoolYear, Role } from '../../core/models';
+import { Project, ProjectFilter, SchoolYear } from '../../core/models';
 import { firstValueFrom } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -181,12 +181,7 @@ export class ProjectListComponent implements OnInit {
   }
 
   canCreateProject(): boolean {
-    return this.authService.hasAnyRole([
-      Role.PROFESSOR,
-      Role.AV,
-      Role.SYS_ADMIN,
-      Role.STUDENT
-    ]);
+    return this.authService.isAuthenticated();
   }
 }
 

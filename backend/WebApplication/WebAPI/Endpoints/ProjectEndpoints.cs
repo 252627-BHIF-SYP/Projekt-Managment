@@ -96,7 +96,7 @@ public static class ProjectEndpoints
 
     private static async Task<IResult> GetMyProjects(
         IProjectService service,
-        ClaimsPrincipal user,
+        HttpContext httpContext,
         string? searchTerm,
         int? schoolYearId,
         ProjectType? projectType,
@@ -110,7 +110,7 @@ public static class ProjectEndpoints
                 null,
                 projectType,
                 status),
-            CreateActor(user));
+            CreateActor(httpContext));
 
         return TypedResults.Ok(projects);
     }
@@ -177,11 +177,11 @@ public static class ProjectEndpoints
 
     private static async Task<IResult> UpdateProject(
         IProjectService service,
-        ClaimsPrincipal user,
+        HttpContext httpContext,
         int id,
         UpdateProjectDto dto)
     {
-        var result = await service.UpdateProjectAsync(id, dto, CreateActor(user));
+        var result = await service.UpdateProjectAsync(id, dto, CreateActor(httpContext));
 
         if (result.Status == ServiceResultStatus.Success && result.Value != null)
         {
@@ -230,10 +230,10 @@ public static class ProjectEndpoints
 
     private static async Task<IResult> DeleteProject(
         IProjectService service,
-        ClaimsPrincipal user,
+        HttpContext httpContext,
         int id)
     {
-        var result = await service.DeleteProjectAsync(id, CreateActor(user));
+        var result = await service.DeleteProjectAsync(id, CreateActor(httpContext));
 
         if (result.Status == ServiceResultStatus.Success)
         {
@@ -266,10 +266,10 @@ public static class ProjectEndpoints
 
     private static async Task<IResult> GetProjectPermissions(
         IProjectService service,
-        ClaimsPrincipal user,
+        HttpContext httpContext,
         int id)
     {
-        var result = await service.GetProjectPermissionsAsync(id, CreateActor(user));
+        var result = await service.GetProjectPermissionsAsync(id, CreateActor(httpContext));
 
         if (result.Status == ServiceResultStatus.Success && result.Value != null)
         {
@@ -284,17 +284,35 @@ public static class ProjectEndpoints
         return TypedResults.Problem(detail: result.Message);
     }
 
-    private static ProjectActorDto CreateActor(ClaimsPrincipal user)
+    private static ProjectActorDto CreateActor(HttpContext httpContext)
     {
-        var username = user.Identity?.Name ??
+        var user = httpContext.User;
+        var username = user.FindFirst("db_user_id")?.Value ??
+                       user.Identity?.Name ??
                        user.FindFirst("preferred_username")?.Value ??
                        user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            return new ProjectActorDto(
+                username,
+                AuthRoles.CanAdministrate(user),
+                AuthRoles.IsProfessor(user),
+                AuthRoles.IsStudent(user),
+                true);
+        }
+
+        var mockUsername = httpContext.Request.Headers["X-Mock-Username"].FirstOrDefault();
+        var mockRoleHeader = httpContext.Request.Headers["X-Mock-Roles"].ToString();
+        var mockRoles = mockRoleHeader
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+
         return new ProjectActorDto(
-            username,
-            AuthRoles.CanAdministrate(user),
-            AuthRoles.HasAnyRole(user, AuthRoles.Professor),
-            AuthRoles.HasAnyRole(user, AuthRoles.Student),
-            user.Identity?.IsAuthenticated == true);
+            mockUsername,
+            AuthRoles.HasAnyRole(mockRoles, AuthRoles.AdminRoles),
+            AuthRoles.HasAnyRole(mockRoles, AuthRoles.ProfessorRoles),
+            AuthRoles.HasAnyRole(mockRoles, AuthRoles.StudentRoles),
+            !string.IsNullOrWhiteSpace(mockUsername));
     }
 }

@@ -22,9 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="SeedData\2025-11-Tadeot-Assignments.csv">
+    <None Update="SeedData\2025-11-Tadeot-Assignments.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
   </ItemGroup>
 
   <PropertyGroup>

@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import {
   StudentClassHistoryDTO,
   StudentProfile,
@@ -47,6 +48,7 @@ export class StudentsComponent implements OnInit {
   private readonly studentService = inject(StudentService);
   private readonly schoolYearService = inject(SchoolYearService);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
 
@@ -152,6 +154,10 @@ export class StudentsComponent implements OnInit {
 
   getDisplayClassName(student: StudentProfile): string {
     return this.getVisibleHistory(student)?.className || student.className || '';
+  }
+
+  openStudentProfile(student: StudentProfile): void {
+    this.router.navigate(['/students', student.id, 'profile']);
   }
 
   private getVisibleHistory(student: StudentProfile): StudentClassHistoryDTO | undefined {

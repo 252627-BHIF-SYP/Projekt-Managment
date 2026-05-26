@@ -35,7 +35,7 @@ export class SidebarComponent {
 
   private readonly menuItems: MenuItem[] = [
     { label: 'Projects', icon: 'folder', route: '/projects' },
-    { label: 'Create Project', icon: 'add_circle', route: '/projects/create', roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN, Role.STUDENT] },
+    { label: 'Create Project', icon: 'add_circle', route: '/projects/create' },
     { label: 'Students', icon: 'school', route: '/students', roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] },
     { label: 'Create Student', icon: 'person_add', route: '/students/create', roles: [Role.AV, Role.SYS_ADMIN] },
     { label: 'Professors', icon: 'groups', route: '/professors', roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] },

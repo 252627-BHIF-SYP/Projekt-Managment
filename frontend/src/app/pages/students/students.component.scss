@@ -23,6 +23,17 @@ mat-form-field {
   min-width: 0;
 }
 
+.student-list-item {
+  cursor: pointer;
+  border-radius: 4px;
+
+  &:hover,
+  &:focus {
+    background: #f4f6ff;
+    outline: none;
+  }
+}
+
 .no-data {
   display: flex;
   flex-direction: column;

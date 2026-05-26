@@ -3,6 +3,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 import { delay, map, tap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 import { AuthResponse, LoginCredentials, Role, User } from '../models';
 import { KeycloakAuthService } from './keycloak.service';
 
@@ -20,7 +21,7 @@ export class AuthService {
 
   private readonly AUTH_TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'current_user';
-  private readonly USE_KEYCLOAK = true;
+  private readonly USE_KEYCLOAK = environment.useKeycloak;
 
   /** Current user as a signal (POSE-style state). */
   readonly currentUser = signal<User | null>(null);
@@ -45,20 +46,20 @@ export class AuthService {
       createdAt: new Date(), updatedAt: new Date()
     },
     {
-      id: '3', username: 'professor', email: 'professor@school.at',
-      firstName: 'Max', lastName: 'Müller',
+      id: 'bschroedt', username: 'bschroedt', email: 'bschroedt@school.at',
+      firstName: 'Barbara', lastName: 'Schroedt',
       roles: [Role.PROFESSOR],
       createdAt: new Date(), updatedAt: new Date()
     },
     {
-      id: '4', username: 'student1', email: 'student1@school.at',
-      firstName: 'Anna', lastName: 'Weber',
+      id: 'IF210025', username: 'IF210025', email: 'if210025@school.at',
+      firstName: 'Lind', lastName: 'Arifi',
       roles: [Role.STUDENT],
       createdAt: new Date(), updatedAt: new Date()
     },
     {
-      id: '5', username: 'student2', email: 'student2@school.at',
-      firstName: 'Tom', lastName: 'Fischer',
+      id: 'IF210023', username: 'IF210023', email: 'if210023@school.at',
+      firstName: 'Andre', lastName: 'Aydin',
       roles: [Role.STUDENT],
       createdAt: new Date(), updatedAt: new Date()
     }
@@ -82,6 +83,10 @@ export class AuthService {
   /** Legacy getter — prefer the currentUser() signal. */
   get currentUserValue(): User | null {
     return this.currentUser();
+  }
+
+  isKeycloakEnabled(): boolean {
+    return this.USE_KEYCLOAK;
   }
 
   isAuthenticated(): boolean {
@@ -143,7 +148,11 @@ export class AuthService {
   }
 
   syncKeycloakUser(): Observable<User | null> {
-    if (!this.USE_KEYCLOAK || !this.keycloakAuthService.isLoggedIn()) {
+    if (!this.USE_KEYCLOAK) {
+      return of(this.currentUser());
+    }
+
+    if (!this.keycloakAuthService.isLoggedIn()) {
       this.currentUser.set(null);
       return of(null);
     }
@@ -219,6 +228,10 @@ export class AuthService {
     try {
       if (!this.keycloakAuthService.isLoggedIn()) {
         return false;
+      }
+      const tokenUser = this.keycloakAuthService.getUserFromToken();
+      if (tokenUser && this.hasRoleInList(tokenUser.roles, role)) {
+        return true;
       }
       return this.getKeycloakRoleNames(role)
         .some(keycloakRole => this.keycloakAuthService.hasRole(keycloakRole));

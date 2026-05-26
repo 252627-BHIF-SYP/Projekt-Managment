@@ -1,0 +1,10 @@
+services:
+  backend:
+    environment:
+      Authentication__Authority: ""
+      Authentication__Audience: ""
+      Authentication__RequireHttpsMetadata: "false"
+  frontend:
+    build:
+      args:
+        BUILD_CONFIGURATION: development

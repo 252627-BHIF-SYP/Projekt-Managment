@@ -7,7 +7,7 @@
 
         <mat-card-content>
           <!-- Keycloak Login Button -->
-          <div class="keycloak-login">
+          <div class="keycloak-login" *ngIf="useKeycloak">
             <button 
               mat-raised-button 
               color="primary" 
@@ -18,12 +18,8 @@
             </button>
           </div>
 
-          <div class="divider">
-            <span>OR</span>
-          </div>
-
           <!-- Mock Login Form (for development) -->
-          <form (ngSubmit)="login()" #loginForm="ngForm">
+          <form *ngIf="!useKeycloak" (ngSubmit)="login()" #loginForm="ngForm">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Username</mat-label>
               <input 
@@ -63,7 +59,7 @@
             </button>
           </form>
 
-          <div class="demo-accounts">
+          <div class="demo-accounts" *ngIf="!useKeycloak">
             <p class="demo-title">Demo Accounts (Mock):</p>
             <div class="demo-account" *ngFor="let demo of demoAccounts">
               <strong>{{ demo.role }}:</strong> {{ demo.username }} / password

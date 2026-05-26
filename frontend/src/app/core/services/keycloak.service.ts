@@ -3,7 +3,6 @@ import { KeycloakService } from 'keycloak-angular';
 import { KeycloakProfile } from 'keycloak-js';
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
 import { User, Role } from '../models';
 
 /**
@@ -108,7 +107,9 @@ export class KeycloakAuthService {
     }
 
     const realmRoles: string[] = token.realm_access?.roles || [];
-    const clientRoles: string[] = token.resource_access?.[environment.keycloakClientId]?.roles || [];
+    const resourceAccess = token.resource_access || {};
+    const clientRoles = Object.values(resourceAccess)
+      .flatMap((access: any) => access?.roles || []) as string[];
     const allRoles = [...realmRoles, ...clientRoles];
 
     const roleMapping: Record<string, Role> = {
