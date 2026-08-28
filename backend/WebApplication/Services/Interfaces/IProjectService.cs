@@ -28,6 +28,8 @@ public record ProjectSupervisorDto(
 
 public record ProjectSupervisorWriteDto(string ProfessorId, string Role);
 
+public record ProjectApprovalDto(string? Note);
+
 public record ProjectDto(
     int ProjectId,
     string Title,
@@ -37,6 +39,16 @@ public record ProjectDto(
     ProjectStatus Status,
     string? Technology,
     ProjectType ProjectType,
+    string? ApprovalNote,
+    DateTime? SubmittedAtUtc,
+    DateTime? ApprovedAtUtc,
+    string? ApprovedByProfessorId,
+    string? ApprovedByProfessorName,
+    bool IsExternal,
+    string? ExternalSchoolName,
+    bool HasConsent,
+    DateTime? ConsentConfirmedAtUtc,
+    string? ConsentConfirmedBy,
     IReadOnlyList<SchoolYearDto> SchoolYears,
     IReadOnlyList<ProjectStudentDto> Students,
     IReadOnlyList<ProjectSupervisorDto> Supervisors);
@@ -93,6 +105,13 @@ public interface IProjectService
     Task<ServiceResult<ProjectPermissionDto>> GetProjectPermissionsAsync(int id, ProjectActorDto actor);
     Task<int> CountProjectsAsync();
     Task<IReadOnlyList<ProjectCountPerYearDto>> GetProjectCountPerYearAsync();
+
+    // Workflow methods
+    Task<ServiceResult<ProjectDto>> SubmitForApprovalAsync(int id, ProjectActorDto actor);
+    Task<ServiceResult<ProjectDto>> ApproveProjectAsync(int id, ProjectApprovalDto dto, ProjectActorDto actor);
+    Task<ServiceResult<ProjectDto>> RejectProjectAsync(int id, ProjectApprovalDto dto, ProjectActorDto actor);
+    Task<ServiceResult<ProjectDto>> PublishProjectAsync(int id, ProjectApprovalDto dto, ProjectActorDto actor);
+    Task<IReadOnlyList<ProjectDto>> GetPendingApprovalsAsync(ProjectFilterDto filter, ProjectActorDto actor);
 }
 
 public record ProjectCountPerYearDto(int SchoolYearId, string Year, int ProjectCount);

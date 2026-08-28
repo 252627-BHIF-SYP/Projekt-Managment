@@ -41,5 +41,22 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .HasConversion<string>()
             .HasMaxLength(50)
             .IsRequired();
+
+        builder.Property(p => p.ApprovalNote)
+            .HasMaxLength(1000);
+
+        builder.Property(p => p.ApprovedByProfessorId)
+            .HasMaxLength(128);
+
+        builder.Property(p => p.ExternalSchoolName)
+            .HasMaxLength(200);
+
+        builder.Property(p => p.ConsentConfirmedBy)
+            .HasMaxLength(200);
+
+        builder.HasOne(p => p.ApprovedByProfessor)
+            .WithMany()
+            .HasForeignKey(p => p.ApprovedByProfessorId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

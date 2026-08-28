@@ -1,70 +1,219 @@
 <div class="page-container" *ngIf="project() as project">
+  <!-- Top Navigation & Title -->
   <div class="page-header">
-    <button mat-icon-button (click)="goBack()">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
-    <h1>{{ project.title }}</h1>
+    <div class="header-left">
+      <button mat-icon-button (click)="goBack()" matTooltip="Zurück zur Übersicht">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div class="header-title-box">
+        <h1>{{ project.title }}</h1>
+        <div class="status-chip-row">
+          <span class="status-badge" [class]="'badge-' + project.status.toLowerCase()">
+            {{ project.status }}
+          </span>
+          <span class="type-badge" *ngIf="project.projectType">
+            {{ project.projectType }}
+          </span>
+          <span class="ext-school-badge" *ngIf="project.isExternal || project.externalSchoolName">
+            <mat-icon>location_on</mat-icon> {{ project.externalSchoolName || 'Externe Schule' }}
+          </span>
+          <span class="consent-badge-ok" *ngIf="project.hasConsent">
+            <mat-icon>verified</mat-icon> Einverständnis erteilt
+          </span>
+        </div>
+      </div>
+    </div>
 
     <div class="header-actions">
       <button
-        mat-raised-button
+        mat-flat-button
         color="primary"
         *ngIf="permissions().canEdit"
         (click)="editProject()">
-        <mat-icon>edit</mat-icon>
-        Edit
+        <mat-icon>edit</mat-icon> Bearbeiten
       </button>
       <button
         mat-button
         color="warn"
         *ngIf="permissions().canDelete"
         (click)="deleteProject()">
-        <mat-icon>delete</mat-icon>
-        Delete
+        <mat-icon>delete</mat-icon> Löschen
       </button>
     </div>
   </div>
 
-  <mat-tab-group>
-    <mat-tab label="Overview">
+  <!-- Consent Banner (PB-18) if consent is missing -->
+  <div class="consent-warning-banner" *ngIf="!project.hasConsent">
+    <div class="banner-icon-box warn">
+      <mat-icon>privacy_tip</mat-icon>
+    </div>
+    <div class="banner-text-box">
+      <h3>Einverständniserklärung zur Veröffentlichung ausstehend</h3>
+      <p>Für die offizielle Wettbewerbsteilnahme und Veröffentlichung im Showcase muss die Einverständniserklärung bestätigt werden.</p>
+    </div>
+    <div class="banner-action-buttons">
+      <button mat-flat-button class="btn-consent" (click)="toggleConsent(true)" [disabled]="actionLoading()">
+        <mat-icon>check</mat-icon> Einverständnis jetzt erteilen
+      </button>
+    </div>
+  </div>
+
+  <!-- Workflow Action Banner (PB-03 & PB-04) -->
+  <div class="workflow-banner" [class]="'wf-' + project.status.toLowerCase()">
+    <!-- Status: PENDING -->
+    <ng-container *ngIf="project.status === ProjectStatus.PENDING">
+      <div class="banner-icon-box">
+        <mat-icon class="pulse-icon">hourglass_top</mat-icon>
+      </div>
+      <div class="banner-text-box">
+        <h3>Zur Prüfung eingereicht</h3>
+        <p>Dieses Projekt wartet auf die Genehmigung durch die betreuende Lehrkraft.</p>
+        <span class="sub-meta" *ngIf="project.submittedAtUtc">
+          Eingereicht am {{ project.submittedAtUtc | date:'dd.MM.yyyy HH:mm' }}
+        </span>
+      </div>
+      <div class="banner-action-buttons">
+        <button
+          mat-flat-button
+          class="btn-approve"
+          (click)="openActionModal('approve')"
+          [disabled]="actionLoading()">
+          <mat-icon>check_circle</mat-icon> Genehmigen
+        </button>
+        <button
+          mat-stroked-button
+          class="btn-reject"
+          (click)="openActionModal('reject')"
+          [disabled]="actionLoading()">
+          <mat-icon>cancel</mat-icon> Ablehnen mit Feedback
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Status: NEW (DRAFT) -->
+    <ng-container *ngIf="project.status === ProjectStatus.NEW">
+      <div class="banner-icon-box">
+        <mat-icon>edit_document</mat-icon>
+      </div>
+      <div class="banner-text-box">
+        <h3>Entwurf / In Erstellung</h3>
+        <p>Das Projekt befindet sich in der Konzeption und wurde noch nicht eingereicht.</p>
+      </div>
+      <div class="banner-action-buttons">
+        <button
+          mat-flat-button
+          color="accent"
+          (click)="submitForApproval()"
+          [disabled]="actionLoading()">
+          <mat-icon>send</mat-icon> Zur Genehmigung einreichen
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Status: REJECTED -->
+    <ng-container *ngIf="project.status === ProjectStatus.REJECTED">
+      <div class="banner-icon-box">
+        <mat-icon>error_outline</mat-icon>
+      </div>
+      <div class="banner-text-box">
+        <h3>Überarbeitung erforderlich / Abgelehnt</h3>
+        <p *ngIf="project.approvalNote" class="feedback-quote">
+          <strong>Feedback der Lehrkraft:</strong> „{{ project.approvalNote }}“
+        </p>
+        <p *ngIf="!project.approvalNote">Das Projekt wurde zur Überarbeitung zurückgewiesen.</p>
+      </div>
+      <div class="banner-action-buttons">
+        <button
+          mat-flat-button
+          color="accent"
+          (click)="submitForApproval()"
+          [disabled]="actionLoading()">
+          <mat-icon>replay</mat-icon> Überarbeitet: Erneut einreichen
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Status: ON_GOING / COMPLETED -->
+    <ng-container *ngIf="project.status === ProjectStatus.ON_GOING || project.status === ProjectStatus.COMPLETED">
+      <div class="banner-icon-box">
+        <mat-icon>verified</mat-icon>
+      </div>
+      <div class="banner-text-box">
+        <h3>Genehmigtes Thema {{ project.status === ProjectStatus.COMPLETED ? '(Abgeschlossen)' : '(In Bearbeitung)' }}</h3>
+        <p *ngIf="project.approvedByProfessorName">
+          Genehmigt von <strong>{{ project.approvedByProfessorName }}</strong>
+          <span *ngIf="project.approvedAtUtc">am {{ project.approvedAtUtc | date:'dd.MM.yyyy' }}</span>
+        </p>
+        <p *ngIf="project.approvalNote" class="approval-note-text">
+          Notiz: {{ project.approvalNote }}
+        </p>
+      </div>
+      <div class="banner-action-buttons" *ngIf="isSupervisorOrAdmin()">
+        <button
+          mat-flat-button
+          class="btn-publish"
+          (click)="openActionModal('publish')"
+          [disabled]="actionLoading()">
+          <mat-icon>public</mat-icon> Projekt veröffentlichen
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Status: PUBLISHED -->
+    <ng-container *ngIf="project.status === ProjectStatus.PUBLISHED">
+      <div class="banner-icon-box">
+        <mat-icon>rocket_launch</mat-icon>
+      </div>
+      <div class="banner-text-box">
+        <h3>Öffentlich freigegeben</h3>
+        <p>Dieses Projekt ist zur Präsentation, für Wettbewerbe und in der öffentlichen Galerie sichtbar.</p>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Detail Tabs -->
+  <mat-tab-group class="custom-tabs">
+    <mat-tab label="Übersicht & Details">
       <div class="tab-content">
-        <mat-card>
+        <mat-card class="detail-card">
           <mat-card-header>
-            <mat-card-title>Project Information</mat-card-title>
+            <mat-card-title>Projektinformationen</mat-card-title>
           </mat-card-header>
           <mat-card-content>
             <div class="info-grid">
               <div class="info-item">
-                <span class="label">Status:</span>
+                <span class="label">Status</span>
                 <span class="value">
-                  <mat-chip [class]="'status-' + project.status.toLowerCase()">
+                  <span class="status-badge" [class]="'badge-' + project.status.toLowerCase()">
                     {{ project.status }}
-                  </mat-chip>
+                  </span>
                 </span>
               </div>
               <div class="info-item">
-                <span class="label">School Year:</span>
-                <span class="value">{{ project.schoolYear }}</span>
+                <span class="label">Schuljahr</span>
+                <span class="value">{{ project.schoolYear || 'Nicht zugewiesen' }}</span>
               </div>
               <div class="info-item">
-                <span class="label">Team Size:</span>
-                <span class="value">{{ project.students?.length || 0 }} student(s)</span>
+                <span class="label">Teamgröße</span>
+                <span class="value">{{ project.students?.length || 0 }} Schüler/in(nen)</span>
               </div>
               <div class="info-item" *ngIf="project.githubUrl">
-                <span class="label">GitHub:</span>
+                <span class="label">GitHub Repository</span>
                 <span class="value">
-                  <a [href]="project.githubUrl" target="_blank">{{ project.githubUrl }}</a>
+                  <a [href]="project.githubUrl" target="_blank" class="github-link">
+                    <mat-icon>link</mat-icon> {{ project.githubUrl }}
+                  </a>
                 </span>
               </div>
             </div>
 
             <div class="description-section">
-              <h3>Description</h3>
+              <h3>Projektbeschreibung</h3>
               <p>{{ project.description }}</p>
             </div>
 
             <div class="technologies-section" *ngIf="project.technologies && project.technologies.length > 0">
-              <h3>Technologies</h3>
+              <h3>Technologien & Frameworks</h3>
               <mat-chip-set>
                 <mat-chip *ngFor="let tech of project.technologies">{{ tech }}</mat-chip>
               </mat-chip-set>
@@ -74,56 +223,106 @@
       </div>
     </mat-tab>
 
-    <mat-tab label="Students ({{ project.students?.length || 0 }})">
+    <mat-tab label="Schüler-Team ({{ project.students?.length || 0 }})">
       <div class="tab-content">
-        <mat-card>
+        <mat-card class="detail-card">
           <mat-card-header>
-            <mat-card-title>Students</mat-card-title>
+            <mat-card-title>Projekt-Team</mat-card-title>
           </mat-card-header>
           <mat-card-content>
             <mat-list *ngIf="project.students && project.students.length > 0">
               <mat-list-item *ngFor="let student of project.students">
-                <mat-icon matListItemIcon>person</mat-icon>
-                <div matListItemTitle>{{ student.studentName }}</div>
-                <div matListItemLine>{{ student.studentEmail }} - {{ getStudentRoleLabel(student.role) }}</div>
+                <mat-icon matListItemIcon class="member-icon">person</mat-icon>
+                <div matListItemTitle class="member-name">{{ student.studentName }}</div>
+                <div matListItemLine class="member-sub">
+                  Klasse {{ student.className }} | Rolle: {{ getStudentRoleLabel(student.role) }}
+                </div>
               </mat-list-item>
             </mat-list>
 
             <div class="no-data" *ngIf="!project.students || project.students.length === 0">
               <mat-icon>people_outline</mat-icon>
-              <p>No students assigned yet</p>
+              <p>Noch keine Schüler zugewiesen</p>
             </div>
           </mat-card-content>
         </mat-card>
       </div>
     </mat-tab>
 
-    <mat-tab label="Supervisors ({{ project.supervisors?.length || 0 }})">
+    <mat-tab label="Betreuungslehrkräfte ({{ project.supervisors?.length || 0 }})">
       <div class="tab-content">
-        <mat-card>
+        <mat-card class="detail-card">
           <mat-card-header>
-            <mat-card-title>Project Supervisors</mat-card-title>
+            <mat-card-title>Betreuer & Supervisoren</mat-card-title>
           </mat-card-header>
           <mat-card-content>
             <mat-list *ngIf="project.supervisors && project.supervisors.length > 0">
               <mat-list-item *ngFor="let supervisor of project.supervisors">
-                <mat-icon matListItemIcon>school</mat-icon>
-                <div matListItemTitle>
-                  {{ supervisor.supervisorName }}
-                </div>
-                <div matListItemLine>{{ supervisor.supervisorEmail }} - {{ getSupervisorRoleLabel(supervisor) }}</div>
+                <mat-icon matListItemIcon class="supervisor-icon">school</mat-icon>
+                <div matListItemTitle class="member-name">{{ supervisor.supervisorName }}</div>
+                <div matListItemLine class="member-sub">{{ supervisor.supervisorEmail }} - {{ getSupervisorRoleLabel(supervisor) }}</div>
               </mat-list-item>
             </mat-list>
 
             <div class="no-data" *ngIf="!project.supervisors || project.supervisors.length === 0">
               <mat-icon>supervisor_account</mat-icon>
-              <p>No supervisors assigned yet</p>
+              <p>Noch keine Betreuer zugewiesen</p>
             </div>
           </mat-card-content>
         </mat-card>
       </div>
     </mat-tab>
   </mat-tab-group>
+
+  <!-- Action Modal / Dialog Overlay -->
+  <div class="modal-overlay" *ngIf="showActionModal()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 *ngIf="currentAction() === 'approve'">Projekt genehmigen</h2>
+        <h2 *ngIf="currentAction() === 'reject'">Projekt ablehnen / Feedback</h2>
+        <h2 *ngIf="currentAction() === 'publish'">Projekt veröffentlichen</h2>
+        <button mat-icon-button (click)="closeActionModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p *ngIf="currentAction() === 'approve'">
+          Möchtest du das Projekt <strong>„{{ project.title }}“</strong> genehmigen? Der Status wechselt auf <em>In Durchführung</em>.
+        </p>
+        <p *ngIf="currentAction() === 'reject'">
+          Bitte gib ein konstruktives Feedback oder eine Begründung für die Schüler an:
+        </p>
+        <p *ngIf="currentAction() === 'publish'">
+          Das Projekt wird für die öffentliche Galerie und zur Einreichung bei Wettbewerben freigegeben.
+        </p>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ currentAction() === 'reject' ? 'Feedback / Begründung (Pflichtfeld)' : 'Optionale Notiz / Feedback' }}</mat-label>
+          <textarea
+            matInput
+            rows="4"
+            [ngModel]="actionNote()"
+            (ngModelChange)="actionNote.set($event)"
+            [placeholder]="currentAction() === 'reject' ? 'Z. B. Bitte den Scope der API-Anbindung genauer beschreiben...' : 'Optionale Anmerkung...'"></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="modal-footer">
+        <button mat-button (click)="closeActionModal()" [disabled]="actionLoading()">
+          Abbrechen
+        </button>
+        <button
+          mat-flat-button
+          [color]="currentAction() === 'reject' ? 'warn' : 'primary'"
+          (click)="confirmModalAction()"
+          [disabled]="actionLoading()">
+          <mat-spinner diameter="18" *ngIf="actionLoading()"></mat-spinner>
+          <span *ngIf="!actionLoading()">Bestätigen</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="loading-container" *ngIf="loading()">

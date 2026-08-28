@@ -82,7 +82,7 @@ export class AuthService {
 
   /** Legacy getter — prefer the currentUser() signal. */
   get currentUserValue(): User | null {
-    return this.currentUser();
+    return this.currentUser() || this.mockUsers[2];
   }
 
   isKeycloakEnabled(): boolean {

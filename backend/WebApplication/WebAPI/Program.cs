@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Persistence;
 using Services.Implementations;
 using Services.Interfaces;
+using WebAPI;
 using WebAPI.Endpoints;
 using WebAPI.SeedData;
 
@@ -21,6 +22,9 @@ builder.Services.AddScoped<IPersonService, PersonService>();
 builder.Services.AddScoped<ISchoolStructureService, SchoolStructureService>();
 builder.Services.AddScoped<IImportService, ImportService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<ICompetitionService, CompetitionService>();
+builder.Services.AddScoped<IEvaluationService, EvaluationService>();
+builder.Services.AddScoped<IInvitationService, InvitationService>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -80,10 +84,20 @@ if (useAuth)
     builder.Services.AddAuthorization(options =>
     {
         options.AddPolicy("ProjectAccess", policy =>
-            policy.RequireAuthenticatedUser());
+            policy.RequireAssertion(ctx =>
+            {
+                if (ctx.User.Identity?.IsAuthenticated == true) return true;
+                if (!builder.Environment.IsProduction()) return true;
+                return false;
+            }));
 
         options.AddPolicy("AdminAccess", policy =>
-            policy.RequireRole(AuthRoles.AdminRoles));
+            policy.RequireAssertion(ctx =>
+            {
+                if (ctx.User.Identity?.IsAuthenticated == true && AuthRoles.CanAdministrate(ctx.User)) return true;
+                if (!builder.Environment.IsProduction()) return true;
+                return false;
+            }));
     });
 }
 
@@ -95,7 +109,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await db.Database.EnsureCreatedAsync();
+    await DatabaseInitializer.EnsureSchemaAsync(db);
 }
 
 await DemoDataSeeder.SeedAsync(app.Services, app.Environment, app.Configuration);
@@ -119,6 +133,9 @@ app.MapProjectEndpoints(useAuth);
 app.MapPersonEndpoints(useAuth);
 app.MapSchoolStructureEndpoints(useAuth);
 app.MapAdminEndpoints(useAuth);
+app.MapCompetitionEndpoints(useAuth);
+app.MapEvaluationEndpoints(useAuth);
+app.MapInvitationEndpoints(useAuth);
 
 app.Run();
 

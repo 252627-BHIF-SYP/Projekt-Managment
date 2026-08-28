@@ -1,0 +1,297 @@
+.jury-portal-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Hero Banner */
+.jury-hero-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+  color: #ffffff;
+  padding: 32px 36px;
+  border-radius: 20px;
+  margin-bottom: 32px;
+  box-shadow: 0 10px 25px -5px rgba(49, 46, 129, 0.3);
+
+  .hero-content {
+    flex: 1;
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 10px 0;
+    }
+
+    p {
+      margin: 0;
+      font-size: 15px;
+      opacity: 0.88;
+      line-height: 1.6;
+      max-width: 720px;
+    }
+  }
+
+  .hero-stats {
+    .stat-bubble {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 16px 24px;
+      border-radius: 16px;
+      text-align: center;
+
+      .stat-number {
+        display: block;
+        font-size: 32px;
+        font-weight: 800;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
+/* Competitions Grid */
+.competitions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 24px;
+}
+
+.jury-comp-card {
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.08);
+  }
+
+  .card-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: #f8fafc;
+    border-bottom: 1px solid #f1f5f9;
+
+    .comp-type-tag {
+      font-size: 12px;
+      font-weight: 700;
+      color: #6366f1;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .comp-status-tag {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 9999px;
+
+      &.status-in-eval {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      &.status-active {
+        background: #e0f2fe;
+        color: #0369a1;
+      }
+
+      &.status-published {
+        background: #dcfce7;
+        color: #15803d;
+      }
+
+      &.status-completed {
+        background: #f3e8ff;
+        color: #7e22ce;
+      }
+
+      &.status-draft {
+        background: #f1f5f9;
+        color: #64748b;
+      }
+    }
+  }
+
+  .comp-card-header {
+    padding: 16px 20px 8px;
+
+    mat-card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    mat-card-subtitle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #64748b;
+      font-size: 13px;
+      margin-top: 6px;
+
+      .sub-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+
+      .role-pill {
+        background: #ede9fe;
+        color: #6d28d9;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 6px;
+      }
+    }
+  }
+
+  .comp-card-body {
+    padding: 16px 20px;
+    flex: 1;
+
+    .progress-section {
+      background: #f8fafc;
+      padding: 14px;
+      border-radius: 12px;
+
+      .progress-labels {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+
+        .progress-title {
+          font-size: 13px;
+          font-weight: 600;
+          color: #334155;
+        }
+
+        .progress-count {
+          font-size: 12px;
+          color: #64748b;
+
+          strong {
+            color: #1e293b;
+          }
+        }
+      }
+
+      .custom-progress {
+        height: 8px;
+        border-radius: 4px;
+        margin-bottom: 6px;
+      }
+
+      .progress-percent {
+        display: block;
+        text-align: right;
+        font-size: 11px;
+        color: #64748b;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .card-footer-action {
+    padding: 14px 20px;
+    border-top: 1px solid #f1f5f9;
+    background: #ffffff;
+
+    .start-eval-btn {
+      width: 100%;
+      border-radius: 10px;
+      font-weight: 600;
+      padding: 8px 16px;
+    }
+  }
+}
+
+/* Empty State */
+.empty-state-box {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px dashed #cbd5e1;
+  padding: 56px 24px;
+  text-align: center;
+  max-width: 600px;
+  margin: 40px auto;
+
+  .empty-icon-circle {
+    width: 72px;
+    height: 72px;
+    background: #eff6ff;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+
+    mat-icon {
+      font-size: 36px;
+      width: 36px;
+      height: 36px;
+      color: #3b82f6;
+    }
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: #1e293b;
+  }
+
+  p {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+  }
+}
+
+.loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  gap: 16px;
+  color: #64748b;
+}

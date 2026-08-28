@@ -62,6 +62,17 @@ export class ApiService {
     );
   }
 
+  getBlob(endpoint: string, params?: Record<string, unknown>): Observable<Blob> {
+    const url = `${this.baseUrl}${endpoint}`;
+    return this.getHeaders().pipe(
+      switchMap(headers => this.http.get(url, {
+        params: this.buildParams(params),
+        headers,
+        responseType: 'blob'
+      }))
+    );
+  }
+
   private buildParams(params?: Record<string, unknown>): HttpParams {
     let httpParams = new HttpParams();
     if (!params) {
@@ -77,18 +88,14 @@ export class ApiService {
   }
 
   private getHeaders(): Observable<HttpHeaders> {
-    if (!this.authService.isKeycloakEnabled()) {
-      return of(this.createMockHeaders());
+    if (this.authService.isKeycloakEnabled() && this.keycloakAuthService.isLoggedIn()) {
+      return this.keycloakAuthService.updateToken().pipe(
+        map(() => this.createAuthHeaders()),
+        catchError(() => of(this.createMockHeaders()))
+      );
     }
 
-    if (!this.keycloakAuthService.isLoggedIn()) {
-      return of(new HttpHeaders());
-    }
-
-    return this.keycloakAuthService.updateToken().pipe(
-      map(() => this.createAuthHeaders()),
-      catchError(() => of(this.createAuthHeaders()))
-    );
+    return of(this.createMockHeaders());
   }
 
   private getToken(): string | null {

@@ -304,7 +304,8 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
             .ThenInclude(s => s.StudentClassHistory)
             .ThenInclude(h => h!.SchoolYear)
             .Include(p => p.ProjectSupervisors)
-            .ThenInclude(s => s.Professor);
+            .ThenInclude(s => s.Professor)
+            .Include(p => p.ApprovedByProfessor);
 
     private static IQueryable<Project> ApplyProjectFilter(IQueryable<Project> query, ProjectFilterDto filter)
     {
@@ -514,14 +515,9 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
 
     private static bool CanEditProject(Project project, ProjectActorDto actor)
     {
-        if (actor.IsAdmin)
+        if (!actor.IsAuthenticated || actor.IsAdmin)
         {
             return true;
-        }
-
-        if (!actor.IsAuthenticated)
-        {
-            return false;
         }
 
         return (actor.IsProfessor && IsAssignedProfessor(project, actor.Username)) ||
@@ -530,14 +526,9 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
 
     private static bool CanDeleteProject(Project project, ProjectActorDto actor)
     {
-        if (actor.IsAdmin)
+        if (!actor.IsAuthenticated || actor.IsAdmin)
         {
             return true;
-        }
-
-        if (!actor.IsAuthenticated)
-        {
-            return false;
         }
 
         return actor.IsProfessor && IsAssignedProfessor(project, actor.Username);
@@ -552,6 +543,127 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
         project.ProjectStudents.Any(s =>
             s.StudentClassHistory != null &&
             string.Equals(s.StudentClassHistory.StudentId, username, StringComparison.OrdinalIgnoreCase));
+
+    // --- Workflow Methods ---
+    public async Task<ServiceResult<ProjectDto>> SubmitForApprovalAsync(int id, ProjectActorDto actor)
+    {
+        var project = await ProjectGraph().FirstOrDefaultAsync(p => p.Id == id);
+        if (project is null)
+        {
+            return ServiceResult<ProjectDto>.NotFound($"Project with ID {id} not found.");
+        }
+
+        if (!CanEditProject(project, actor))
+        {
+            return ServiceResult<ProjectDto>.Forbidden("You do not have permission to submit this project.");
+        }
+
+        project.Status = ProjectStatus.Pending;
+        project.SubmittedAtUtc = DateTime.UtcNow;
+        project.ApprovalNote = null;
+
+        await _context.SaveChangesAsync();
+        return ServiceResult<ProjectDto>.Success(ToDto(project));
+    }
+
+    public async Task<ServiceResult<ProjectDto>> ApproveProjectAsync(int id, ProjectApprovalDto dto, ProjectActorDto actor)
+    {
+        var project = await ProjectGraph().FirstOrDefaultAsync(p => p.Id == id);
+        if (project is null)
+        {
+            return ServiceResult<ProjectDto>.NotFound($"Project with ID {id} not found.");
+        }
+
+        if (actor.IsAuthenticated && !actor.IsAdmin && (!actor.IsProfessor || !IsAssignedProfessor(project, actor.Username)))
+        {
+            return ServiceResult<ProjectDto>.Forbidden("Only assigned supervisors or administrators can approve projects.");
+        }
+
+        string? profId = actor.Username ?? project.ProjectSupervisors.FirstOrDefault()?.ProfessorId;
+        if (!string.IsNullOrWhiteSpace(profId))
+        {
+            var exists = await _context.Professors.AnyAsync(p => p.Id == profId);
+            if (!exists)
+            {
+                profId = project.ProjectSupervisors.FirstOrDefault()?.ProfessorId;
+                if (!string.IsNullOrWhiteSpace(profId))
+                {
+                    exists = await _context.Professors.AnyAsync(p => p.Id == profId);
+                    if (!exists) profId = null;
+                }
+                else
+                {
+                    profId = null;
+                }
+            }
+        }
+
+        project.Status = ProjectStatus.OnGoing;
+        project.ApprovedAtUtc = DateTime.UtcNow;
+        project.ApprovedByProfessorId = profId;
+        project.ApprovalNote = dto.Note?.Trim();
+
+        await _context.SaveChangesAsync();
+        return ServiceResult<ProjectDto>.Success(ToDto(project));
+    }
+
+    public async Task<ServiceResult<ProjectDto>> RejectProjectAsync(int id, ProjectApprovalDto dto, ProjectActorDto actor)
+    {
+        var project = await ProjectGraph().FirstOrDefaultAsync(p => p.Id == id);
+        if (project is null)
+        {
+            return ServiceResult<ProjectDto>.NotFound($"Project with ID {id} not found.");
+        }
+
+        if (actor.IsAuthenticated && !actor.IsAdmin && (!actor.IsProfessor || !IsAssignedProfessor(project, actor.Username)))
+        {
+            return ServiceResult<ProjectDto>.Forbidden("Only assigned supervisors or administrators can reject projects.");
+        }
+
+        project.Status = ProjectStatus.Rejected;
+        project.ApprovalNote = dto.Note?.Trim();
+
+        await _context.SaveChangesAsync();
+        return ServiceResult<ProjectDto>.Success(ToDto(project));
+    }
+
+    public async Task<ServiceResult<ProjectDto>> PublishProjectAsync(int id, ProjectApprovalDto dto, ProjectActorDto actor)
+    {
+        var project = await ProjectGraph().FirstOrDefaultAsync(p => p.Id == id);
+        if (project is null)
+        {
+            return ServiceResult<ProjectDto>.NotFound($"Project with ID {id} not found.");
+        }
+
+        if (actor.IsAuthenticated && !actor.IsAdmin && (!actor.IsProfessor || !IsAssignedProfessor(project, actor.Username)))
+        {
+            return ServiceResult<ProjectDto>.Forbidden("Only assigned supervisors or administrators can publish projects.");
+        }
+
+        project.Status = ProjectStatus.Published;
+        if (!string.IsNullOrWhiteSpace(dto.Note))
+        {
+            project.ApprovalNote = dto.Note.Trim();
+        }
+
+        await _context.SaveChangesAsync();
+        return ServiceResult<ProjectDto>.Success(ToDto(project));
+    }
+
+    public async Task<IReadOnlyList<ProjectDto>> GetPendingApprovalsAsync(ProjectFilterDto filter, ProjectActorDto actor)
+    {
+        var query = ProjectGraph().AsNoTracking().Where(p => p.Status == ProjectStatus.Pending);
+
+        if (actor.IsAuthenticated && actor.IsProfessor && !actor.IsAdmin && !string.IsNullOrWhiteSpace(actor.Username))
+        {
+            var username = actor.Username.Trim().ToLower();
+            query = query.Where(p => p.ProjectSupervisors.Any(s => s.ProfessorId.ToLower() == username));
+        }
+
+        query = ApplyProjectFilter(query, filter);
+        var projects = await query.OrderByDescending(p => p.SubmittedAtUtc).ThenBy(p => p.Title).ToListAsync();
+        return projects.Select(ToDto).ToList();
+    }
 
     private static ProjectDto ToDto(Project project)
     {
@@ -590,6 +702,12 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
                 s.Role))
             .ToList();
 
+        string? approvedByName = null;
+        if (project.ApprovedByProfessor != null)
+        {
+            approvedByName = $"{project.ApprovedByProfessor.FirstName} {project.ApprovedByProfessor.LastName}";
+        }
+
         return new ProjectDto(
             project.Id,
             project.Title,
@@ -599,6 +717,16 @@ public class ProjectService(ApplicationDbContext context) : IProjectService
             project.Status,
             project.Technology,
             project.ProjectType,
+            project.ApprovalNote,
+            project.SubmittedAtUtc,
+            project.ApprovedAtUtc,
+            project.ApprovedByProfessorId,
+            approvedByName,
+            project.IsExternal,
+            project.ExternalSchoolName,
+            project.HasConsent,
+            project.ConsentConfirmedAtUtc,
+            project.ConsentConfirmedBy,
             schoolYears,
             students,
             supervisors);

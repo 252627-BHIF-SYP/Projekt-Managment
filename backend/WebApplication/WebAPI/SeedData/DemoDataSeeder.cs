@@ -66,6 +66,7 @@ public static class DemoDataSeeder
         await SeedStudentClassHistoriesAsync(context, students);
         await SeedProfessorsAsync(context);
         await SeedProjectsAsync(context, students);
+        await SeedCompetitionsAsync(context);
     }
 
     private static async Task<IReadOnlyList<StudentSeedRow>> ReadStudentRowsAsync(string csvPath)
@@ -551,6 +552,303 @@ public static class DemoDataSeeder
 
     private static string ProjectStudentKey(int projectId, int historyId) =>
         $"{projectId}|{historyId}";
+
+    private static async Task SeedCompetitionsAsync(ApplicationDbContext context)
+    {
+        if (await context.Competitions.AnyAsync())
+        {
+            return;
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var projects = await context.Projects.Take(4).ToListAsync();
+
+        var wmc3Competition = new Competition
+        {
+            Name = "WMC-3 Award 2026",
+            CompetitionType = CompetitionType.Wmc3,
+            StartDate = today.AddDays(14),
+            EndDate = today.AddDays(14),
+            PresentationDurationMinutes = 15,
+            BreakDurationMinutes = 5,
+            AllowedClassTypes = "3AHIF, 3BHIF, 3CHIF",
+            CreatedAtUtc = DateTime.UtcNow
+        };
+
+        var diplCompetition = new Competition
+        {
+            Name = "Diplomarbeiten Präsentationen 2026",
+            CompetitionType = CompetitionType.Dipl,
+            StartDate = today.AddDays(30),
+            EndDate = today.AddDays(31),
+            PresentationDurationMinutes = 20,
+            BreakDurationMinutes = 10,
+            AllowedClassTypes = "5AHIF, 5BHIF",
+            CreatedAtUtc = DateTime.UtcNow
+        };
+
+        context.Competitions.AddRange(wmc3Competition, diplCompetition);
+        await context.SaveChangesAsync();
+
+        if (projects.Count > 0)
+        {
+            var project1 = projects[0];
+            var project2 = projects.Count > 1 ? projects[1] : null;
+
+            context.CompetitionProjects.Add(new CompetitionProject
+            {
+                CompetitionId = wmc3Competition.Id,
+                ProjectId = project1.Id,
+                JoinedAtUtc = DateTime.UtcNow
+            });
+
+            if (project2 != null)
+            {
+                context.CompetitionProjects.Add(new CompetitionProject
+                {
+                    CompetitionId = wmc3Competition.Id,
+                    ProjectId = project2.Id,
+                    JoinedAtUtc = DateTime.UtcNow
+                });
+            }
+
+            var startTime = new TimeOnly(8, 30);
+            context.ScheduleSlots.AddRange(
+                new ScheduleSlot
+                {
+                    CompetitionId = wmc3Competition.Id,
+                    SlotType = ScheduleSlotType.Info,
+                    Date = wmc3Competition.StartDate,
+                    StartTime = startTime,
+                    DurationMinutes = 15,
+                    Title = "Begrüßung und Eröffnung",
+                    Note = "Audimax"
+                },
+                new ScheduleSlot
+                {
+                    CompetitionId = wmc3Competition.Id,
+                    ProjectId = project1.Id,
+                    SlotType = ScheduleSlotType.Presentation,
+                    Date = wmc3Competition.StartDate,
+                    StartTime = startTime.AddMinutes(15),
+                    DurationMinutes = 15,
+                    Title = project1.Title,
+                    Note = "Präsentation 1"
+                },
+                new ScheduleSlot
+                {
+                    CompetitionId = wmc3Competition.Id,
+                    SlotType = ScheduleSlotType.Break,
+                    Date = wmc3Competition.StartDate,
+                    StartTime = startTime.AddMinutes(30),
+                    DurationMinutes = 10,
+                    Title = "Kaffeepause",
+                    Note = "Foyer"
+                }
+            );
+
+            if (project2 != null)
+            {
+                context.ScheduleSlots.Add(new ScheduleSlot
+                {
+                    CompetitionId = wmc3Competition.Id,
+                    ProjectId = project2.Id,
+                    SlotType = ScheduleSlotType.Presentation,
+                    Date = wmc3Competition.StartDate,
+                    StartTime = startTime.AddMinutes(40),
+                    DurationMinutes = 15,
+                    Title = project2.Title,
+                    Note = "Präsentation 2"
+                });
+            }
+
+            // Seed Evaluation Criteria
+            var crit1 = new EvaluationCriterion
+            {
+                CompetitionId = wmc3Competition.Id,
+                Name = "Idee & Originalität",
+                Description = "Innovationsgrad, Zielgruppenfokus und Alleinstellungsmerkmal",
+                MinScore = 0,
+                MaxScore = 10,
+                Weight = 1.0,
+                OrderIndex = 1
+            };
+            var crit2 = new EvaluationCriterion
+            {
+                CompetitionId = wmc3Competition.Id,
+                Name = "Technische Ausführung",
+                Description = "Code-Qualität, Architektur, verwendete Technologien und Funktionalität",
+                MinScore = 0,
+                MaxScore = 10,
+                Weight = 1.5,
+                OrderIndex = 2
+            };
+            var crit3 = new EvaluationCriterion
+            {
+                CompetitionId = wmc3Competition.Id,
+                Name = "Präsentation & Design",
+                Description = "Auftreten, Rhetorik, UI/UX Design und Timekeeping",
+                MinScore = 0,
+                MaxScore = 10,
+                Weight = 1.0,
+                OrderIndex = 3
+            };
+            context.EvaluationCriteria.AddRange(crit1, crit2, crit3);
+            await context.SaveChangesAsync();
+
+            // Seed Jury Members
+            var firstProf = await context.Professors.FirstOrDefaultAsync();
+            var jury1 = new JuryMember
+            {
+                CompetitionId = wmc3Competition.Id,
+                ProfessorId = firstProf?.Id,
+                Role = "Hauptjuror",
+                AddedAtUtc = DateTime.UtcNow
+            };
+            var jury2 = new JuryMember
+            {
+                CompetitionId = wmc3Competition.Id,
+                ExternalName = "Dr. Markus Weber (Industrie-Partner)",
+                ExternalEmail = "markus.weber@tech-partner.at",
+                Role = "Gastjuror",
+                AddedAtUtc = DateTime.UtcNow
+            };
+            context.JuryMembers.AddRange(jury1, jury2);
+            await context.SaveChangesAsync();
+
+            // Seed Awards
+            var award1 = new CompetitionAward
+            {
+                CompetitionId = wmc3Competition.Id,
+                Name = "1. Platz - Bester Gesamteindruck",
+                Rank = 1,
+                PrizeDetails = "Pokal & 150€ Sachgutschein",
+                WinningProjectId = project1.Id,
+                AwardedAtUtc = DateTime.UtcNow
+            };
+            var award2 = new CompetitionAward
+            {
+                CompetitionId = wmc3Competition.Id,
+                Name = "2. Platz",
+                Rank = 2,
+                PrizeDetails = "Urkunde & 100€ Sachgutschein",
+                WinningProjectId = project2?.Id,
+                AwardedAtUtc = DateTime.UtcNow
+            };
+            var award3 = new CompetitionAward
+            {
+                CompetitionId = wmc3Competition.Id,
+                Name = "Innovationspreis",
+                Rank = 3,
+                PrizeDetails = "Sonderurkunde",
+                WinningProjectId = null,
+                AwardedAtUtc = null
+            };
+            context.CompetitionAwards.AddRange(award1, award2, award3);
+
+            // Seed Sample Evaluations
+            context.ProjectEvaluations.AddRange(
+                new ProjectEvaluation
+                {
+                    CompetitionId = wmc3Competition.Id,
+                    ProjectId = project1.Id,
+                    JuryMemberId = jury1.Id,
+                    CriterionId = crit1.Id,
+                    Score = 9,
+                    Note = "Sehr innovative Idee, durchdachtes Konzept.",
+                    UpdatedAtUtc = DateTime.UtcNow
+                },
+                new ProjectEvaluation
+                {
+                    CompetitionId = wmc3Competition.Id,
+                    ProjectId = project1.Id,
+                    JuryMemberId = jury1.Id,
+                    CriterionId = crit2.Id,
+                    Score = 8.5,
+                    Note = "Saubere Architektur, gute Code-Trennung.",
+                    UpdatedAtUtc = DateTime.UtcNow
+                },
+                new ProjectEvaluation
+                {
+                    CompetitionId = wmc3Competition.Id,
+                    ProjectId = project1.Id,
+                    JuryMemberId = jury1.Id,
+                    CriterionId = crit3.Id,
+                    Score = 9.5,
+                    Note = "Exzellente Präsentation und starker Live-Pitch!",
+                    UpdatedAtUtc = DateTime.UtcNow
+                },
+                new ProjectEvaluation
+                {
+                    CompetitionId = wmc3Competition.Id,
+                    ProjectId = project1.Id,
+                    JuryMemberId = jury2.Id,
+                    CriterionId = crit1.Id,
+                    Score = 8,
+                    Note = "Solide Lösung für das Problem.",
+                    UpdatedAtUtc = DateTime.UtcNow
+                },
+                new ProjectEvaluation
+                {
+                    CompetitionId = wmc3Competition.Id,
+                    ProjectId = project1.Id,
+                    JuryMemberId = jury2.Id,
+                    CriterionId = crit2.Id,
+                    Score = 9,
+                    Note = "Praxistauglich und modern.",
+                    UpdatedAtUtc = DateTime.UtcNow
+                },
+                new ProjectEvaluation
+                {
+                    CompetitionId = wmc3Competition.Id,
+                    ProjectId = project1.Id,
+                    JuryMemberId = jury2.Id,
+                    CriterionId = crit3.Id,
+                    Score = 8.5,
+                    Note = "Gute Folien.",
+                    UpdatedAtUtc = DateTime.UtcNow
+                }
+            );
+
+            if (project2 != null)
+            {
+                context.ProjectEvaluations.AddRange(
+                    new ProjectEvaluation
+                    {
+                        CompetitionId = wmc3Competition.Id,
+                        ProjectId = project2.Id,
+                        JuryMemberId = jury1.Id,
+                        CriterionId = crit1.Id,
+                        Score = 7.5,
+                        Note = "Guter Ansatz.",
+                        UpdatedAtUtc = DateTime.UtcNow
+                    },
+                    new ProjectEvaluation
+                    {
+                        CompetitionId = wmc3Competition.Id,
+                        ProjectId = project2.Id,
+                        JuryMemberId = jury1.Id,
+                        CriterionId = crit2.Id,
+                        Score = 8,
+                        Note = "Gute Umsetzung.",
+                        UpdatedAtUtc = DateTime.UtcNow
+                    },
+                    new ProjectEvaluation
+                    {
+                        CompetitionId = wmc3Competition.Id,
+                        ProjectId = project2.Id,
+                        JuryMemberId = jury1.Id,
+                        CriterionId = crit3.Id,
+                        Score = 8,
+                        Note = "Angemessene Präsentation.",
+                        UpdatedAtUtc = DateTime.UtcNow
+                    }
+                );
+            }
+
+            await context.SaveChangesAsync();
+        }
+    }
 
     private record StudentSeedRow(string Department, string ClassName, string UserName, string FirstName, string LastName);
 

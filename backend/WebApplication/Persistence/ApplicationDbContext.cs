@@ -15,6 +15,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<ProjectStudent> ProjectStudents => Set<ProjectStudent>();
     public DbSet<ProjectSupervisor> ProjectSupervisors => Set<ProjectSupervisor>();
     public DbSet<SchoolYearProject> SchoolYearProjects => Set<SchoolYearProject>();
+    public DbSet<Competition> Competitions => Set<Competition>();
+    public DbSet<CompetitionProject> CompetitionProjects => Set<CompetitionProject>();
+    public DbSet<ScheduleSlot> ScheduleSlots => Set<ScheduleSlot>();
+    public DbSet<EvaluationCriterion> EvaluationCriteria => Set<EvaluationCriterion>();
+    public DbSet<JuryMember> JuryMembers => Set<JuryMember>();
+    public DbSet<ProjectEvaluation> ProjectEvaluations => Set<ProjectEvaluation>();
+    public DbSet<CompetitionAward> CompetitionAwards => Set<CompetitionAward>();
+    public DbSet<Invitation> Invitations => Set<Invitation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

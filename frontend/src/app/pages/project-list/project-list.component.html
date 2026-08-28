@@ -1,6 +1,41 @@
 <div class="page-container">
   <div class="page-header">
-    <h1>Projects</h1>
+    <div class="header-title-row">
+      <h1>Schulprojekte</h1>
+      <span class="project-count-badge">{{ filteredProjects().length }} Projekte</span>
+    </div>
+
+    <!-- Quick Status Filter Pills -->
+    <div class="quick-status-tabs">
+      <button
+        class="status-pill"
+        [class.active]="activeQuickFilter() === 'ALL'"
+        (click)="setQuickFilter('ALL')">
+        Alle Projekte
+      </button>
+      <button
+        class="status-pill pill-pending"
+        [class.active]="activeQuickFilter() === 'PENDING'"
+        (click)="setQuickFilter('PENDING')">
+        <mat-icon>hourglass_top</mat-icon>
+        <span>Offen zur Genehmigung</span>
+        <span class="pill-counter" *ngIf="pendingCount() > 0">{{ pendingCount() }}</span>
+      </button>
+      <button
+        class="status-pill pill-ongoing"
+        [class.active]="activeQuickFilter() === 'ON_GOING'"
+        (click)="setQuickFilter('ON_GOING')">
+        <mat-icon>engineering</mat-icon>
+        <span>In Durchführung</span>
+      </button>
+      <button
+        class="status-pill pill-published"
+        [class.active]="activeQuickFilter() === 'PUBLISHED'"
+        (click)="setQuickFilter('PUBLISHED')">
+        <mat-icon>rocket_launch</mat-icon>
+        <span>Veröffentlicht</span>
+      </button>
+    </div>
   </div>
 
   <mat-divider></mat-divider>
@@ -13,7 +48,7 @@
   </div>
 
   <div *ngIf="loading()" class="loading-container">
-    <mat-spinner></mat-spinner>
+    <mat-spinner diameter="48"></mat-spinner>
   </div>
 
   <div class="card-grid" *ngIf="!loading() && filteredProjects().length > 0">
@@ -26,7 +61,7 @@
 
   <div class="no-projects" *ngIf="!loading() && filteredProjects().length === 0">
     <mat-icon>folder_open</mat-icon>
-    <h3>No projects found</h3>
-    <p>Try adjusting your filters or create a new project</p>
+    <h3>Keine Projekte gefunden</h3>
+    <p>Passe die Filter an oder wähle einen anderen Status-Tab.</p>
   </div>
 </div>

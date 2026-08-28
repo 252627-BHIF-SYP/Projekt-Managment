@@ -1,0 +1,175 @@
+<div class="jury-eval-screen" *ngIf="competition() as comp">
+  <!-- Top Navigation & Summary Bar -->
+  <div class="eval-top-bar">
+    <div class="top-bar-left">
+      <button mat-stroked-button (click)="goBackToPortal()" class="back-portal-btn">
+        <mat-icon>arrow_back</mat-icon> Jury Portal
+      </button>
+      <div class="comp-title-group">
+        <h1>{{ comp.name }}</h1>
+        <span class="juror-badge" *ngIf="activeJuror() as juror">
+          <mat-icon>verified_user</mat-icon> Eingeloggt als: <strong>{{ juror.professorName || juror.externalName || juror.professorId }}</strong>
+        </span>
+      </div>
+    </div>
+
+    <!-- Overall Progress in Top Bar -->
+    <div class="top-bar-right">
+      <div class="eval-progress-pill">
+        <span class="progress-txt">Fortschritt: <strong>{{ evaluatedProjectsCount() }}</strong> / {{ comp.projects.length }} bewertet</span>
+        <mat-progress-bar
+          mode="determinate"
+          [value]="comp.projects.length > 0 ? (evaluatedProjectsCount() / comp.projects.length) * 100 : 0"
+          class="top-progress-bar">
+        </mat-progress-bar>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading View -->
+  <div class="loading-center" *ngIf="loading()">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Lade Bewertungsmaske...</p>
+  </div>
+
+  <!-- Main 2-Column Split: Project List (Left) + Evaluation Form (Right) -->
+  <div class="eval-split-layout" *ngIf="!loading()">
+    <!-- Left Project List Sidebar -->
+    <div class="projects-sidebar">
+      <div class="sidebar-header">
+        <h3>Projekte ({{ comp.projects.length }})</h3>
+        <span class="sub-hint">Wähle ein Projekt zum Bewerten</span>
+      </div>
+
+      <div class="project-items-list">
+        @for (p of comp.projects; track p.projectId; let idx = $index) {
+          <button
+            class="project-item-btn"
+            [class.active]="selectedProjectId() === p.projectId"
+            [class.evaluated]="isCurrentProjectEvaluated(p.projectId)"
+            (click)="selectProject(p.projectId)">
+            <div class="item-left-num">{{ idx + 1 }}</div>
+            <div class="item-info">
+              <span class="item-title">{{ p.title }}</span>
+              <span class="item-tech">{{ p.technology || p.projectType }}</span>
+            </div>
+            <div class="item-status-icon">
+              @if (isCurrentProjectEvaluated(p.projectId)) {
+                <mat-icon class="icon-checked" matTooltip="Bereits bewertet">check_circle</mat-icon>
+              } @else {
+                <mat-icon class="icon-pending" matTooltip="Noch nicht bewertet">radio_button_unchecked</mat-icon>
+              }
+            </div>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Right Active Scoring Panel -->
+    <div class="scoring-content-panel">
+      @if (selectedProject(); as proj) {
+        <mat-card class="eval-card">
+          <!-- Card Header: Project Info & Live Points -->
+          <div class="card-proj-header">
+            <div class="proj-meta-left">
+              <span class="active-badge">Aktives Projekt</span>
+              <h2 class="active-proj-title">{{ proj.title }}</h2>
+              <p class="active-proj-desc">{{ proj.description }}</p>
+              <div class="tech-row" *ngIf="proj.technology">
+                <span class="tech-pill">{{ proj.technology }}</span>
+              </div>
+            </div>
+
+            <!-- Score Summary Widget -->
+            <div class="score-summary-widget">
+              <div class="score-value">{{ calculateCurrentTotalScore() }}</div>
+              <div class="score-max">von {{ calculateMaxTotalScore() }} Punkten</div>
+              <div class="score-weight-note">Gewichtete Gesamtpunkte</div>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- Criteria Form -->
+          <mat-card-content class="scoring-body">
+            <div class="empty-criteria-warning" *ngIf="criteria().length === 0">
+              <mat-icon>tune</mat-icon>
+              <div class="empty-crit-text">
+                <h4>Keine Bewertungskriterien angelegt</h4>
+                <p>Für diesen Wettbewerb wurden vom Veranstalter noch keine Bewertungskriterien (z. B. Idee, Umsetzung, Präsentation) im Tab <em>„Jury & Kriterien“</em> angelegt.</p>
+              </div>
+            </div>
+
+            <form [formGroup]="scoreForm" class="criteria-form" *ngIf="criteria().length > 0">
+              <div class="criteria-list">
+                @for (crit of criteria(); track crit.criterionId) {
+                  <div class="criterion-item-card">
+                    <div class="crit-top-row">
+                      <div>
+                        <span class="crit-name">{{ crit.name }}</span>
+                        <span class="crit-weight-tag">Gewichtung: {{ crit.weight }}x</span>
+                        <p class="crit-desc" *ngIf="crit.description">{{ crit.description }}</p>
+                      </div>
+                      <div class="crit-score-badge">
+                        <span class="score-current">{{ scoreForm.get('crit_' + crit.criterionId)?.value }}</span>
+                        <span class="score-slash">/ {{ crit.maxScore }}</span>
+                      </div>
+                    </div>
+
+                    <div class="slider-wrapper">
+                      <span class="slider-limit">{{ crit.minScore }}</span>
+                      <mat-slider
+                        [min]="crit.minScore"
+                        [max]="crit.maxScore"
+                        [step]="0.5"
+                        discrete
+                        class="full-slider">
+                        <input matSliderThumb [formControlName]="'crit_' + crit.criterionId">
+                      </mat-slider>
+                      <span class="slider-limit">{{ crit.maxScore }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Private Juror Notes -->
+              <div class="notes-section">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Private Notizen zum Projekt & Pitch (nur für die Jury sichtbar)</mat-label>
+                  <textarea
+                    matInput
+                    rows="3"
+                    formControlName="note"
+                    placeholder="Z. B. Herausragende Live-Demo, Konzept zur Datensicherheit sehr überzeugend..."></textarea>
+                </mat-form-field>
+              </div>
+            </form>
+          </mat-card-content>
+
+          <!-- Action Footer -->
+          <div class="eval-footer-bar">
+            <button
+              mat-stroked-button
+              (click)="saveEvaluation(false)"
+              [disabled]="saving()"
+              class="btn-save-only">
+              <mat-icon>save</mat-icon> Bewertung speichern
+            </button>
+
+            <button
+              mat-flat-button
+              color="primary"
+              (click)="saveEvaluation(true)"
+              [disabled]="saving()"
+              class="btn-save-next">
+              <mat-spinner diameter="18" *ngIf="saving()"></mat-spinner>
+              <span *ngIf="!saving()">
+                <mat-icon>done_all</mat-icon> Speichern & Nächstes Projekt →
+              </span>
+            </button>
+          </div>
+        </mat-card>
+      }
+    </div>
+  </div>
+</div>

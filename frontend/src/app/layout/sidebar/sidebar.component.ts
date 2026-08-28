@@ -35,6 +35,9 @@ export class SidebarComponent {
 
   private readonly menuItems: MenuItem[] = [
     { label: 'Projects', icon: 'folder', route: '/projects' },
+    { label: 'Competitions', icon: 'emoji_events', route: '/competitions' },
+    { label: 'Jury Portal', icon: 'gavel', route: '/jury' },
+    { label: 'Partnerschul-Portal', icon: 'domain', route: '/external-portal' },
     { label: 'Create Project', icon: 'add_circle', route: '/projects/create' },
     { label: 'Students', icon: 'school', route: '/students', roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] },
     { label: 'Create Student', icon: 'person_add', route: '/students/create', roles: [Role.AV, Role.SYS_ADMIN] },

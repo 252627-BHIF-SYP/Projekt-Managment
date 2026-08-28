@@ -1,0 +1,144 @@
+<div class="invitation-mgmt-container">
+  <!-- Header Bar -->
+  <div class="mgmt-header">
+    <div class="header-titles">
+      <h3>
+        <mat-icon>mail</mat-icon> Externe Einladungen ({{ invitations().length }})
+      </h3>
+      <p class="subtitle">Lade externe Lehrkräfte von Partnerschulen und Gastjuroren per Token/Link ein.</p>
+    </div>
+    <button mat-flat-button color="primary" (click)="showCreateForm.set(!showCreateForm())">
+      <mat-icon>{{ showCreateForm() ? 'close' : 'person_add' }}</mat-icon>
+      {{ showCreateForm() ? 'Abbrechen' : 'Neue Einladung erstellen' }}
+    </button>
+  </div>
+
+  <!-- Create Form Dropdown -->
+  <div class="create-form-card" *ngIf="showCreateForm()">
+    <form [formGroup]="inviteForm" (ngSubmit)="sendInvitation()">
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Vollständiger Name des Empfängers *</mat-label>
+          <input matInput formControlName="recipientName" placeholder="z. B. Mag. Thomas Huber" />
+          <mat-error *ngIf="inviteForm.get('recipientName')?.hasError('required')">Name ist erforderlich</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>E-Mail-Adresse *</mat-label>
+          <input matInput type="email" formControlName="email" placeholder="t.huber@htl-perg.at" />
+          <mat-error *ngIf="inviteForm.get('email')?.hasError('required')">E-Mail ist erforderlich</mat-error>
+          <mat-error *ngIf="inviteForm.get('email')?.hasError('email')">Ungültige E-Mail</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Partnerschule / Organisation</mat-label>
+          <input matInput formControlName="schoolName" placeholder="z. B. HTL Perg oder Voestalpine" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Rolle des Eingeladenen *</mat-label>
+          <mat-select formControlName="targetRole">
+            <mat-option value="ExternalTeacher">Externe betreuende Lehrkraft</mat-option>
+            <mat-option value="ExternalJuror">Gastjuror / Externe Jury</mat-option>
+            <mat-option value="ExternalStudent">Externe/r Schüler/in</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-actions-right">
+        <button mat-flat-button color="primary" type="submit" [disabled]="sending()">
+          <mat-spinner diameter="18" *ngIf="sending()"></mat-spinner>
+          <span *ngIf="!sending()"><mat-icon>send</mat-icon> Einladungstoken generieren</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading()">
+    <mat-spinner diameter="36"></mat-spinner>
+  </div>
+
+  <!-- Invitations Table -->
+  <div class="table-card" *ngIf="!loading() && invitations().length > 0">
+    <table mat-table [dataSource]="invitations()" class="inv-table">
+      <!-- Recipient Column -->
+      <ng-container matColumnDef="recipient">
+        <th mat-header-cell *matHeaderCellDef>Empfänger</th>
+        <td mat-cell *matCellDef="let inv">
+          <span class="rec-name">{{ inv.recipientName }}</span>
+          <span class="rec-email">{{ inv.email }}</span>
+        </td>
+      </ng-container>
+
+      <!-- School Column -->
+      <ng-container matColumnDef="school">
+        <th mat-header-cell *matHeaderCellDef>Organisation / Schule</th>
+        <td mat-cell *matCellDef="let inv">
+          <span class="school-name">{{ inv.schoolName || '—' }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Role Column -->
+      <ng-container matColumnDef="role">
+        <th mat-header-cell *matHeaderCellDef>Rolle</th>
+        <td mat-cell *matCellDef="let inv">
+          <span class="role-pill" [class]="inv.targetRole.toLowerCase()">
+            {{ getRoleLabel(inv.targetRole) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let inv">
+          <span class="status-pill" [class]="getStatusClass(inv.status)">
+            {{ getStatusLabel(inv.status) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Expires Column -->
+      <ng-container matColumnDef="expires">
+        <th mat-header-cell *matHeaderCellDef>Gültig bis</th>
+        <td mat-cell *matCellDef="let inv">
+          <span class="exp-date">{{ inv.expiresAtUtc | date:'dd.MM.yyyy' }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Aktionen</th>
+        <td mat-cell *matCellDef="let inv">
+          <div class="action-btns">
+            <button
+              mat-stroked-button
+              color="primary"
+              (click)="copyLink(inv.token)"
+              matTooltip="Einladungslink in Zwischenablage kopieren">
+              <mat-icon>content_copy</mat-icon> Link kopieren
+            </button>
+            <button
+              mat-icon-button
+              color="warn"
+              *ngIf="inv.status === 'Pending'"
+              (click)="revoke(inv.invitationId)"
+              matTooltip="Einladung widerrufen">
+              <mat-icon>block</mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-inv-state" *ngIf="!loading() && invitations().length === 0">
+    <mat-icon>outgoing_mail</mat-icon>
+    <p>Noch keine externen Einladungen versendet. Klicke auf „Neue Einladung erstellen“, um Partnerlehrkräfte oder Gastjuroren einzuladen.</p>
+  </div>
+</div>

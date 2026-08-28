@@ -8,6 +8,8 @@ export enum ProjectStatus {
   ON_GOING = 'OnGoing',
   COMPLETED = 'Completed',
   ARCHIVED = 'Archived',
+  PUBLISHED = 'Published',
+  REJECTED = 'Rejected',
   // Legacy frontend values kept for compatibility
   DRAFT = 'DRAFT',
   OPEN = 'OPEN',
@@ -33,6 +35,16 @@ export interface Project {
   logoUrl?: string;
   maxStudents: number;
   minStudents: number;
+  approvalNote?: string;
+  submittedAtUtc?: Date | string;
+  approvedAtUtc?: Date | string;
+  approvedByProfessorId?: string;
+  approvedByProfessorName?: string;
+  isExternal?: boolean;
+  externalSchoolName?: string;
+  hasConsent?: boolean;
+  consentConfirmedAtUtc?: Date | string;
+  consentConfirmedBy?: string;
   students?: ProjectStudent[];
   supervisors?: ProjectSupervisor[];
   tags?: string[];
@@ -56,9 +68,23 @@ export interface ProjectDTO {
   status: string;
   technology?: string;
   projectType: string;
+  approvalNote?: string;
+  submittedAtUtc?: string;
+  approvedAtUtc?: string;
+  approvedByProfessorId?: string;
+  approvedByProfessorName?: string;
+  isExternal: boolean;
+  externalSchoolName?: string;
+  hasConsent: boolean;
+  consentConfirmedAtUtc?: string;
+  consentConfirmedBy?: string;
   schoolYears: ProjectSchoolYearDTO[];
   students: ProjectStudentDTO[];
   supervisors: ProjectSupervisorDTO[];
+}
+
+export interface ProjectApprovalPayload {
+  note?: string;
 }
 
 /**

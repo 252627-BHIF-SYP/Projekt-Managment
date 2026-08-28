@@ -78,6 +78,40 @@ export class ProjectService {
     );
   }
 
+  submitForApproval(id: number | string): Observable<Project> {
+    return this.apiService.post<ProjectDTO>(`/Project/${id}/Submit`, {}).pipe(
+      map(dto => this.mapProjectDto(dto)),
+      tap(() => this.getProjects().subscribe())
+    );
+  }
+
+  approveProject(id: number | string, note?: string): Observable<Project> {
+    return this.apiService.post<ProjectDTO>(`/Project/${id}/Approve`, { note }).pipe(
+      map(dto => this.mapProjectDto(dto)),
+      tap(() => this.getProjects().subscribe())
+    );
+  }
+
+  rejectProject(id: number | string, note?: string): Observable<Project> {
+    return this.apiService.post<ProjectDTO>(`/Project/${id}/Reject`, { note }).pipe(
+      map(dto => this.mapProjectDto(dto)),
+      tap(() => this.getProjects().subscribe())
+    );
+  }
+
+  publishProject(id: number | string, note?: string): Observable<Project> {
+    return this.apiService.post<ProjectDTO>(`/Project/${id}/Publish`, { note }).pipe(
+      map(dto => this.mapProjectDto(dto)),
+      tap(() => this.getProjects().subscribe())
+    );
+  }
+
+  getPendingApprovals(): Observable<Project[]> {
+    return this.apiService.get<ProjectDTO[]>('/Project/PendingApprovals').pipe(
+      map(dtos => dtos.map(dto => this.mapProjectDto(dto)))
+    );
+  }
+
   deleteProject(id: string): Observable<void> {
     return this.apiService.delete<void>(`/Project/${id}`);
   }
@@ -100,6 +134,8 @@ export class ProjectService {
       case 'OnGoing': return ProjectStatus.ON_GOING;
       case 'Completed': return ProjectStatus.COMPLETED;
       case 'Archived': return ProjectStatus.ARCHIVED;
+      case 'Published': return ProjectStatus.PUBLISHED;
+      case 'Rejected': return ProjectStatus.REJECTED;
       default: return ProjectStatus.NEW;
     }
   }
@@ -157,6 +193,16 @@ export class ProjectService {
       status: this.toUiStatus(dto.status),
       githubUrl: dto.githubUrl,
       logoUrl: dto.logoUrl,
+      approvalNote: dto.approvalNote,
+      submittedAtUtc: dto.submittedAtUtc ? new Date(dto.submittedAtUtc) : undefined,
+      approvedAtUtc: dto.approvedAtUtc ? new Date(dto.approvedAtUtc) : undefined,
+      approvedByProfessorId: dto.approvedByProfessorId,
+      approvedByProfessorName: dto.approvedByProfessorName,
+      isExternal: dto.isExternal,
+      externalSchoolName: dto.externalSchoolName,
+      hasConsent: dto.hasConsent,
+      consentConfirmedAtUtc: dto.consentConfirmedAtUtc ? new Date(dto.consentConfirmedAtUtc) : undefined,
+      consentConfirmedBy: dto.consentConfirmedBy,
       technologies: dto.technology
         ? dto.technology.split(/[,;]/).map(item => item.trim()).filter(Boolean)
         : [],

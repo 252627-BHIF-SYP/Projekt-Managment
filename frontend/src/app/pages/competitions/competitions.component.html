@@ -1,0 +1,137 @@
+<div class="competitions-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-row">
+        <mat-icon class="page-icon">emoji_events</mat-icon>
+        <div>
+          <h1>Wettbewerbe & Zeitpläne</h1>
+          <p class="subtitle">Verwaltung von Projekt-Ausscheidungen, Zeitplänen und Präsentationen</p>
+        </div>
+      </div>
+      <button mat-flat-button color="primary" routerLink="/competitions/create" class="create-btn">
+        <mat-icon>add</mat-icon>
+        Wettbewerb erstellen
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="filter-card">
+    <div class="filter-row">
+      <div class="chip-group">
+        @for (item of competitionTypes; track item.value) {
+          <button
+            class="filter-chip"
+            [class.active]="selectedType() === item.value"
+            (click)="onTypeSelect(item.value)">
+            {{ item.label }}
+          </button>
+        }
+      </div>
+
+      <div class="search-box">
+        <mat-icon>search</mat-icon>
+        <input
+          type="text"
+          placeholder="Wettbewerb oder Klasse suchen..."
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Wettbewerbe werden geladen...</p>
+    </div>
+  } @else {
+    <!-- Empty State -->
+    @if (filteredCompetitions().length === 0) {
+      <div class="empty-state">
+        <mat-icon>event_busy</mat-icon>
+        <h3>Keine Wettbewerbe gefunden</h3>
+        <p>Erstelle deinen ersten Wettbewerb oder passe die Suchfilter an.</p>
+        <button mat-stroked-button color="primary" routerLink="/competitions/create">
+          <mat-icon>add</mat-icon>
+          Neuer Wettbewerb
+        </button>
+      </div>
+    } @else {
+      <!-- Competition Grid -->
+      <div class="competition-grid">
+        @for (item of filteredCompetitions(); track item.competitionId) {
+          <div class="competition-card" [routerLink]="['/competitions', item.competitionId]">
+            <div class="card-header">
+              <span class="type-badge" [ngClass]="getTypeBadgeClass(item.competitionType)">
+                {{ getTypeLabel(item.competitionType) }}
+              </span>
+              <div class="card-actions" (click)="$event.stopPropagation()">
+                <button
+                  mat-icon-button
+                  matTooltip="Programm-PDF herunterladen"
+                  (click)="downloadPdf(item.competitionId, $event)">
+                  <mat-icon>picture_as_pdf</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  matTooltip="Wettbewerb bearbeiten"
+                  [routerLink]="['/competitions', item.competitionId, 'edit']">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  color="warn"
+                  matTooltip="Löschen"
+                  (click)="deleteCompetition(item, $event)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <h2 class="competition-name">{{ item.name }}</h2>
+
+              <div class="info-list">
+                <div class="info-item">
+                  <mat-icon>calendar_today</mat-icon>
+                  <span>
+                    {{ item.startDate | date:'dd.MM.yyyy' }}
+                    @if (item.endDate && item.endDate !== item.startDate) {
+                      - {{ item.endDate | date:'dd.MM.yyyy' }}
+                    }
+                  </span>
+                </div>
+                <div class="info-item">
+                  <mat-icon>school</mat-icon>
+                  <span>Klassen: {{ item.allowedClassTypes || 'Alle' }}</span>
+                </div>
+                <div class="info-item">
+                  <mat-icon>timer</mat-icon>
+                  <span>{{ item.presentationDurationMinutes }} min Slot / {{ item.breakDurationMinutes }} min Pause</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <div class="stat-pill">
+                <mat-icon>folder</mat-icon>
+                <span><strong>{{ item.projectCount }}</strong> Projekte</span>
+              </div>
+              <div class="stat-pill">
+                <mat-icon>schedule</mat-icon>
+                <span><strong>{{ item.slotCount }}</strong> Zeitplan-Slots</span>
+              </div>
+              <div class="open-link">
+                <span>Details & Zeitplan</span>
+                <mat-icon>arrow_forward</mat-icon>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

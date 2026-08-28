@@ -61,6 +61,35 @@ public static class ProjectEndpoints
             .Produces<ProjectPermissionDto>()
             .Produces(StatusCodes.Status404NotFound);
 
+        // Workflow Endpoints
+        group.MapPost("{id:int}/Submit", SubmitForApproval)
+            .WithName(nameof(SubmitForApproval))
+            .Produces<ProjectDto>()
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("{id:int}/Approve", ApproveProject)
+            .WithName(nameof(ApproveProject))
+            .Produces<ProjectDto>()
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("{id:int}/Reject", RejectProject)
+            .WithName(nameof(RejectProject))
+            .Produces<ProjectDto>()
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("{id:int}/Publish", PublishProject)
+            .WithName(nameof(PublishProject))
+            .Produces<ProjectDto>()
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("PendingApprovals", GetPendingApprovals)
+            .WithName(nameof(GetPendingApprovals))
+            .Produces<IEnumerable<ProjectDto>>();
+
         group.MapGet("Count", async (IProjectService service) => TypedResults.Ok(await service.CountProjectsAsync()))
             .WithName("GetProjectCount");
 
@@ -282,6 +311,119 @@ public static class ProjectEndpoints
         }
 
         return TypedResults.Problem(detail: result.Message);
+    }
+
+    private static async Task<IResult> SubmitForApproval(
+        IProjectService service,
+        HttpContext httpContext,
+        int id)
+    {
+        var result = await service.SubmitForApprovalAsync(id, CreateActor(httpContext));
+        if (result.Status == ServiceResultStatus.Success && result.Value != null)
+        {
+            return TypedResults.Ok(result.Value);
+        }
+
+        if (result.Status == ServiceResultStatus.Forbidden)
+        {
+            return TypedResults.Forbid();
+        }
+
+        if (result.Status == ServiceResultStatus.NotFound)
+        {
+            return TypedResults.NotFound();
+        }
+
+        return TypedResults.Problem(detail: result.Message);
+    }
+
+    private static async Task<IResult> ApproveProject(
+        IProjectService service,
+        HttpContext httpContext,
+        int id,
+        ProjectApprovalDto? dto)
+    {
+        var result = await service.ApproveProjectAsync(id, dto ?? new ProjectApprovalDto(null), CreateActor(httpContext));
+        if (result.Status == ServiceResultStatus.Success && result.Value != null)
+        {
+            return TypedResults.Ok(result.Value);
+        }
+
+        if (result.Status == ServiceResultStatus.Forbidden)
+        {
+            return TypedResults.Forbid();
+        }
+
+        if (result.Status == ServiceResultStatus.NotFound)
+        {
+            return TypedResults.NotFound();
+        }
+
+        return TypedResults.Problem(detail: result.Message);
+    }
+
+    private static async Task<IResult> RejectProject(
+        IProjectService service,
+        HttpContext httpContext,
+        int id,
+        ProjectApprovalDto? dto)
+    {
+        var result = await service.RejectProjectAsync(id, dto ?? new ProjectApprovalDto(null), CreateActor(httpContext));
+        if (result.Status == ServiceResultStatus.Success && result.Value != null)
+        {
+            return TypedResults.Ok(result.Value);
+        }
+
+        if (result.Status == ServiceResultStatus.Forbidden)
+        {
+            return TypedResults.Forbid();
+        }
+
+        if (result.Status == ServiceResultStatus.NotFound)
+        {
+            return TypedResults.NotFound();
+        }
+
+        return TypedResults.Problem(detail: result.Message);
+    }
+
+    private static async Task<IResult> PublishProject(
+        IProjectService service,
+        HttpContext httpContext,
+        int id,
+        ProjectApprovalDto? dto)
+    {
+        var result = await service.PublishProjectAsync(id, dto ?? new ProjectApprovalDto(null), CreateActor(httpContext));
+        if (result.Status == ServiceResultStatus.Success && result.Value != null)
+        {
+            return TypedResults.Ok(result.Value);
+        }
+
+        if (result.Status == ServiceResultStatus.Forbidden)
+        {
+            return TypedResults.Forbid();
+        }
+
+        if (result.Status == ServiceResultStatus.NotFound)
+        {
+            return TypedResults.NotFound();
+        }
+
+        return TypedResults.Problem(detail: result.Message);
+    }
+
+    private static async Task<IResult> GetPendingApprovals(
+        IProjectService service,
+        HttpContext httpContext,
+        string? searchTerm,
+        int? schoolYearId,
+        int? classId,
+        string? supervisorId,
+        ProjectType? projectType)
+    {
+        var filter = new ProjectFilterDto(searchTerm, schoolYearId, classId, supervisorId, projectType, ProjectStatus.Pending);
+        var projects = await service.GetPendingApprovalsAsync(filter, CreateActor(httpContext));
+        return TypedResults.Ok(projects);
     }
 
     private static ProjectActorDto CreateActor(HttpContext httpContext)

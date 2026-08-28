@@ -1,0 +1,847 @@
+<div class="detail-page-container">
+  @if (loading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Wettbewerbsdetails werden geladen...</p>
+    </div>
+  } @else if (competition(); as comp) {
+    <!-- Top Header Banner -->
+    <div class="detail-header-card">
+      <div class="header-main">
+        <div class="header-left">
+          <button mat-icon-button routerLink="/competitions" class="back-btn" matTooltip="Zurück zur Übersicht">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <div>
+            <div class="badge-row">
+              <span class="type-badge" [ngClass]="getTypeBadgeClass(comp.competitionType)">
+                {{ getTypeLabel(comp.competitionType) }}
+              </span>
+              <span class="status-badge" [ngClass]="getStatusBadgeClass(comp.status)">
+                {{ getStatusLabel(comp.status) }}
+              </span>
+              <span class="classes-badge">
+                <mat-icon>school</mat-icon> {{ comp.allowedClassTypes || 'Alle Klassen' }}
+              </span>
+            </div>
+            <h1 class="comp-title">{{ comp.name }}</h1>
+            <div class="meta-row">
+              <span class="meta-item">
+                <mat-icon>calendar_today</mat-icon>
+                {{ comp.startDate | date:'dd.MM.yyyy' }}
+                @if (comp.endDate && comp.endDate !== comp.startDate) {
+                  - {{ comp.endDate | date:'dd.MM.yyyy' }}
+                }
+              </span>
+              <span class="meta-item">
+                <mat-icon>timer</mat-icon>
+                {{ comp.presentationDurationMinutes }} min Slot / {{ comp.breakDurationMinutes }} min Pause
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button mat-flat-button color="accent" class="pdf-btn" (click)="downloadPdf()">
+            <mat-icon>picture_as_pdf</mat-icon>
+            Programm als PDF
+          </button>
+          <button mat-stroked-button [routerLink]="['/competitions', comp.competitionId, 'edit']">
+            <mat-icon>edit</mat-icon>
+            Bearbeiten
+          </button>
+          <button mat-icon-button color="warn" matTooltip="Löschen" (click)="deleteCompetition()">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Bar -->
+      <div class="metrics-bar">
+        <div class="metric-item">
+          <span class="metric-val">{{ comp.projects.length }}</span>
+          <span class="metric-lbl">Projekte</span>
+        </div>
+        <div class="metric-divider"></div>
+        <div class="metric-item">
+          <span class="metric-val">{{ juryMembers().length }}</span>
+          <span class="metric-lbl">Jury-Mitglieder</span>
+        </div>
+        <div class="metric-divider"></div>
+        <div class="metric-item">
+          <span class="metric-val">{{ criteria().length }}</span>
+          <span class="metric-lbl">Bewertungskriterien</span>
+        </div>
+        <div class="metric-divider"></div>
+        <div class="metric-item">
+          <span class="metric-val">{{ awards().length }}</span>
+          <span class="metric-lbl">Preise & Awards</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <mat-tab-group animationDuration="200ms" class="detail-tabs">
+      <!-- TAB 1: ÜBERSICHT -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">dashboard</mat-icon>
+          Übersicht
+        </ng-template>
+
+        <div class="tab-content">
+          <div class="overview-grid">
+            <!-- Left: Projects in Competition -->
+            <mat-card class="content-card">
+              <mat-card-header>
+                <mat-card-title>Zugeordnete Projekte ({{ comp.projects.length }})</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                @if (comp.projects.length === 0) {
+                  <div class="empty-tab-state">
+                    <mat-icon>folder_off</mat-icon>
+                    <p>Diesem Wettbewerb sind noch keine Projekte zugeordnet.</p>
+                  </div>
+                } @else {
+                  <div class="project-mini-list">
+                    @for (p of comp.projects; track p.projectId) {
+                      <div class="project-mini-item" [routerLink]="['/projects', p.projectId]">
+                        <div class="mini-left">
+                          <span class="mini-type-badge">{{ p.projectType }}</span>
+                          <div>
+                            <span class="mini-title">{{ p.title }}</span>
+                            <span class="mini-desc">{{ p.technology || 'Keine Technologie angegeben' }}</span>
+                          </div>
+                        </div>
+                        <mat-icon class="arrow-icon">chevron_right</mat-icon>
+                      </div>
+                    }
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Right: Schedule Preview -->
+            <mat-card class="content-card">
+              <mat-card-header>
+                <mat-card-title>Zeitplan-Vorschau ({{ comp.scheduleSlots.length }} Einträge)</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                @if (comp.scheduleSlots.length === 0) {
+                  <div class="empty-tab-state">
+                    <mat-icon>event_busy</mat-icon>
+                    <p>Noch kein Zeitplan erstellt. Wechsle zum Tab "Zeitplan & Programm" um einen Zeitplan zu generieren.</p>
+                  </div>
+                } @else {
+                  <div class="timeline-preview">
+                    @for (slot of sortedSlots(); track slot.scheduleSlotId) {
+                      <div class="timeline-item">
+                        <div class="time-col">
+                          {{ slot.startTime }} - {{ getSlotEndTime(slot.startTime, slot.durationMinutes) }}
+                        </div>
+                        <div class="dot-col">
+                          <span class="timeline-dot" [ngClass]="getSlotBadgeClass(slot.slotType)"></span>
+                        </div>
+                        <div class="slot-info-col">
+                          <span class="slot-title">{{ slot.title }}</span>
+                          <span class="slot-badge" [ngClass]="getSlotBadgeClass(slot.slotType)">
+                            {{ getSlotTypeLabel(slot.slotType) }}
+                          </span>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- TAB 2: PROJEKTE ZUORDNEN -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">library_add_check</mat-icon>
+          Projekte zuordnen ({{ selectedProjectIds().size }})
+        </ng-template>
+
+        <div class="tab-content">
+          <mat-card class="content-card">
+            <div class="assignment-toolbar">
+              <div class="search-box">
+                <mat-icon>search</mat-icon>
+                <input
+                  type="text"
+                  placeholder="Projekte nach Titel oder Technologie durchsuchen..."
+                  [ngModel]="projectSearchTerm()"
+                  (ngModelChange)="projectSearchTerm.set($event)" />
+              </div>
+
+              <div class="selection-actions">
+                <button mat-button (click)="selectAllFilteredProjects()">Alle Gefilterten auswählen</button>
+                <button mat-button (click)="deselectAllProjects()">Auswahl aufheben</button>
+                <button
+                  mat-flat-button
+                  color="primary"
+                  [disabled]="savingProjects()"
+                  (click)="saveProjectAssignments()">
+                  @if (savingProjects()) {
+                    <mat-spinner diameter="18"></mat-spinner>
+                  } @else {
+                    <ng-container>
+                      <mat-icon>check</mat-icon>
+                      <span>Zuordnung speichern ({{ selectedProjectIds().size }})</span>
+                    </ng-container>
+                  }
+                </button>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="project-selection-list">
+              @for (project of filteredSchoolProjects(); track getProjectId(project)) {
+                <div
+                  class="project-select-card"
+                  [class.selected]="isProjectSelected(getProjectId(project))"
+                  (click)="toggleProjectSelection(getProjectId(project))">
+                  <mat-checkbox
+                    [checked]="isProjectSelected(getProjectId(project))"
+                    (click)="$event.stopPropagation()"
+                    (change)="toggleProjectSelection(getProjectId(project))">
+                  </mat-checkbox>
+
+                  <div class="select-info">
+                    <div class="select-header">
+                      <span class="project-title">{{ project.title }}</span>
+                      <span class="mini-type-badge">{{ project.projectType || 'Projekt' }}</span>
+                    </div>
+                    <p class="project-desc">{{ project.description }}</p>
+                    <div class="project-meta">
+                      @if (project.technologies && project.technologies.length > 0) {
+                        <span><mat-icon>code</mat-icon> {{ project.technologies.join(', ') }}</span>
+                      }
+                      <span><mat-icon>groups</mat-icon> {{ project.students?.length || 0 }} Schüler</span>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- TAB 3: ZEITPLAN-EDITOR (DRAG & DROP) -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">view_timeline</mat-icon>
+          Zeitplan & Programm ({{ comp.scheduleSlots.length }})
+        </ng-template>
+
+        <div class="tab-content">
+          <!-- Schedule Actions Header -->
+          <div class="schedule-actions-bar">
+            <div class="actions-left">
+              <button
+                mat-flat-button
+                color="primary"
+                (click)="showAutoScheduleDialog.set(!showAutoScheduleDialog())">
+                <mat-icon>auto_fix_high</mat-icon>
+                Zeitplan automatisch generieren
+              </button>
+
+              <button
+                mat-stroked-button
+                (click)="openAddSlotForm()">
+                <mat-icon>add</mat-icon>
+                Slot manuell hinzufügen
+              </button>
+            </div>
+
+            <div class="actions-right">
+              <button mat-flat-button color="accent" (click)="downloadPdf()">
+                <mat-icon>picture_as_pdf</mat-icon>
+                Programm als PDF herunterladen
+              </button>
+            </div>
+          </div>
+
+          <!-- Auto-Schedule Panel -->
+          @if (showAutoScheduleDialog()) {
+            <mat-card class="panel-card auto-schedule-panel">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>auto_awesome</mat-icon>
+                  Zeitplan automatisch generieren
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <p class="panel-desc">
+                  Erstellt einen lückenlosen Zeitplan für alle <strong>{{ comp.projects.length }} zugeordneten Projekte</strong>.
+                </p>
+
+                <form [formGroup]="autoScheduleForm" class="auto-form">
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Datum</mat-label>
+                      <input matInput type="date" formControlName="date" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Startzeit</mat-label>
+                      <input matInput type="time" formControlName="startTime" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Dauer pro Vortrag (Min.)</mat-label>
+                      <input matInput type="number" formControlName="presentationDuration" />
+                    </mat-form-field>
+                  </div>
+
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Kaffeepause (Min.)</mat-label>
+                      <input matInput type="number" formControlName="breakDuration" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Pause alle X Projekte</mat-label>
+                      <input matInput type="number" formControlName="breakEveryN" />
+                    </mat-form-field>
+                  </div>
+
+                  <div class="checkbox-row">
+                    <mat-checkbox formControlName="includeIntro">
+                      Begrüßung / Eröffnung am Anfang einfügen (15 Min.)
+                    </mat-checkbox>
+                    <mat-checkbox formControlName="includeOutro">
+                      Siegerehrung / Juryberatung am Ende einfügen (20 Min.)
+                    </mat-checkbox>
+                  </div>
+
+                  <div class="panel-actions">
+                    <button type="button" mat-button (click)="showAutoScheduleDialog.set(false)">
+                      Abbrechen
+                    </button>
+                    <button
+                      type="button"
+                      mat-flat-button
+                      color="primary"
+                      [disabled]="generatingSchedule()"
+                      (click)="runAutoSchedule()">
+                      @if (generatingSchedule()) {
+                        <mat-spinner diameter="18"></mat-spinner>
+                      } @else {
+                        <ng-container>
+                          <mat-icon>bolt</mat-icon>
+                          <span>Jetzt generieren</span>
+                        </ng-container>
+                      }
+                    </button>
+                  </div>
+                </form>
+              </mat-card-content>
+            </mat-card>
+          }
+
+          <!-- Add / Edit Slot Inline Form -->
+          @if (showAddSlotForm()) {
+            <mat-card class="panel-card edit-slot-panel">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>{{ editingSlotId() ? 'edit' : 'add_circle' }}</mat-icon>
+                  {{ editingSlotId() ? 'Zeitplan-Slot bearbeiten' : 'Neuen Zeitplan-Slot anlegen' }}
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <form [formGroup]="slotForm" (ngSubmit)="saveSlot()" class="slot-form">
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Slot-Typ</mat-label>
+                      <mat-select formControlName="slotType">
+                        <mat-option value="Presentation">Präsentation / Vortrag</mat-option>
+                        <mat-option value="Break">Pause / Kaffeepause</mat-option>
+                        <mat-option value="Info">Programmpunkt / Info</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
+                    @if (slotForm.get('slotType')?.value === 'Presentation') {
+                      <mat-form-field appearance="outline" class="form-field-wide">
+                        <mat-label>Projekt auswählen (optional)</mat-label>
+                        <mat-select formControlName="projectId" (valueChange)="onSlotProjectChange($event)">
+                          <mat-option [value]="null">-- Kein Projekt / Eigenständiger Vortrag --</mat-option>
+                          @for (p of comp.projects; track p.projectId) {
+                            <mat-option [value]="p.projectId">{{ p.title }} ({{ p.projectType }})</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    }
+                  </div>
+
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Titel / Bezeichnung</mat-label>
+                      <input matInput formControlName="title" placeholder="z. B. Begrüßung durch Direktor" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field-small">
+                      <mat-label>Datum</mat-label>
+                      <input matInput type="date" formControlName="date" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field-small">
+                      <mat-label>Startzeit</mat-label>
+                      <input matInput type="time" formControlName="startTime" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field-small">
+                      <mat-label>Dauer (Min.)</mat-label>
+                      <input matInput type="number" formControlName="durationMinutes" min="1" />
+                    </mat-form-field>
+                  </div>
+
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Zusatz-Notiz / Raum (optional)</mat-label>
+                    <input matInput formControlName="note" placeholder="z. B. Raum E52 oder Foyer" />
+                  </mat-form-field>
+
+                  <div class="panel-actions">
+                    <button type="button" mat-button (click)="showAddSlotForm.set(false)">
+                      Abbrechen
+                    </button>
+                    <button type="submit" mat-flat-button color="primary">
+                      <mat-icon>save</mat-icon>
+                      {{ editingSlotId() ? 'Speichern' : 'Slot hinzufügen' }}
+                    </button>
+                  </div>
+                </form>
+              </mat-card-content>
+            </mat-card>
+          }
+
+          <!-- Drag & Drop Timeline List -->
+          @if (comp.scheduleSlots.length === 0) {
+            <div class="empty-schedule-state">
+              <mat-icon>schedule</mat-icon>
+              <h3>Noch keine Einträge im Zeitplan</h3>
+              <p>Generiere den Zeitplan automatisch aus den zugeordneten Projekten oder erstelle Slots manuell.</p>
+            </div>
+          } @else {
+            <div class="drag-hint">
+              <mat-icon>drag_indicator</mat-icon>
+              <span>Tipp: Du kannst Einträge per Drag & Drop verschieben. Die Startzeiten passen sich automatisch an!</span>
+            </div>
+
+            <div
+              cdkDropList
+              class="schedule-drop-list"
+              (cdkDropListDropped)="onSlotDrop($event)">
+              @for (slot of sortedSlots(); track slot.scheduleSlotId; let index = $index) {
+                <div class="schedule-slot-item" cdkDrag>
+                  <div class="drag-handle" cdkDragHandle matTooltip="Verschieben">
+                    <mat-icon>drag_indicator</mat-icon>
+                  </div>
+
+                  <div class="time-badge-box">
+                    <span class="slot-time">{{ slot.startTime }} - {{ getSlotEndTime(slot.startTime, slot.durationMinutes) }}</span>
+                    <span class="slot-duration">{{ slot.durationMinutes }} Min.</span>
+                  </div>
+
+                  <div class="slot-type-indicator" [ngClass]="getSlotBadgeClass(slot.slotType)">
+                    {{ getSlotTypeLabel(slot.slotType) }}
+                  </div>
+
+                  <div class="slot-main-content">
+                    <span class="slot-title">{{ slot.title }}</span>
+                    @if (slot.note) {
+                      <span class="slot-note"><mat-icon>room</mat-icon> {{ slot.note }}</span>
+                    }
+                  </div>
+
+                  <div class="slot-actions">
+                    <button mat-icon-button (click)="editSlot(slot)" matTooltip="Bearbeiten">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" (click)="deleteSlot(slot)" matTooltip="Löschen">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- TAB 4: JURY & KRITERIEN -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">gavel</mat-icon>
+          Jury & Kriterien
+        </ng-template>
+
+        <div class="tab-content">
+          <div class="overview-grid">
+            <!-- Left: Evaluation Criteria -->
+            <mat-card class="content-card">
+              <mat-card-header class="card-header-flex">
+                <mat-card-title>
+                  <mat-icon>fact_check</mat-icon>
+                  Bewertungskriterien ({{ criteria().length }})
+                </mat-card-title>
+                <button mat-flat-button color="primary" (click)="showAddCriterionForm.set(!showAddCriterionForm())">
+                  <mat-icon>add</mat-icon> Kriterium
+                </button>
+              </mat-card-header>
+
+              <mat-card-content>
+                @if (showAddCriterionForm()) {
+                  <form [formGroup]="criterionForm" (ngSubmit)="saveCriterion()" class="inline-form">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Kriteriumsname</mat-label>
+                      <input matInput formControlName="name" placeholder="z. B. Idee & Originalität" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                      <mat-label>Beschreibung (optional)</mat-label>
+                      <input matInput formControlName="description" placeholder="z. B. Innovationsgrad und Mehrwert" />
+                    </mat-form-field>
+
+                    <div class="form-row">
+                      <mat-form-field appearance="outline" class="form-field-small">
+                        <mat-label>Min. Punkte</mat-label>
+                        <input matInput type="number" formControlName="minScore" />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field-small">
+                        <mat-label>Max. Punkte</mat-label>
+                        <input matInput type="number" formControlName="maxScore" />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="form-field-small">
+                        <mat-label>Gewichtung</mat-label>
+                        <input matInput type="number" step="0.5" formControlName="weight" />
+                      </mat-form-field>
+                    </div>
+
+                    <div class="panel-actions">
+                      <button type="button" mat-button (click)="showAddCriterionForm.set(false)">Abbrechen</button>
+                      <button type="submit" mat-flat-button color="primary">Kriterium anlegen</button>
+                    </div>
+                  </form>
+                }
+
+                @if (criteria().length === 0) {
+                  <div class="empty-tab-state">
+                    <mat-icon>tune</mat-icon>
+                    <p>Noch keine Bewertungskriterien definiert.</p>
+                  </div>
+                } @else {
+                  <div class="criteria-list">
+                    @for (crit of criteria(); track crit.criterionId) {
+                      <div class="criterion-item">
+                        <div class="crit-main">
+                          <div class="crit-title-row">
+                            <span class="crit-name">{{ crit.name }}</span>
+                            <span class="weight-badge">Gewicht: {{ crit.weight }}x</span>
+                            <span class="score-range-badge">{{ crit.minScore }} - {{ crit.maxScore }} Pkt.</span>
+                          </div>
+                          @if (crit.description) {
+                            <p class="crit-desc">{{ crit.description }}</p>
+                          }
+                        </div>
+                        <button mat-icon-button color="warn" (click)="deleteCriterion(crit)" matTooltip="Löschen">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Right: Jury Members -->
+            <mat-card class="content-card">
+              <mat-card-header class="card-header-flex">
+                <mat-card-title>
+                  <mat-icon>groups</mat-icon>
+                  Jury-Mitglieder ({{ juryMembers().length }})
+                </mat-card-title>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <button mat-stroked-button color="primary" [routerLink]="['/jury/evaluate', comp.competitionId]">
+                    <mat-icon>gavel</mat-icon> Zum Jury Portal
+                  </button>
+                  <button mat-flat-button color="primary" (click)="showAddJuryForm.set(!showAddJuryForm())">
+                    <mat-icon>person_add</mat-icon> Juror hinzufügen
+                  </button>
+                </div>
+              </mat-card-header>
+
+              <mat-card-content>
+                @if (showAddJuryForm()) {
+                  <form [formGroup]="juryForm" (ngSubmit)="saveJuryMember()" class="inline-form">
+                    <mat-checkbox formControlName="isExternal">
+                      Externer Juror (Gastjuror / Firmenvertreter)
+                    </mat-checkbox>
+
+                    @if (!juryForm.get('isExternal')?.value) {
+                      <mat-form-field appearance="outline">
+                        <mat-label>Professor / Lehrkraft auswählen</mat-label>
+                        <mat-select formControlName="professorId">
+                          @for (prof of allProfessors(); track prof.id) {
+                            <mat-option [value]="prof.id">{{ prof.firstName }} {{ prof.lastName }} ({{ prof.username }})</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    } @else {
+                      <mat-form-field appearance="outline">
+                        <mat-label>Name des Gastjurors</mat-label>
+                        <input matInput formControlName="externalName" placeholder="z. B. Dr. Max Mustermann" />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline">
+                        <mat-label>E-Mail-Adresse</mat-label>
+                        <input matInput type="email" formControlName="externalEmail" placeholder="max.mustermann@firma.at" />
+                      </mat-form-field>
+                    }
+
+                    <mat-form-field appearance="outline">
+                      <mat-label>Rolle in der Jury</mat-label>
+                      <mat-select formControlName="role">
+                        <mat-option value="Juror">Juror</mat-option>
+                        <mat-option value="Hauptjuror">Hauptjuror / Juryvorsitz</mat-option>
+                        <mat-option value="Gastjuror">Gastjuror</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
+                    <div class="panel-actions">
+                      <button type="button" mat-button (click)="showAddJuryForm.set(false)">Abbrechen</button>
+                      <button type="submit" mat-flat-button color="primary">Hinzufügen</button>
+                    </div>
+                  </form>
+                }
+
+                @if (juryMembers().length === 0) {
+                  <div class="empty-tab-state">
+                    <mat-icon>person_off</mat-icon>
+                    <p>Noch keine Jury-Mitglieder zugeordnet.</p>
+                  </div>
+                } @else {
+                  <div class="jury-list">
+                    @for (member of juryMembers(); track member.juryMemberId) {
+                      <div class="jury-item">
+                        <div class="jury-avatar">
+                          <mat-icon>person</mat-icon>
+                        </div>
+                        <div class="jury-info">
+                          <span class="jury-name">
+                            {{ member.professorName || member.externalName || 'Unbekannt' }}
+                          </span>
+                          <span class="jury-role-row">
+                            <span class="jury-role-badge">{{ member.role }}</span>
+                            @if (member.externalEmail) {
+                              <span class="jury-email">{{ member.externalEmail }}</span>
+                            }
+                          </span>
+                        </div>
+                        <button mat-icon-button color="warn" (click)="deleteJuryMember(member)" matTooltip="Entfernen">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <!-- Section: External Invitations & Tokens -->
+          <mat-divider style="margin: 32px 0 24px;"></mat-divider>
+          <app-invitation-management [competitionId]="comp.competitionId" [competitionName]="comp.name"></app-invitation-management>
+        </div>
+      </mat-tab>
+
+      <!-- TAB 5: LEADERBOARD & SIEGEREHRUNG -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">emoji_events</mat-icon>
+          Leaderboard & Siegerehrung
+        </ng-template>
+
+        <div class="tab-content">
+          <!-- Competition Status & Publish Bar -->
+          <div class="status-control-bar">
+            <div class="status-state-info">
+              <span class="lbl">Wettbewerbs-Status:</span>
+              <span class="status-badge" [ngClass]="getStatusBadgeClass(comp.status)">
+                {{ getStatusLabel(comp.status) }}
+              </span>
+            </div>
+
+            <div class="status-actions">
+              @if (comp.status !== 'InEvaluation') {
+                <button mat-stroked-button (click)="updateCompetitionStatus('InEvaluation')">
+                  <mat-icon>play_arrow</mat-icon> In Bewertung setzen
+                </button>
+              }
+              @if (comp.status !== 'Completed') {
+                <button mat-stroked-button (click)="updateCompetitionStatus('Completed')">
+                  <mat-icon>done_all</mat-icon> Als Abgeschlossen markieren
+                </button>
+              }
+              <button
+                mat-flat-button
+                color="primary"
+                [disabled]="comp.status === 'Published'"
+                (click)="updateCompetitionStatus('Published')">
+                <mat-icon>public</mat-icon>
+                {{ comp.status === 'Published' ? 'Ergebnisse sind öffentlich' : 'Ergebnisse Veröffentlichen' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Awards Management Panel -->
+          <mat-card class="content-card awards-card">
+            <mat-card-header class="card-header-flex">
+              <mat-card-title>
+                <mat-icon>military_tech</mat-icon>
+                Preise & Platzierungen ({{ awards().length }})
+              </mat-card-title>
+              <button mat-flat-button color="accent" (click)="showAddAwardForm.set(!showAddAwardForm())">
+                <mat-icon>add</mat-icon> Preis hinzufügen
+              </button>
+            </mat-card-header>
+
+            <mat-card-content>
+              @if (showAddAwardForm()) {
+                <form [formGroup]="awardForm" (ngSubmit)="saveAward()" class="inline-form">
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="form-field-wide">
+                      <mat-label>Preisbezeichnung</mat-label>
+                      <input matInput formControlName="name" placeholder="z. B. 1. Platz oder Publikumspreis" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field-small">
+                      <mat-label>Rang (z. B. 1, 2, 3)</mat-label>
+                      <input matInput type="number" formControlName="rank" />
+                    </mat-form-field>
+                  </div>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Details / Sachpreis (optional)</mat-label>
+                    <input matInput formControlName="prizeDetails" placeholder="z. B. Pokal & 150€ Sachgutschein" />
+                  </mat-form-field>
+
+                  <div class="panel-actions">
+                    <button type="button" mat-button (click)="showAddAwardForm.set(false)">Abbrechen</button>
+                    <button type="submit" mat-flat-button color="primary">Preis speichern</button>
+                  </div>
+                </form>
+              }
+
+              <div class="awards-grid">
+                @for (award of awards(); track award.awardId) {
+                  <div class="award-card-item">
+                    <div class="award-top-row">
+                      <span class="award-rank-badge">
+                        <mat-icon>emoji_events</mat-icon> {{ award.name }}
+                      </span>
+                      <button mat-icon-button color="warn" (click)="deleteAward(award)" matTooltip="Preis löschen">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+
+                    @if (award.prizeDetails) {
+                      <span class="award-details">{{ award.prizeDetails }}</span>
+                    }
+
+                    <div class="award-winner-select">
+                      <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Siegerprojekt zuweisen</mat-label>
+                        <mat-select
+                          [ngModel]="award.winningProjectId"
+                          (ngModelChange)="assignWinner(award, $event)">
+                          <mat-option [value]="null">-- Noch kein Gewinner zugewiesen --</mat-option>
+                          @for (p of comp.projects; track p.projectId) {
+                            <mat-option [value]="p.projectId">{{ p.title }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                  </div>
+                }
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Leaderboard Table -->
+          <mat-card class="content-card leaderboard-card">
+            <mat-card-header>
+              <mat-card-title>
+                <mat-icon>leaderboard</mat-icon>
+                Live-Rangliste & Gesamtpunkte
+              </mat-card-title>
+            </mat-card-header>
+
+            <mat-card-content>
+              @if (leaderboard(); as lb) {
+                @if (lb.entries.length === 0) {
+                  <div class="empty-tab-state">
+                    <mat-icon>assessment</mat-icon>
+                    <p>Noch keine Projekte oder Bewertungen vorhanden.</p>
+                  </div>
+                } @else {
+                  <div class="leaderboard-table-wrapper">
+                    <table class="leaderboard-table">
+                      <thead>
+                        <tr>
+                          <th class="rank-col">Rang</th>
+                          <th class="project-col">Projekt</th>
+                          <th class="score-col">Gesamtpunkte</th>
+                          <th class="juror-col">Jury-Beteiligung</th>
+                          <th class="award-col">Auszeichnung</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (entry of lb.entries; track entry.projectId) {
+                          <tr class="leaderboard-row" [class.rank-1]="entry.rank === 1" [class.rank-2]="entry.rank === 2" [class.rank-3]="entry.rank === 3">
+                            <td class="rank-col">
+                              <span class="medal-badge" [ngClass]="'medal-' + entry.rank">
+                                @if (entry.rank === 1) { 🥇 1 }
+                                @else if (entry.rank === 2) { 🥈 2 }
+                                @else if (entry.rank === 3) { 🥉 3 }
+                                @else { {{ entry.rank }} }
+                              </span>
+                            </td>
+                            <td class="project-col">
+                              <span class="table-proj-title">{{ entry.projectTitle }}</span>
+                              <div class="table-proj-meta">
+                                <span class="mini-type-badge">{{ entry.projectType }}</span>
+                                @if (entry.technology) {
+                                  <span class="table-tech">{{ entry.technology }}</span>
+                                }
+                              </div>
+                            </td>
+                            <td class="score-col">
+                              <span class="table-score-val">{{ entry.totalWeightedScore }}</span>
+                              <span class="table-score-max">/ {{ entry.maxPossibleWeightedScore }}</span>
+                            </td>
+                            <td class="juror-col">
+                              <div class="juror-count-box">
+                                <mat-icon>people</mat-icon>
+                                <span>{{ entry.evaluatedJurorCount }} / {{ entry.totalJurorCount }} Juroren</span>
+                              </div>
+                            </td>
+                            <td class="award-col">
+                              @if (entry.awardName) {
+                                <span class="winner-award-badge">
+                                  <mat-icon>emoji_events</mat-icon>
+                                  {{ entry.awardName }}
+                                </span>
+                              } @else {
+                                <span class="no-award">-</span>
+                              }
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
+              }
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>

@@ -15,6 +15,13 @@ import { StudentProfileComponent } from './pages/student-profile/student-profile
 import { ProfessorsComponent } from './pages/professors/professors.component';
 import { ProfessorCreateComponent } from './pages/professor-create/professor-create.component';
 import { ProfessorProfileComponent } from './pages/professor-profile/professor-profile.component';
+import { CompetitionsComponent } from './pages/competitions/competitions.component';
+import { CompetitionCreateComponent } from './pages/competitions/competition-create/competition-create.component';
+import { CompetitionDetailComponent } from './pages/competitions/competition-detail/competition-detail.component';
+import { JuryDashboardComponent } from './pages/jury/jury-dashboard/jury-dashboard.component';
+import { JuryEvaluationComponent } from './pages/jury/jury-evaluation/jury-evaluation.component';
+import { InvitationAcceptComponent } from './pages/invitations/invitation-accept/invitation-accept.component';
+import { ExternalPortalComponent } from './pages/external-portal/external-portal.component';
 
 /**
  * Application routes
@@ -23,6 +30,10 @@ export const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent
+  },
+  {
+    path: 'invitation/accept/:token',
+    component: InvitationAcceptComponent
   },
   {
     path: '',
@@ -48,6 +59,34 @@ export const routes: Routes = [
       {
         path: 'projects',
         component: ProjectListComponent
+      },
+      {
+        path: 'competitions',
+        component: CompetitionsComponent
+      },
+      {
+        path: 'competitions/create',
+        component: CompetitionCreateComponent
+      },
+      {
+        path: 'competitions/:id/edit',
+        component: CompetitionCreateComponent
+      },
+      {
+        path: 'competitions/:id',
+        component: CompetitionDetailComponent
+      },
+      {
+        path: 'jury',
+        component: JuryDashboardComponent
+      },
+      {
+        path: 'jury/evaluate/:competitionId',
+        component: JuryEvaluationComponent
+      },
+      {
+        path: 'external-portal',
+        component: ExternalPortalComponent
       },
       {
         path: 'students',

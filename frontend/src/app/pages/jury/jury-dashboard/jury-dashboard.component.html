@@ -1,0 +1,87 @@
+<div class="jury-portal-container">
+  <!-- Hero Greeting Header -->
+  <div class="jury-hero-banner">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <mat-icon>gavel</mat-icon> Offizielles Jury Portal
+      </div>
+      <h1>Willkommen, {{ currentUser()?.firstName || 'Juror/in' }} {{ currentUser()?.lastName || '' }}!</h1>
+      <p>Hier findest du alle Wettbewerbe, bei denen du als Juror/in eingeteilt bist. Bewerte die Projekte live während der Pitches und vergib deine Punkte nach den offiziellen Kriterien.</p>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-bubble">
+        <span class="stat-number">{{ competitions().length }}</span>
+        <span class="stat-label">Zugewiesene Wettbewerbe</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div class="loading-box" *ngIf="loading()">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Lade deine Jury-Wettbewerbe...</p>
+  </div>
+
+  <!-- Competitions List -->
+  <div class="competitions-grid" *ngIf="!loading() && competitions().length > 0">
+    @for (comp of competitions(); track comp.competitionId) {
+      <mat-card class="jury-comp-card">
+        <div class="card-top-bar">
+          <span class="comp-type-tag">{{ comp.competitionType }}</span>
+          <span class="comp-status-tag" [class]="getStatusClass(comp.status)">
+            {{ getStatusLabel(comp.status) }}
+          </span>
+        </div>
+
+        <mat-card-header class="comp-card-header">
+          <mat-card-title>{{ comp.name }}</mat-card-title>
+          <mat-card-subtitle>
+            <mat-icon class="sub-icon">calendar_today</mat-icon>
+            {{ comp.startDate | date:'dd.MM.yyyy' }}
+            <span class="role-pill">{{ comp.jurorRole }}</span>
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content class="comp-card-body">
+          <!-- Evaluation Progress -->
+          <div class="progress-section">
+            <div class="progress-labels">
+              <span class="progress-title">Dein Bewertungsfortschritt</span>
+              <span class="progress-count">
+                <strong>{{ comp.evaluatedProjects }}</strong> von {{ comp.totalProjects }} Projekten
+              </span>
+            </div>
+            <mat-progress-bar
+              mode="determinate"
+              [value]="getProgressPercentage(comp.evaluatedProjects, comp.totalProjects)"
+              class="custom-progress">
+            </mat-progress-bar>
+            <span class="progress-percent">
+              {{ getProgressPercentage(comp.evaluatedProjects, comp.totalProjects) }}% abgeschlossen
+            </span>
+          </div>
+        </mat-card-content>
+
+        <div class="card-footer-action">
+          <button
+            mat-flat-button
+            color="primary"
+            class="start-eval-btn"
+            (click)="openEvaluation(comp.competitionId)">
+            <mat-icon>rate_review</mat-icon>
+            {{ comp.evaluatedProjects === comp.totalProjects && comp.totalProjects > 0 ? 'Bewertungen ansehen / anpassen' : 'Jetzt bewerten' }}
+          </button>
+        </div>
+      </mat-card>
+    }
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state-box" *ngIf="!loading() && competitions().length === 0">
+    <div class="empty-icon-circle">
+      <mat-icon>fact_check</mat-icon>
+    </div>
+    <h2>Keine aktiven Jury-Zuweisungen</h2>
+    <p>Du bist aktuell in keinem Wettbewerb als Juror/in eingetragen. Sobald ein Administrator oder Wettbewerbsleiter dich zuweist, erscheint der Wettbewerb hier automatisch.</p>
+  </div>
+</div>

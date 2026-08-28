@@ -1,0 +1,96 @@
+<div class="accept-container">
+  <div class="accept-card-wrapper">
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="loading()">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Einladung wird geprüft...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-state" *ngIf="!loading() && error()">
+      <div class="icon-circle error">
+        <mat-icon>error_outline</mat-icon>
+      </div>
+      <h2>Einladung nicht verfügbar</h2>
+      <p>{{ error() }}</p>
+      <button mat-stroked-button routerLink="/login" class="mt-4">
+        <mat-icon>arrow_back</mat-icon> Zum Hauptlogin
+      </button>
+    </div>
+
+    <!-- Valid Invitation Card -->
+    <mat-card class="invitation-card" *ngIf="!loading() && invitation() as inv">
+      <div class="card-hero">
+        <div class="badge-role">
+          <mat-icon>mail</mat-icon> Offizielle Einladung
+        </div>
+        <h1>Herzlich willkommen, {{ inv.recipientName }}!</h1>
+        <p class="hero-sub">
+          Du wurdest von der <strong>HTL Leonding</strong> zur Teilnahme am Projektmanagementsystem eingeladen.
+        </p>
+      </div>
+
+      <mat-card-content class="card-details">
+        <div class="info-row">
+          <div class="info-item">
+            <span class="label">Zugewiesene Rolle</span>
+            <span class="value highlight">{{ getRoleLabel(inv.targetRole) }}</span>
+          </div>
+          <div class="info-item" *ngIf="inv.schoolName">
+            <span class="label">Partnerschule / Organisation</span>
+            <span class="value">{{ inv.schoolName }}</span>
+          </div>
+        </div>
+
+        <div class="info-row" *ngIf="inv.competitionName">
+          <div class="info-item full">
+            <span class="label">Zugeordneter Wettbewerb</span>
+            <span class="value comp-val">
+              <mat-icon>emoji_events</mat-icon> {{ inv.competitionName }}
+            </span>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-item">
+            <span class="label">Empfänger-E-Mail</span>
+            <span class="value">{{ inv.email }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Gültig bis</span>
+            <span class="value">{{ inv.expiresAtUtc | date:'dd.MM.yyyy HH:mm' }}</span>
+          </div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="instructions-box">
+          <mat-icon class="info-icon">info</mat-icon>
+          <div class="inst-text">
+            @if (inv.targetRole === 'ExternalJuror') {
+              <p>Als Gastjuror/in kannst du nach Annahme der Einladung direkt alle Projekte des Wettbewerbs live bewerten und Kriterien-Punkte vergeben.</p>
+            } @else if (inv.targetRole === 'ExternalTeacher') {
+              <p>Als externe Lehrkraft kannst du eigene Schülerprojekte deiner Partnerschule erfassen und für den Wettbewerb einreichen.</p>
+            } @else {
+              <p>Du erhältst sofortigen Zugriff auf dein zugeordnetes Projekt und kannst deine Einreichungsdaten bearbeiten.</p>
+            }
+          </div>
+        </div>
+      </mat-card-content>
+
+      <div class="card-actions">
+        <button
+          mat-flat-button
+          color="primary"
+          class="accept-btn"
+          [disabled]="accepting()"
+          (click)="acceptAndProceed()">
+          <mat-spinner diameter="20" *ngIf="accepting()"></mat-spinner>
+          <span *ngIf="!accepting()">
+            <mat-icon>check_circle</mat-icon> Einladung annehmen & fortfahren →
+          </span>
+        </button>
+      </div>
+    </mat-card>
+  </div>
+</div>

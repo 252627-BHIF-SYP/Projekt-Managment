@@ -5,3 +5,5 @@ export * from './class.model';
 export * from './student.model';
 export * from './project.model';
 export * from './import.model';
+export * from './competition.model';
+

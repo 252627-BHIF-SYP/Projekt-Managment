@@ -1,0 +1,121 @@
+<div class="form-page-container">
+  <div class="form-card-wrapper">
+    <!-- Header -->
+    <div class="form-header">
+      <button mat-icon-button routerLink="/competitions" class="back-btn">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1>{{ isEditMode() ? 'Wettbewerb bearbeiten' : 'Neuen Wettbewerb anlegen' }}</h1>
+        <p class="subtitle">Definiere Rahmenbedingungen, Zeitdauern und teilnahmeberechtigte Klassen</p>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="competition-form">
+        <mat-card class="section-card">
+          <mat-card-content>
+            <h2 class="section-title">Grunddaten</h2>
+
+            <!-- Name -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Wettbewerbsname / Titel</mat-label>
+              <input matInput formControlName="name" placeholder="z. B. WMC-3 Award 2026" />
+              <mat-icon matSuffix>emoji_events</mat-icon>
+              @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+                <mat-error>Der Name ist erforderlich.</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="form-row">
+              <!-- Type -->
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Wettbewerbsart</mat-label>
+                <mat-select formControlName="competitionType">
+                  @for (t of competitionTypes; track t.value) {
+                    <mat-option [value]="t.value">{{ t.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Classes -->
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Teilnahmeberechtigte Klassen</mat-label>
+                <input matInput formControlName="allowedClassTypes" placeholder="z. B. 3AHIF, 3BHIF oder Alle" />
+                <mat-icon matSuffix>school</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <!-- Start Date -->
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Startdatum</mat-label>
+                <input matInput type="date" formControlName="startDate" />
+              </mat-form-field>
+
+              <!-- End Date -->
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Enddatum (optional)</mat-label>
+                <input matInput type="date" formControlName="endDate" />
+              </mat-form-field>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="section-card">
+          <mat-card-content>
+            <h2 class="section-title">Zeitplan-Standardwerte</h2>
+            <p class="section-desc">Diese Werte werden bei der automatischen Zeitplan-Generierung als Standard verwendet.</p>
+
+            <div class="form-row">
+              <!-- Presentation Duration -->
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Präsentationsdauer pro Projekt (Min.)</mat-label>
+                <input matInput type="number" formControlName="presentationDurationMinutes" min="1" max="180" />
+                <mat-icon matSuffix>timer</mat-icon>
+                @if (form.get('presentationDurationMinutes')?.invalid && form.get('presentationDurationMinutes')?.touched) {
+                  <mat-error>Dauer muss zwischen 1 und 180 Minuten liegen.</mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Break Duration -->
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Pausendauer (Min.)</mat-label>
+                <input matInput type="number" formControlName="breakDurationMinutes" min="0" max="120" />
+                <mat-icon matSuffix>coffee</mat-icon>
+                @if (form.get('breakDurationMinutes')?.invalid && form.get('breakDurationMinutes')?.touched) {
+                  <mat-error>Pause muss zwischen 0 und 120 Minuten liegen.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="button" mat-button routerLink="/competitions">
+            Abbrechen
+          </button>
+          <button
+            type="submit"
+            mat-flat-button
+            color="primary"
+            [disabled]="submitting()">
+            @if (submitting()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              <ng-container>
+                <mat-icon>save</mat-icon>
+                <span>{{ isEditMode() ? 'Änderungen speichern' : 'Wettbewerb erstellen' }}</span>
+              </ng-container>
+            }
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

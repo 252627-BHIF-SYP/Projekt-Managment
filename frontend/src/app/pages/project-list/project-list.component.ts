@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,7 +10,7 @@ import { FilterBarComponent } from '../../shared/components/filter-bar/filter-ba
 import { ProjectService } from '../../services/project.service';
 import { SchoolYearService } from '../../services/schoolyear.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Project, ProjectFilter, SchoolYear } from '../../core/models';
+import { Project, ProjectFilter, ProjectStatus, SchoolYear } from '../../core/models';
 import { firstValueFrom } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -44,6 +44,12 @@ export class ProjectListComponent implements OnInit {
   schoolYears = signal<SchoolYear[]>([]);
   loading = signal(true);
   selectedGlobalSchoolYearId = '';
+  activeQuickFilter = signal<string>('ALL');
+
+  readonly pendingCount = computed(() =>
+    this.projects().filter(p => p.status === ProjectStatus.PENDING).length
+  );
+
   private readonly allValue = 'ALL';
   private currentFilter: ProjectFilter = {};
   private dataLoaded = false;
@@ -98,13 +104,30 @@ export class ProjectListComponent implements OnInit {
     });
   }
 
+  setQuickFilter(filter: string): void {
+    this.activeQuickFilter.set(filter);
+    this.applyFilter();
+  }
+
   private applyFilter(): void {
     const term = (this.currentFilter.searchTerm || '').toLowerCase().trim();
     const schoolYearIds = this.getEffectiveSchoolYearIds(term);
     const statuses = this.getSelectedValues(this.currentFilter.statuses);
     const projectTypes = this.getSelectedValues(this.currentFilter.projectTypes);
+    const quick = this.activeQuickFilter();
 
     const filtered = this.projects().filter(project => {
+      // Quick Status Filter
+      if (quick === 'PENDING' && project.status !== ProjectStatus.PENDING) {
+        return false;
+      }
+      if (quick === 'ON_GOING' && project.status !== ProjectStatus.ON_GOING && project.status !== ProjectStatus.COMPLETED) {
+        return false;
+      }
+      if (quick === 'PUBLISHED' && project.status !== ProjectStatus.PUBLISHED) {
+        return false;
+      }
+
       if (schoolYearIds && !this.matchesSchoolYear(project, schoolYearIds)) {
         return false;
       }

@@ -1,0 +1,212 @@
+<div class="external-portal-container">
+  <!-- Hero Banner -->
+  <div class="portal-hero">
+    <div class="hero-text">
+      <div class="hero-badge">
+        <mat-icon>school</mat-icon> Partnerschul-Portal (Project Award)
+      </div>
+      <h1>Willkommen, {{ teacherName }}!</h1>
+      <p>
+        Hier kannst du Diplomarbeiten und innovative Schülerprojekte deiner Schule (<strong>{{ schoolName }}</strong>) erfassen und direkt zum Wettbewerb der HTL Leonding einreichen.
+      </p>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-box">
+        <span class="stat-num">{{ submittedProjects().length }}</span>
+        <span class="stat-lbl">Eingereichte Projekte</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="portal-grid">
+    <!-- Left Form: Submit New Project -->
+    <div class="submission-form-wrapper">
+      <mat-card class="form-card">
+        <mat-card-header class="card-header-bar">
+          <mat-card-title>
+            <mat-icon>add_circle</mat-icon>
+            Neues Partnerschul-Projekt einreichen
+          </mat-card-title>
+          <mat-card-subtitle>Erfasse die Projektdaten und dein Schüler-Team</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content class="form-body">
+          <form [formGroup]="projectForm" (ngSubmit)="submitProject()">
+            <!-- Project Basics -->
+            <div class="form-section-title">1. Projektdaten</div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Projekttitel *</mat-label>
+              <input matInput formControlName="title" placeholder="z. B. Smart Home Energy Monitor" />
+              <mat-error *ngIf="projectForm.get('title')?.hasError('required')">Projekttitel ist erforderlich</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Kurzbeschreibung & Zielsetzung *</mat-label>
+              <textarea
+                matInput
+                rows="4"
+                formControlName="description"
+                placeholder="Beschreibe kurz die Problemstellung, die Umsetzung und das Ergebnis..."></textarea>
+              <mat-error *ngIf="projectForm.get('description')?.hasError('required')">Beschreibung ist erforderlich</mat-error>
+            </mat-form-field>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Eingesetzte Technologien</mat-label>
+                <input matInput formControlName="technology" placeholder="z. B. Angular, .NET Core, Raspberry Pi" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Partnerschule / Institution *</mat-label>
+                <input matInput formControlName="schoolName" placeholder="z. B. HTL Perg" />
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>GitHub / Repository URL (optional)</mat-label>
+                <input matInput formControlName="githubUrl" placeholder="https://github.com/..." />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Logo / Bild URL (optional)</mat-label>
+                <input matInput formControlName="logoUrl" placeholder="https://..." />
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width" *ngIf="competitions().length > 0">
+              <mat-label>Ziel-Wettbewerb auswählen</mat-label>
+              <mat-select formControlName="competitionId">
+                @for (c of competitions(); track c.competitionId) {
+                  <mat-option [value]="c.competitionId">{{ c.name }} ({{ c.competitionType }})</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-divider class="my-4"></mat-divider>
+
+            <!-- Students Team -->
+            <div class="students-section-header">
+              <div class="form-section-title">2. Schüler-Team</div>
+              <button mat-stroked-button type="button" (click)="addStudentRow()" class="add-student-btn">
+                <mat-icon>person_add</mat-icon> Weiteren Schüler hinzufügen
+              </button>
+            </div>
+
+            <div formArrayName="students" class="students-list">
+              @for (st of studentsArray.controls; track $index; let idx = $index) {
+                <div [formGroupName]="idx" class="student-row-card">
+                  <div class="student-num">{{ idx + 1 }}</div>
+                  <div class="student-inputs">
+                    <div class="form-row">
+                      <mat-form-field appearance="outline" class="flex-1">
+                        <mat-label>Vorname *</mat-label>
+                        <input matInput formControlName="firstName" placeholder="Vorname" />
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="flex-1">
+                        <mat-label>Nachname *</mat-label>
+                        <input matInput formControlName="lastName" placeholder="Nachname" />
+                      </mat-form-field>
+                    </div>
+
+                    <div class="form-row">
+                      <mat-form-field appearance="outline" class="flex-1">
+                        <mat-label>E-Mail-Adresse</mat-label>
+                        <input matInput formControlName="email" placeholder="schueler@schule.at" />
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="flex-1">
+                        <mat-label>Klasse / Jahrgang</mat-label>
+                        <input matInput formControlName="classGrade" placeholder="z. B. 5AHIT" />
+                      </mat-form-field>
+                    </div>
+                  </div>
+
+                  <button
+                    mat-icon-button
+                    type="button"
+                    color="warn"
+                    (click)="removeStudentRow(idx)"
+                    [disabled]="studentsArray.length <= 1"
+                    matTooltip="Schüler entfernen">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+
+            <mat-divider class="my-4"></mat-divider>
+
+            <!-- Consent Declaration -->
+            <div class="consent-box">
+              <mat-checkbox formControlName="consent" color="primary">
+                <strong>Einverständniserklärung & DSGVO:</strong> Ich bestätige, dass alle teilnehmenden Schüler/innen und Erziehungsberechtigten der Teilnahme am Wettbewerb sowie der Veröffentlichung von Projektdaten und Fotos im Rahmen der Veranstaltung zugestimmt haben.
+              </mat-checkbox>
+            </div>
+
+            <div class="submit-action-bar">
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                class="submit-btn"
+                [disabled]="submitting()">
+                <mat-spinner diameter="20" *ngIf="submitting()"></mat-spinner>
+                <span *ngIf="!submitting()">
+                  <mat-icon>send</mat-icon> Projekt jetzt offiziell einreichen
+                </span>
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Right: List of submitted external projects -->
+    <div class="submitted-projects-wrapper">
+      <div class="sidebar-title-row">
+        <h2>Eingereichte Projekte ({{ submittedProjects().length }})</h2>
+      </div>
+
+      <div class="submitted-list" *ngIf="submittedProjects().length > 0">
+        @for (p of submittedProjects(); track p.id) {
+          <mat-card class="mini-project-card">
+            <div class="mini-card-top">
+              <span class="ext-school-tag">
+                <mat-icon>location_on</mat-icon> {{ p.externalSchoolName || 'Externe Schule' }}
+              </span>
+              <span class="status-pill" [class]="getStatusClass(p.status)">
+                {{ getStatusLabel(p.status) }}
+              </span>
+            </div>
+
+            <h3 class="mini-title">{{ p.title }}</h3>
+            <p class="mini-desc">{{ p.description }}</p>
+
+            <div class="mini-tech" *ngIf="p.technologies && p.technologies.length > 0">
+              @for (t of p.technologies; track t) {
+                <span class="tech-chip">{{ t }}</span>
+              }
+            </div>
+
+            <div class="mini-footer">
+              <span class="consent-badge" *ngIf="p.hasConsent">
+                <mat-icon>verified</mat-icon> Einverständnis erteilt
+              </span>
+              <button mat-button color="primary" [routerLink]="['/projects', p.projectId || p.id]">
+                Details ansehen <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </mat-card>
+        }
+      </div>
+
+      <div class="empty-projects" *ngIf="submittedProjects().length === 0">
+        <mat-icon>inventory_2</mat-icon>
+        <p>Noch keine externen Projekte eingereicht. Fülle das Formular links aus, um dein erstes Projekt einzureichen.</p>
+      </div>
+    </div>
+  </div>
+</div>

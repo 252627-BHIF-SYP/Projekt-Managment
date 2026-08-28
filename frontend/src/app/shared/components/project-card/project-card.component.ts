@@ -62,14 +62,16 @@ export class ProjectCardComponent {
 
   getStatusLabel(status: ProjectStatus): string {
     const labels: Record<ProjectStatus, string> = {
-      [ProjectStatus.DRAFT]: 'Draft',
-      [ProjectStatus.OPEN]: 'Open',
-      [ProjectStatus.IN_PROGRESS]: 'In Progress',
-      [ProjectStatus.COMPLETED]: 'Completed',
-      [ProjectStatus.ARCHIVED]: 'Archived',
-      [ProjectStatus.NEW]: 'New',
-      [ProjectStatus.PENDING]: 'Pending',
-      [ProjectStatus.ON_GOING]: 'On Going'
+      [ProjectStatus.DRAFT]: 'Entwurf',
+      [ProjectStatus.OPEN]: 'Offen',
+      [ProjectStatus.IN_PROGRESS]: 'In Bearbeitung',
+      [ProjectStatus.COMPLETED]: 'Abgeschlossen',
+      [ProjectStatus.ARCHIVED]: 'Archiviert',
+      [ProjectStatus.NEW]: 'Neu',
+      [ProjectStatus.PENDING]: 'Zur Prüfung',
+      [ProjectStatus.ON_GOING]: 'In Durchführung',
+      [ProjectStatus.PUBLISHED]: 'Veröffentlicht',
+      [ProjectStatus.REJECTED]: 'Abgelehnt'
     };
     return labels[status] || status;
   }
