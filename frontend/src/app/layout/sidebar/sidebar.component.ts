@@ -25,7 +25,7 @@ interface MenuItem {
     MatIconModule
   ],
   templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.css'
+  styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
   private readonly authService = inject(AuthService);
@@ -34,17 +34,18 @@ export class SidebarComponent {
   private readonly user = toSignal(this.authService.currentUser$, { initialValue: null });
 
   private readonly menuItems: MenuItem[] = [
-    { label: 'Projects', icon: 'folder', route: '/projects' },
-    { label: 'Competitions', icon: 'emoji_events', route: '/competitions' },
-    { label: 'Jury Portal', icon: 'gavel', route: '/jury' },
-    { label: 'Partnerschul-Portal', icon: 'domain', route: '/external-portal' },
-    { label: 'Create Project', icon: 'add_circle', route: '/projects/create' },
-    { label: 'Students', icon: 'school', route: '/students', roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] },
-    { label: 'Create Student', icon: 'person_add', route: '/students/create', roles: [Role.AV, Role.SYS_ADMIN] },
-    { label: 'Professors', icon: 'groups', route: '/professors', roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] },
-    { label: 'Create Professor', icon: 'person_add', route: '/professors/create', roles: [Role.AV, Role.SYS_ADMIN] },
-    { label: 'Admin Dashboard', icon: 'admin_panel_settings', route: '/admin-dashboard', roles: [Role.SYS_ADMIN, Role.AV] },
-    { label: 'Profile', icon: 'person', route: '/profile' }
+    { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
+    { label: 'Projekte', icon: 'folder', route: '/projects' },
+    { label: 'Wettbewerbe', icon: 'emoji_events', route: '/competitions' },
+    { label: 'Jury-Portal', icon: 'gavel', route: '/jury' },
+    { label: 'Partnerschulen', icon: 'domain', route: '/external-portal' },
+    { label: 'Projekt anlegen', icon: 'add_circle', route: '/projects/create' },
+    { label: 'Schüler', icon: 'school', route: '/students', roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] },
+    { label: 'Schüler erfassen', icon: 'person_add', route: '/students/create', roles: [Role.AV, Role.SYS_ADMIN] },
+    { label: 'Betreuer / Professoren', icon: 'groups', route: '/professors', roles: [Role.PROFESSOR, Role.AV, Role.SYS_ADMIN] },
+    { label: 'Betreuer erfassen', icon: 'person_add', route: '/professors/create', roles: [Role.AV, Role.SYS_ADMIN] },
+    { label: 'Administration', icon: 'admin_panel_settings', route: '/admin-dashboard', roles: [Role.SYS_ADMIN, Role.AV] },
+    { label: 'Mein Profil', icon: 'account_circle', route: '/profile' }
   ];
 
   readonly visibleMenuItems = computed<MenuItem[]>(() => {

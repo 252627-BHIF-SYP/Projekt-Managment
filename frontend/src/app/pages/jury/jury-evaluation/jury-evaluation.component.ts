@@ -47,7 +47,7 @@ import { AuthService } from '../../../core/services/auth.service';
     MatTooltipModule
   ],
   templateUrl: './jury-evaluation.component.html',
-  styleUrls: ['./jury-evaluation.component.css']
+  styleUrl: './jury-evaluation.component.scss'
 })
 export class JuryEvaluationComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

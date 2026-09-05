@@ -42,7 +42,7 @@ import { CreateExternalProjectPayload } from '../../core/models/invitation.model
     MatTooltipModule
   ],
   templateUrl: './external-portal.component.html',
-  styleUrls: ['./external-portal.component.css']
+  styleUrl: './external-portal.component.scss'
 })
 export class ExternalPortalComponent implements OnInit {
   private readonly fb = inject(FormBuilder);

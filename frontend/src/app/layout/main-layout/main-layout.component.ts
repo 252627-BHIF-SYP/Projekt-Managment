@@ -1,21 +1,17 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { MatSidenavModule } from '@angular/material/sidenav';
 import { TopbarComponent } from '../topbar/topbar.component';
-import { SidebarComponent } from '../sidebar/sidebar.component';
 
 /**
- * Main layout with sidebar and topbar.
+ * Main layout with topbar header navigation.
  */
 @Component({
   selector: 'app-main-layout',
   imports: [
     RouterOutlet,
-    MatSidenavModule,
-    TopbarComponent,
-    SidebarComponent
+    TopbarComponent
   ],
   templateUrl: './main-layout.component.html',
-  styleUrl: './main-layout.component.css'
+  styleUrl: './main-layout.component.scss'
 })
 export class MainLayoutComponent {}

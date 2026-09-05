@@ -1,9 +1,11 @@
-<mat-nav-list>
+<mat-nav-list class="sidebar-nav-list">
   @for (item of visibleMenuItems(); track item.route) {
     <a
       mat-list-item
+      class="sidebar-item"
       [routerLink]="item.route"
-      routerLinkActive="active">
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' || item.route === '/projects' ? false : true }">
       <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
       <span matListItemTitle>{{ item.label }}</span>
     </a>

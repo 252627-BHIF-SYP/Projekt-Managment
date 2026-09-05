@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" fill="none">
+  <!-- HTL Leonding Chevron Logo (Transparent background) -->
+  <g transform="translate(4, 8) scale(0.9)">
+    <!-- Top-Left Segment (Deep Blue) -->
+    <path d="M 0 0 L 16 0 L 32 28 L 16 28 Z" fill="#0284c7" />
+    
+    <!-- Top-Right / Apex Segment (Light Cyan) -->
+    <path d="M 18 0 L 34 0 L 50 28 L 34 28 Z" fill="#38bdf8" />
+    
+    <!-- Bottom-Right / Inner Segment (Amber / Gold) -->
+    <path d="M 34 32 L 50 32 L 34 60 L 18 60 Z" fill="#f59e0b" />
+    
+    <!-- Bottom-Left Segment (Crimson / Red) -->
+    <path d="M 16 32 L 32 32 L 16 60 L 0 60 Z" fill="#cf2e2e" />
+  </g>
+
+  <!-- Typography: HTL Leonding (White) -->
+  <text x="64" y="38" font-family="'Manrope', 'Roboto', 'Segoe UI', sans-serif" font-size="34" font-weight="800" fill="#ffffff" letter-spacing="-0.5px">HTL Leonding</text>
+  
+  <!-- Subtitle: next level (White) -->
+  <text x="66" y="62" font-family="'Manrope', 'Roboto', 'Segoe UI', sans-serif" font-size="20" font-weight="400" fill="#f3f4f6" letter-spacing="0.5px">next level</text>
+</svg>

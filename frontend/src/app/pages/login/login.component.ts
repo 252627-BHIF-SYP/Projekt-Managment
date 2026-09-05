@@ -50,6 +50,11 @@ export class LoginComponent implements OnInit {
     { role: 'Student', username: 'IF210025' }
   ];
 
+  fillDemo(username: string): void {
+    this.credentials.username = username;
+    this.credentials.password = 'password';
+  }
+
   ngOnInit(): void {
     // If returning from Keycloak and already authenticated, move to projects
     if (this.authService.isAuthenticated()) {

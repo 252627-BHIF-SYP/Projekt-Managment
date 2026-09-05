@@ -1,1 +1,12 @@
-/* DEPRECATED — moved to main-layout.component.css. Safe to delete. */
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--htl-surface-bg, #f8fafc);
+}
+
+.main-content {
+  flex: 1;
+  width: 100%;
+  background-color: var(--htl-surface-bg, #f8fafc);
+}

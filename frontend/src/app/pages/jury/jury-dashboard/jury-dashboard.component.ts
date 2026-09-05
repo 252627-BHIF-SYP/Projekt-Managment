@@ -27,7 +27,7 @@ import { JurorCompetition } from '../../../core/models/competition.model';
     MatTooltipModule
   ],
   templateUrl: './jury-dashboard.component.html',
-  styleUrls: ['./jury-dashboard.component.css']
+  styleUrl: './jury-dashboard.component.scss'
 })
 export class JuryDashboardComponent implements OnInit {
   private readonly evaluationService = inject(EvaluationService);

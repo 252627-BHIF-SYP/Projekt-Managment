@@ -1,30 +1,123 @@
-<mat-toolbar color="primary" class="topbar">
-  <span class="app-title">School Project Management</span>
+<header class="htl-header">
+  <div class="header-container">
+    <!-- Left: HTL Leonding Logo & Brand Title -->
+    <a routerLink="/dashboard" class="brand-link">
+      <img src="assets/htl-leonding-white.svg" alt="HTL Leonding" class="htl-logo-white">
+      <div class="brand-divider"></div>
+      <div class="brand-text">
+        <span class="brand-title">Projektmanagement</span>
+        <span class="brand-tagline">Diplom- & Schulprojekte</span>
+      </div>
+    </a>
 
-  <span class="spacer"></span>
+    <!-- Right: Navigation Links -->
+    <nav class="nav-right" [class.mobile-open]="mobileMenuOpen()">
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item" (click)="mobileMenuOpen.set(false)">
+        Dashboard
+      </a>
+      <a routerLink="/competitions" routerLinkActive="active" class="nav-item" (click)="mobileMenuOpen.set(false)">
+        Wettbewerbe
+      </a>
+      <a routerLink="/jury" routerLinkActive="active" class="nav-item" (click)="mobileMenuOpen.set(false)">
+        Jury-Portal
+      </a>
+      <a routerLink="/external-portal" routerLinkActive="active" class="nav-item" (click)="mobileMenuOpen.set(false)">
+        Partnerschulen
+      </a>
 
-  <mat-form-field appearance="outline" class="global-year-select">
-    <mat-select
-      [ngModel]="selectedSchoolYearId"
-      (ngModelChange)="selectSchoolYear($event)"
-      [disabled]="schoolYears().length === 0">
-      <mat-option *ngFor="let year of schoolYears()" [value]="year.id">
-        {{ year.year }}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
+      <!-- Management / Admin Dropdown -->
+      <button *ngIf="canManage()" mat-button [matMenuTriggerFor]="manageMenu" class="nav-item nav-dropdown-btn">
+        <span>Verwaltung</span>
+        <mat-icon class="dropdown-arrow">expand_more</mat-icon>
+      </button>
 
-  <button mat-icon-button [matMenuTriggerFor]="userMenu">
-    <mat-icon>account_circle</mat-icon>
-  </button>
-  <mat-menu #userMenu="matMenu">
-    <button mat-menu-item routerLink="/profile">
-      <mat-icon>person</mat-icon>
-      <span>Profile</span>
+      <mat-menu #manageMenu="matMenu" class="htl-dropdown-menu">
+        <a mat-menu-item routerLink="/projects/create" (click)="mobileMenuOpen.set(false)">
+          <mat-icon>add_circle</mat-icon>
+          <span>Neues Projekt anlegen</span>
+        </a>
+        <a mat-menu-item routerLink="/projects" (click)="mobileMenuOpen.set(false)">
+          <mat-icon>folder</mat-icon>
+          <span>Alle Projekte anzeigen</span>
+        </a>
+        <mat-divider></mat-divider>
+        <a mat-menu-item routerLink="/students" (click)="mobileMenuOpen.set(false)">
+          <mat-icon>school</mat-icon>
+          <span>Schüler</span>
+        </a>
+        <a mat-menu-item routerLink="/students/create" *ngIf="isAdmin()" (click)="mobileMenuOpen.set(false)">
+          <mat-icon>person_add</mat-icon>
+          <span>Schüler erfassen</span>
+        </a>
+        <mat-divider></mat-divider>
+        <a mat-menu-item routerLink="/professors" (click)="mobileMenuOpen.set(false)">
+          <mat-icon>groups</mat-icon>
+          <span>Betreuer & Professoren</span>
+        </a>
+        <a mat-menu-item routerLink="/professors/create" *ngIf="isAdmin()" (click)="mobileMenuOpen.set(false)">
+          <mat-icon>person_add</mat-icon>
+          <span>Betreuer erfassen</span>
+        </a>
+        <mat-divider *ngIf="isAdmin()"></mat-divider>
+        <a mat-menu-item routerLink="/admin-dashboard" *ngIf="isAdmin()" (click)="mobileMenuOpen.set(false)">
+          <mat-icon>admin_panel_settings</mat-icon>
+          <span>Administration</span>
+        </a>
+        <a mat-menu-item routerLink="/import" *ngIf="isAdmin()" (click)="mobileMenuOpen.set(false)">
+          <mat-icon>upload_file</mat-icon>
+          <span>Datenimport (CSV)</span>
+        </a>
+      </mat-menu>
+
+      <!-- School Year Selector -->
+      <div class="year-selector-box">
+        <mat-icon class="year-icon">calendar_today</mat-icon>
+        <mat-select
+          [ngModel]="selectedSchoolYearId"
+          (ngModelChange)="selectSchoolYear($event)"
+          [disabled]="schoolYears().length === 0"
+          placeholder="Schuljahr"
+          class="year-select-native">
+          <mat-option *ngFor="let year of schoolYears()" [value]="year.id">
+            {{ year.year }}
+          </mat-option>
+        </mat-select>
+      </div>
+
+      <!-- User Profile Menu (with Name & Role) -->
+      <button mat-button [matMenuTriggerFor]="userMenu" class="user-pill-btn">
+        <div class="user-avatar-circle">
+          <mat-icon>person</mat-icon>
+        </div>
+        <div class="user-meta" *ngIf="currentUser()">
+          <span class="user-name">{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</span>
+          <span class="user-role-label">({{ getRoleLabel(currentUser()?.roles) }})</span>
+        </div>
+        <mat-icon class="arrow-icon">expand_more</mat-icon>
+      </button>
+
+      <mat-menu #userMenu="matMenu" class="htl-dropdown-menu user-dropdown">
+        <div class="user-menu-header" *ngIf="currentUser()">
+          <div class="menu-user-name">{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</div>
+          <div class="menu-user-role">{{ getRoleLabel(currentUser()?.roles) }}</div>
+          <div class="menu-user-email">{{ currentUser()?.email }}</div>
+        </div>
+        <mat-divider></mat-divider>
+        <a mat-menu-item routerLink="/profile" (click)="mobileMenuOpen.set(false)">
+          <mat-icon>account_circle</mat-icon>
+          <span>Mein Profil</span>
+        </a>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()" class="logout-item">
+          <mat-icon color="warn">logout</mat-icon>
+          <span>Abmelden</span>
+        </button>
+      </mat-menu>
+    </nav>
+
+    <!-- Mobile Hamburger Button -->
+    <button mat-icon-button class="mobile-toggle" (click)="toggleMobileMenu()">
+      <mat-icon>{{ mobileMenuOpen() ? 'close' : 'menu' }}</mat-icon>
     </button>
-    <button mat-menu-item (click)="logout()">
-      <mat-icon>logout</mat-icon>
-      <span>Logout</span>
-    </button>
-  </mat-menu>
-</mat-toolbar>
+  </div>
+</header>

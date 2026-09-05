@@ -1,1 +1,187 @@
-/* DEPRECATED — moved to styles.css. Safe to delete. */
+/* HTL Leonding - Global Styles */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Manrope', Roboto, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--htl-surface-bg, #f8fafc);
+  color: var(--htl-text-primary, #0f172a);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Manrope', Roboto, sans-serif;
+  color: var(--htl-slate, #1e293b);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+a {
+  color: var(--htl-amber-hover, #d97706);
+  text-decoration: none;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: var(--htl-amber, #f59e0b);
+  }
+}
+
+/* Utilities */
+.full-width {
+  width: 100%;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Page Containers */
+.page-container {
+  padding: 28px 36px;
+  max-width: 1440px;
+  margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--htl-slate, #1e293b);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+}
+
+/* Card Grids */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Filter Section */
+.filter-section {
+  background: var(--htl-card-bg, #ffffff);
+  padding: 20px 24px;
+  border-radius: var(--htl-radius-md, 12px);
+  margin-bottom: 24px;
+  border: 1px solid var(--htl-border, #e2e8f0);
+  box-shadow: var(--htl-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.05));
+}
+
+/* Status Badges */
+.status-badge, .status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--htl-radius-full, 9999px);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+
+  &.status-published, &.status-completed, &.status-angemeldet {
+    background: var(--htl-emerald-light, #d1fae5);
+    color: #065f46;
+  }
+
+  &.status-in_progress, &.status-laufend, &.status-genehmigt, &.status-approved {
+    background: var(--htl-amber-light, #fef3c7);
+    color: #92400e;
+  }
+
+  &.status-pending, &.status-abgelehnt, &.status-rejected {
+    background: var(--htl-red-light, #fee2e2);
+    color: #991b1b;
+  }
+
+  &.status-draft, &.status-new, &.status-idee {
+    background: var(--htl-surface-bg, #f1f5f9);
+    color: #475569;
+  }
+}
+
+/* Material Form Fields */
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mat-mdc-card {
+  border-radius: var(--htl-radius-md, 12px) !important;
+  border: 1px solid var(--htl-border, #e2e8f0) !important;
+  box-shadow: var(--htl-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.05)) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+
+  &:hover {
+    box-shadow: var(--htl-shadow-md, 0 4px 14px rgba(15, 23, 42, 0.06)) !important;
+  }
+}
+
+/* Material Buttons */
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-flat-button.mat-primary {
+  background-color: var(--htl-amber, #f59e0b) !important;
+  color: #ffffff !important;
+  border-radius: var(--htl-radius-sm, 8px) !important;
+  font-weight: 700 !important;
+
+  &:hover {
+    background-color: var(--htl-amber-hover, #d97706) !important;
+  }
+}
+
+.mat-mdc-raised-button.mat-accent,
+.mat-mdc-unelevated-button.mat-accent,
+.mat-mdc-flat-button.mat-accent {
+  background-color: var(--htl-slate, #1e293b) !important;
+  color: #ffffff !important;
+  border-radius: var(--htl-radius-sm, 8px) !important;
+  font-weight: 700 !important;
+}
+
+/* HTL Branded Badges */
+.htl-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--htl-gold-subtle, #fffbeb);
+  color: var(--htl-amber-hover, #d97706);
+  border: 1px solid #fde68a;
+  padding: 4px 12px;
+  border-radius: var(--htl-radius-full, 9999px);
+  font-size: 12px;
+  font-weight: 700;
+}

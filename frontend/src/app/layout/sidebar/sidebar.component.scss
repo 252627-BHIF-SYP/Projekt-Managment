@@ -1,1 +1,58 @@
-/* DEPRECATED — moved to sidebar.component.css. Safe to delete. */
+:host {
+  display: block;
+  height: 100%;
+  background: #ffffff;
+}
+
+.sidebar-nav-list {
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-item {
+  border-radius: var(--htl-radius-md, 10px) !important;
+  margin: 0 !important;
+  height: 44px !important;
+  transition: all 0.2s ease !important;
+  color: var(--htl-slate, #334155) !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+
+  mat-icon {
+    color: var(--htl-text-muted, #94a3b8) !important;
+    transition: color 0.2s ease !important;
+    margin-right: 12px;
+  }
+
+  &:hover {
+    background-color: var(--htl-surface-bg, #f1f5f9) !important;
+    color: var(--htl-dark, #0f172a) !important;
+
+    mat-icon {
+      color: var(--htl-amber, #f59e0b) !important;
+    }
+  }
+
+  &.active {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+    font-weight: 700 !important;
+
+    mat-icon {
+      color: #b45309 !important;
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 8px;
+      width: 4px;
+      background: var(--htl-amber, #f59e0b);
+      border-radius: 0 4px 4px 0;
+    }
+  }
+}

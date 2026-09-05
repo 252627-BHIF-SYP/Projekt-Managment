@@ -32,7 +32,7 @@ import { CompetitionSummary, CompetitionType } from '../../core/models';
     MatSnackBarModule
   ],
   templateUrl: './competitions.component.html',
-  styleUrl: './competitions.component.css'
+  styleUrl: './competitions.component.scss'
 })
 export class CompetitionsComponent implements OnInit {
   private readonly competitionService = inject(CompetitionService);

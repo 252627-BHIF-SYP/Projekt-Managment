@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,12 +10,12 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { SchoolYear } from '../../core/models';
+import { Role, SchoolYear } from '../../core/models';
 import { AuthService } from '../../core/services/auth.service';
 import { SchoolYearService } from '../../services/schoolyear.service';
 
 /**
- * Topbar with user menu.
+ * Topbar with right-aligned navigation matching HTL Leonding corporate design.
  */
 @Component({
   selector: 'app-topbar',
@@ -23,6 +23,7 @@ import { SchoolYearService } from '../../services/schoolyear.service';
     CommonModule,
     FormsModule,
     RouterLink,
+    RouterLinkActive,
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
@@ -32,7 +33,7 @@ import { SchoolYearService } from '../../services/schoolyear.service';
     MatSelectModule
   ],
   templateUrl: './topbar.component.html',
-  styleUrl: './topbar.component.css'
+  styleUrl: './topbar.component.scss'
 })
 export class TopbarComponent implements OnInit {
   private readonly authService = inject(AuthService);
@@ -42,6 +43,15 @@ export class TopbarComponent implements OnInit {
   protected readonly currentUser = this.authService.currentUser;
   protected readonly schoolYears = signal<SchoolYear[]>([]);
   protected selectedSchoolYearId = '';
+  protected readonly mobileMenuOpen = signal<boolean>(false);
+
+  readonly canManage = computed(() =>
+    this.authService.hasAnyRole([Role.PROFESSOR, Role.AV, Role.SYS_ADMIN])
+  );
+
+  readonly isAdmin = computed(() =>
+    this.authService.hasAnyRole([Role.AV, Role.SYS_ADMIN])
+  );
 
   ngOnInit(): void {
     this.schoolYearService.selectedSchoolYear$
@@ -61,6 +71,22 @@ export class TopbarComponent implements OnInit {
     if (selectedYear) {
       this.schoolYearService.selectSchoolYear(selectedYear);
     }
+  }
+
+  getRoleLabel(roles?: Role[]): string {
+    if (!roles || roles.length === 0) return 'Benutzer';
+    const r = roles[0];
+    switch (r) {
+      case Role.SYS_ADMIN: return 'Admin';
+      case Role.AV: return 'Abteilungsvorstand';
+      case Role.PROFESSOR: return 'Professor';
+      case Role.STUDENT: return 'Schüler';
+      default: return r;
+    }
+  }
+
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen.update(v => !v);
   }
 
   logout(): void {

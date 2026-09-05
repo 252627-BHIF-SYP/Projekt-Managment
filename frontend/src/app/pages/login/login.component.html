@@ -1,71 +1,94 @@
-    <div class="login-container">
-      <mat-card class="login-card">
-        <mat-card-header>
-          <mat-card-title>School Project Management</mat-card-title>
-          <mat-card-subtitle>Sign in to continue</mat-card-subtitle>
-        </mat-card-header>
+<div class="login-page-container">
+  <div class="login-backdrop-glow"></div>
 
-        <mat-card-content>
-          <!-- Keycloak Login Button -->
-          <div class="keycloak-login" *ngIf="useKeycloak">
-            <button 
-              mat-raised-button 
-              color="primary" 
-              (click)="loginWithKeycloak()"
-              class="full-width keycloak-button">
-              <mat-icon>vpn_key</mat-icon>
-              <span>Sign in with Keycloak</span>
-            </button>
-          </div>
-
-          <!-- Mock Login Form (for development) -->
-          <form *ngIf="!useKeycloak" (ngSubmit)="login()" #loginForm="ngForm">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Username</mat-label>
-              <input 
-                matInput 
-                [(ngModel)]="credentials.username" 
-                name="username"
-                required
-                autocomplete="username">
-              <mat-icon matPrefix>person</mat-icon>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Password</mat-label>
-              <input 
-                matInput 
-                type="password"
-                [(ngModel)]="credentials.password" 
-                name="password"
-                required
-                autocomplete="current-password">
-              <mat-icon matPrefix>lock</mat-icon>
-            </mat-form-field>
-
-            <div class="error-message" *ngIf="errorMessage()">
-              <mat-icon>error</mat-icon>
-              {{ errorMessage() }}
-            </div>
-
-            <button 
-              mat-raised-button 
-              color="accent" 
-              type="submit"
-              class="full-width"
-              [disabled]="loading() || !loginForm.valid">
-              <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
-              <span *ngIf="!loading()">Sign In (Mock)</span>
-            </button>
-          </form>
-
-          <div class="demo-accounts" *ngIf="!useKeycloak">
-            <p class="demo-title">Demo Accounts (Mock):</p>
-            <div class="demo-account" *ngFor="let demo of demoAccounts">
-              <strong>{{ demo.role }}:</strong> {{ demo.username }} / password
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+  <mat-card class="login-card">
+    <div class="login-brand-header">
+      <div class="logo-box">
+        <img src="assets/htl-leonding.jpg" alt="HTL Leonding" class="login-htl-logo">
+      </div>
+      <div class="login-title-group">
+        <h1 class="login-title">Projektmanagement</h1>
+        <p class="login-subtitle">Diplom- & Projektplattform der HTL Leonding</p>
+      </div>
     </div>
-  
+
+    <mat-card-content class="login-content">
+      <!-- Keycloak Login Option -->
+      <div class="keycloak-login-box" *ngIf="useKeycloak">
+        <button
+          mat-flat-button
+          color="primary"
+          (click)="loginWithKeycloak()"
+          class="full-width keycloak-button">
+          <mat-icon>vpn_key</mat-icon>
+          <span>Mit Schulkonto (Keycloak) anmelden</span>
+        </button>
+      </div>
+
+      <div class="divider" *ngIf="useKeycloak && !useKeycloak">
+        <span>oder</span>
+      </div>
+
+      <!-- Mock Login Form (Development) -->
+      <form *ngIf="!useKeycloak" (ngSubmit)="login()" #loginForm="ngForm" class="login-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Benutzername / Schul-ID</mat-label>
+          <input
+            matInput
+            [(ngModel)]="credentials.username"
+            name="username"
+            required
+            autocomplete="username"
+            placeholder="z. B. bschroedt oder IF210025">
+          <mat-icon matPrefix>person</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Passwort</mat-label>
+          <input
+            matInput
+            type="password"
+            [(ngModel)]="credentials.password"
+            name="password"
+            required
+            autocomplete="current-password"
+            placeholder="Passwort eingeben">
+          <mat-icon matPrefix>lock</mat-icon>
+        </mat-form-field>
+
+        <div class="error-message" *ngIf="errorMessage()">
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage() }}</span>
+        </div>
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          class="full-width submit-login-btn"
+          [disabled]="loading() || !loginForm.valid">
+          <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
+          <span *ngIf="!loading()">Anmelden</span>
+        </button>
+      </form>
+
+      <!-- Quick Demo Accounts (Dev) -->
+      <div class="demo-accounts-container" *ngIf="!useKeycloak">
+        <div class="demo-title">
+          <mat-icon>smart_toy</mat-icon>
+          <span>Schnell-Login Demo Accounts</span>
+        </div>
+        <div class="demo-chips">
+          <button
+            type="button"
+            class="demo-chip-btn"
+            *ngFor="let demo of demoAccounts"
+            (click)="fillDemo(demo.username)">
+            <span class="demo-role">{{ demo.role }}</span>
+            <span class="demo-name">{{ demo.username }}</span>
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

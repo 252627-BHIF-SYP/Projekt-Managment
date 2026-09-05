@@ -68,18 +68,18 @@
         text-transform: uppercase;
 
         &.status-searching {
-          background: #e3f2fd;
-          color: #1976d2;
+          background: #fef3c7;
+          color: #b45309;
         }
 
         &.status-assigned {
-          background: #fff3e0;
-          color: #f57c00;
+          background: #fff7ed;
+          color: #c2410c;
         }
 
         &.status-completed {
-          background: #e8f5e9;
-          color: #388e3c;
+          background: #ecfdf5;
+          color: #047857;
         }
       }
     }
